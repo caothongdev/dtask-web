@@ -12,9 +12,9 @@ let state = {
   username: localStorage.getItem(LS_KEY + ":user") || "",
   is_public: false,
   tasks: [],
-  stats: null,
-  activity: [],
-  filter: "all",
+  archivedTasks: [],
+  view: "tasks",     // 'tasks' | 'archive' | 'settings'
+  filter: "all",     // when view === 'tasks': all | open | done
   search: "",
   es: null,  // EventSource
 };
@@ -114,15 +114,39 @@ function renderTasks() {
   const host = $("task-groups");
   host.innerHTML = "";
   const q = state.search.trim().toLowerCase();
-  let tasks = state.tasks;
-  if (state.filter === "open") tasks = tasks.filter(t => t.status !== "done");
-  else if (state.filter === "done") tasks = tasks.filter(t => t.status === "done");
+
+  // Pick the right source list
+  let tasks = state.view === "archive" ? state.archivedTasks : state.tasks;
+
+  // Apply filter chips only on Tasks view
+  if (state.view === "tasks") {
+    if (state.filter === "open") tasks = tasks.filter(t => t.status !== "done");
+    else if (state.filter === "done") tasks = tasks.filter(t => t.status === "done");
+  }
+
   if (q) tasks = tasks.filter(t => t.title.toLowerCase().includes(q));
+
+  const emptyEl = $("empty");
   if (tasks.length === 0) {
-    $("empty").classList.remove("hidden");
+    emptyEl.classList.remove("hidden");
+    const span = emptyEl.querySelector("span");
+    if (state.view === "archive") {
+      span.innerHTML = 'No archived tasks. Press <kbd>×</kbd> on any task to archive it (and visit / to undo).';
+    } else if (state.filter === "open" || state.filter === "done") {
+      span.innerHTML = `No <code>${state.filter}</code> tasks. <a href="#" id="reset-filter">show all</a>`;
+    } else {
+      span.innerHTML = `No tasks yet. Add one above, or via <code>btask add "task title"</code>.`;
+    }
+    const reset = $("reset-filter");
+    if (reset) reset.addEventListener("click", (e) => {
+      e.preventDefault();
+      document.querySelectorAll(".chip").forEach(x => x.classList.remove("active"));
+      document.querySelector('.chip[data-filter="all"]').classList.add("active");
+      state.filter = "all"; renderTasks();
+    });
     return;
   }
-  $("empty").classList.add("hidden");
+  emptyEl.classList.add("hidden");
   const groups = {};
   for (const t of tasks) (groups[t.category] ||= []).push(t);
   for (const [cat, items] of Object.entries(groups)) {
@@ -131,12 +155,12 @@ function renderTasks() {
       el("span", { class: "task-group-count" }, `${items.filter(i => i.status === 'done').length}/${items.length}`)
     );
     const group = el("div", { class: "task-group" }, head);
-    for (const t of items) group.appendChild(taskEl(t));
+    for (const t of items) group.appendChild(taskEl(t, state.view === "archive"));
     host.appendChild(group);
   }
 }
 
-function taskEl(t) {
+function taskEl(t, isArchiveView = false) {
   const isDone = t.status === "done";
   const checkbox = el("button", {
     class: "task-checkbox" + (isDone ? " checked" : ""),
@@ -152,17 +176,29 @@ function taskEl(t) {
     el("span", { class: "task-progress-bar" }, el("span", { style: `width:${t.progress || 0}%` })),
     el("span", { class: "task-pct" }, `${t.progress || 0}%`)
   );
-  const actions = el("div", { class: "task-actions" },
-    el("button", { title: "+25%", onclick: async () => {
-      const np = Math.min(100, (t.progress || 0) + 25);
-      try { await api("POST", `/tasks/${t.id}/progress`, { progress: np }); await loadAll(); }
-      catch (e) { toast(e.message); }
-    } }, "+25"),
-    el("button", { title: "archive", onclick: async () => {
-      try { await api("DELETE", `/tasks/${t.id}`); await loadAll(); }
-      catch (e) { toast(e.message); }
-    } }, "×"),
-  );
+  const actions = isArchiveView
+    ? el("div", { class: "task-actions" },
+        el("button", { title: "unarchive", onclick: async () => {
+          try { await api("PATCH", `/tasks/${t.id}`, { archived: 0 }); await loadAll(); toast("unarchived"); }
+          catch (e) { toast(e.message); }
+        } }, "↺"),
+        el("button", { title: "delete forever", onclick: async () => {
+          if (!confirm(`permanently delete #${t.id}?`)) return;
+          try { await api("DELETE", `/tasks/${t.id}?hard=1`); await loadAll(); toast("deleted"); }
+          catch (e) { toast(e.message); }
+        } }, "×"),
+      )
+    : el("div", { class: "task-actions" },
+        el("button", { title: "+25%", onclick: async () => {
+          const np = Math.min(100, (t.progress || 0) + 25);
+          try { await api("POST", `/tasks/${t.id}/progress`, { progress: np }); await loadAll(); }
+          catch (e) { toast(e.message); }
+        } }, "+25"),
+        el("button", { title: "archive", onclick: async () => {
+          try { await api("DELETE", `/tasks/${t.id}`); await loadAll(); toast("archived"); }
+          catch (e) { toast(e.message); }
+        } }, "×"),
+      );
   return el("div", { class: "task" + (isDone ? " done" : ""), data: { id: t.id } },
     checkbox,
     el("span", { class: "task-text", title: t.title }, t.title),
@@ -187,8 +223,17 @@ function renderUser() {
 
 // ── Data loading ───────────────────────────────────────────────────
 async function loadTasks() {
-  try { state.tasks = (await api("GET", "/tasks")).tasks || []; }
-  catch (e) { state.tasks = []; if (e.message !== "unauthorized") toast(e.message); }
+  try {
+    const [active, archived] = await Promise.all([
+      api("GET", "/tasks").catch(() => ({ tasks: [] })),
+      api("GET", "/tasks?archived=1").catch(() => ({ tasks: [] })),
+    ]);
+    state.tasks = active.tasks || [];
+    state.archivedTasks = (archived.tasks || []).filter(t => t.archived === 1);
+  } catch (e) {
+    state.tasks = []; state.archivedTasks = [];
+    if (e.message !== "unauthorized") toast(e.message);
+  }
 }
 async function loadStats() {
   try { state.stats = await api("GET", "/stats"); }
@@ -347,20 +392,29 @@ function bindUI() {
     }, { once: true });
   });
 
-  // Settings nav link
+  // Nav links: Tasks / Archive / Settings
   document.querySelectorAll(".nav a").forEach(a => {
     a.addEventListener("click", (e) => {
       e.preventDefault();
       document.querySelectorAll(".nav a").forEach(x => x.classList.remove("active"));
       a.classList.add("active");
       const label = a.textContent.trim().toLowerCase();
+      const chipsRow = document.querySelector(".filter-row");
+      const searchEl = $("search");
+      const sectionHead = document.querySelector(".col-main .section-head .kicker-text");
       if (label === "archive") {
-        state.filter = "done";
-        document.querySelectorAll(".chip").forEach(x => x.classList.remove("active"));
-        document.querySelector('.chip[data-filter="done"]').classList.add("active");
+        state.view = "archive";
+        if (chipsRow) chipsRow.style.display = "none";
+        if (searchEl) searchEl.style.display = "";
+        if (sectionHead) sectionHead.textContent = "Archive";
         renderTasks();
       } else if (label === "settings") {
         openSettings();
+      } else { // tasks (default)
+        state.view = "tasks";
+        if (chipsRow) chipsRow.style.display = "";
+        if (sectionHead) sectionHead.textContent = "Tasks";
+        renderTasks();
       }
     });
   });
