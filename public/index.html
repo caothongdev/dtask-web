@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>btask — minimalist task dashboard</title>
+  <meta name="description" content="btask — a minimalist CLI/web task tracker. Personal, monochrome, fast." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main id="app" class="boot">
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">btask</span>
+        <span class="ver" id="ver">v1.0.4</span>
+      </div>
+      <nav class="nav">
+        <a class="active" href="#tasks">Tasks</a>
+        <a href="#archive">Archive</a>
+        <a href="#settings">Settings</a>
+        <button class="avatar" id="avatar" title="account" aria-label="account">
+          <span id="avatar-letter">A</span>
+        </button>
+        <button class="theme-toggle" id="theme-toggle" title="toggle theme" aria-label="toggle theme">
+          <span class="material-symbols-outlined">contrast</span>
+        </button>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-left">
+        <div class="kicker">
+          <span class="kicker-text">Today</span>
+          <span class="kicker-date" id="today-date">MON, AUG 18</span>
+        </div>
+        <h1 class="display">Make today count.</h1>
+        <p class="lede">A monochrome command surface for everything on your plate. Type, hit enter, ship.</p>
+        <div class="quick-add">
+          <input id="quick-title" type="text" placeholder="Type or capture a new task…" autocomplete="off" />
+          <select id="quick-category" aria-label="category">
+            <option value="code">code</option>
+            <option value="read">read</option>
+            <option value="health">health</option>
+            <option value="personal">personal</option>
+            <option value="work">work</option>
+            <option value="maintenance">maintenance</option>
+          </select>
+          <button id="quick-add">Add</button>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="activity">
+          <div class="activity-head">
+            <span class="kicker-text">Activity_Log</span>
+            <span class="kicker-meta">[7D]</span>
+          </div>
+          <div class="activity-bars" id="activity-bars" aria-label="7 day activity"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cols">
+      <div class="col-main">
+        <div class="section-head">
+          <span class="kicker-text">Tasks</span>
+          <span class="filter-row">
+            <button data-filter="all" class="chip active">all</button>
+            <button data-filter="open" class="chip">open</button>
+            <button data-filter="done" class="chip">done</button>
+          </span>
+        </div>
+        <div id="task-groups" class="task-groups"></div>
+        <div class="empty hidden" id="empty">
+          <span>No tasks yet. Add one above, or via <code>btask add "task title"</code>.</span>
+        </div>
+      </div>
+
+      <aside class="col-side">
+        <div class="stat-block">
+          <span class="kicker-text">Focus Time</span>
+          <span class="metric-lg" id="focus-time">04:20:00</span>
+          <button class="link-btn" id="log-focus">+ log session</button>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat">
+            <span class="kicker-text">Completed</span>
+            <span class="metric-md" id="m-done">0/0</span>
+          </div>
+          <div class="stat">
+            <span class="kicker-text">Streak</span>
+            <span class="metric-md" id="m-streak">0d</span>
+          </div>
+          <div class="stat">
+            <span class="kicker-text">XP</span>
+            <span class="metric-md" id="m-xp">0</span>
+          </div>
+          <div class="stat">
+            <span class="kicker-text">Efficiency</span>
+            <span class="metric-md" id="m-eff">0%</span>
+          </div>
+        </div>
+
+        <div class="sys-status">
+          <span class="kicker-text">System Status</span>
+          <div class="sys-row">
+            <span class="dot ok"></span>
+            <span id="sys-text">Operational</span>
+          </div>
+          <div class="api-info">
+            <span class="kicker-text">API</span>
+            <code id="api-base">https://btask.hoangkaothong.com/api</code>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <footer class="footer">
+      <span>btask-web · <a href="/README.md" target="_blank">docs</a> · <a href="https://github.com/caothongdev/btask" target="_blank">cli</a></span>
+      <span class="muted" id="user-line">—</span>
+    </footer>
+  </main>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <dialog id="login-dialog">
+    <form method="dialog" id="login-form">
+      <h2>Claim your btask handle</h2>
+      <p>Pick a username to track your progress. We auto-generate an API key.</p>
+      <input id="login-username" type="text" placeholder="your-handle" autocomplete="off" required minlength="2" maxlength="32" pattern="[a-zA-Z0-9_-]+" />
+      <div class="dialog-actions">
+        <button value="cancel">Cancel</button>
+        <button value="ok" class="primary">Claim</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
