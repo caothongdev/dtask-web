@@ -1,7 +1,7 @@
-// btask-web client
-// - Anonymous use: GET shows public samples
-// - Logged-in: persists api_key in localStorage, sends Authorization: Bearer
-// - Auto-renders, polls every 30s for activity freshness
+// btask-web client (v1.1.0)
+// - SSE for live updates (replaces 30s polling)
+// - Search box, public board toggle, settings dialog
+// - Zero-fill 7-day activity chart
 
 const API_BASE = location.origin + "/api";
 const LS_KEY = "btask:session";
@@ -10,10 +10,13 @@ const LS_KEY = "btask:session";
 let state = {
   api_key: localStorage.getItem(LS_KEY) || "",
   username: localStorage.getItem(LS_KEY + ":user") || "",
+  is_public: false,
   tasks: [],
   stats: null,
   activity: [],
   filter: "all",
+  search: "",
+  es: null,  // EventSource
 };
 
 // ── Network helpers ───────────────────────────────────────────────
@@ -24,14 +27,15 @@ async function api(method, path, body) {
   const r = await fetch(API_BASE + path, {
     method,
     headers,
+    cache: "no-store",
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
-  // Capture api_key if the server auto-created one for us
   if (data.api_key && data.api_key !== state.api_key) {
     state.api_key = data.api_key;
     state.username = data.user?.username || state.username;
+    state.is_public = !!data.user?.is_public;
     localStorage.setItem(LS_KEY, state.api_key);
     if (state.username) localStorage.setItem(LS_KEY + ":user", state.username);
   }
@@ -74,14 +78,14 @@ function renderActivity() {
   const host = $("activity-bars");
   host.innerHTML = "";
   const dowShort = ["S","M","T","W","T","F","S"];
-  const map = new Map(state.activity.map(a => [a.day, a.count]));
-  const max = Math.max(1, ...map.values());
-  // build last 7 days ending today
+  const max = Math.max(1, ...state.activity.map(a => a.count));
+  // state.activity is already zero-filled by server; iterate as-is
   const today = new Date();
   for (let i = 6; i >= 0; i--) {
     const day = new Date(today); day.setDate(today.getDate() - i);
     const key = day.toISOString().slice(0, 10);
-    const count = map.get(key) || 0;
+    const found = state.activity.find(a => a.day === key);
+    const count = found ? found.count : 0;
     const h = count > 0 ? Math.max(8, Math.round((count / max) * 70)) : 2;
     const cell = el("div", { class: "activity-cell" },
       el("div", { class: "activity-bar" + (count === 0 ? " zero" : ""), style: `height:${h}px`, title: `${key}: ${count}` }),
@@ -102,26 +106,23 @@ function renderStats() {
   $("m-xp").textContent = String(s.xp || 0);
   const eff = total > 0 ? Math.round((done / total) * 100) : 0;
   $("m-eff").textContent = `${eff}%`;
-  // focus: minutes to seconds for display
-  const focusSeconds = (s.focus_minutes || 0) * 60 + 4 * 3600 + 20 * 60; // add baseline "04:20:00" sample
+  const focusSeconds = (s.focus_minutes || 0) * 60 + 4 * 3600 + 20 * 60;
   $("focus-time").textContent = fmtFocus(focusSeconds);
 }
 
 function renderTasks() {
   const host = $("task-groups");
   host.innerHTML = "";
-  const tasks = state.tasks.filter(t => {
-    if (state.filter === "open") return t.status !== "done";
-    if (state.filter === "done") return t.status === "done";
-    return true;
-  });
+  const q = state.search.trim().toLowerCase();
+  let tasks = state.tasks;
+  if (state.filter === "open") tasks = tasks.filter(t => t.status !== "done");
+  else if (state.filter === "done") tasks = tasks.filter(t => t.status === "done");
+  if (q) tasks = tasks.filter(t => t.title.toLowerCase().includes(q));
   if (tasks.length === 0) {
     $("empty").classList.remove("hidden");
     return;
   }
   $("empty").classList.add("hidden");
-
-  // group by category
   const groups = {};
   for (const t of tasks) (groups[t.category] ||= []).push(t);
   for (const [cat, items] of Object.entries(groups)) {
@@ -173,6 +174,15 @@ function taskEl(t) {
 function renderUser() {
   $("avatar-letter").textContent = state.username ? state.username[0].toUpperCase() : "A";
   $("user-line").textContent = state.username ? `@${state.username}` : "anonymous";
+  // public board URL
+  const base = location.origin;
+  const pubUrl = state.username ? `${base}/u/${state.username}` : "—";
+  const pubEl = $("public-url");
+  if (pubEl) {
+    pubEl.textContent = pubUrl;
+    pubEl.onclick = () => state.username && window.open(pubUrl, "_blank");
+    pubEl.style.cursor = state.username ? "pointer" : "default";
+  }
 }
 
 // ── Data loading ───────────────────────────────────────────────────
@@ -188,9 +198,35 @@ async function loadActivity() {
   try { state.activity = (await api("GET", "/activity")).activity || []; }
   catch { state.activity = []; }
 }
+async function loadMe() {
+  try {
+    const r = await api("GET", "/me");
+    state.username = r.user.username;
+    state.is_public = !!r.user.is_public;
+    localStorage.setItem(LS_KEY + ":user", state.username);
+  } catch { /* keep prior state */ }
+}
 async function loadAll() {
   await Promise.all([loadTasks(), loadStats(), loadActivity()]);
   renderTasks(); renderStats(); renderActivity();
+}
+
+// ── SSE ─────────────────────────────────────────────────────────────
+function connectSSE() {
+  if (state.es) { try { state.es.close(); } catch {} }
+  if (!state.api_key) return;
+  const es = new EventSource(`${API_BASE}/events?api_key=${encodeURIComponent(state.api_key)}`);
+  state.es = es;
+  const dot = $("live-dot");
+  const setLive = (ok) => { if (dot) dot.innerHTML = `<span class="dot ${ok ? "live" : "dead"}"></span> [${ok ? "LIVE" : "OFFLINE"}]`; };
+  setLive(true);
+  es.addEventListener("hello", () => setLive(true));
+  const reload = () => { loadAll().catch(() => {}); };
+  es.addEventListener("task", reload);
+  es.addEventListener("focus", reload);
+  es.addEventListener("import", reload);
+  es.addEventListener("activity", reload);
+  es.onerror = () => { setLive(false); /* browser will auto-retry */ };
 }
 
 // ── Interactions ───────────────────────────────────────────────────
@@ -207,44 +243,60 @@ async function login(username) {
     const r = await api("POST", "/users", { username: state.username });
     state.api_key = r.user.api_key;
     state.username = r.user.username;
+    state.is_public = !!r.user.is_public;
     localStorage.setItem(LS_KEY, state.api_key);
     toast(`welcome, @${state.username}`);
     await loadAll();
+    connectSSE();
   } catch (e) { toast(e.message); }
 }
 
+async function togglePublic(makePublic) {
+  try {
+    await api("PATCH", "/me", { is_public: makePublic ? 1 : 0 });
+    state.is_public = makePublic;
+    renderUser();
+    toast(makePublic ? "board is public — share your /u/ URL" : "board is private now");
+  } catch (e) { toast(e.message); }
+}
+
+async function renameHandle(newName) {
+  newName = newName.trim().toLowerCase();
+  if (!newName || newName === state.username) return;
+  try {
+    await api("PATCH", "/me", { username: newName });
+    state.username = newName;
+    localStorage.setItem(LS_KEY + ":user", newName);
+    toast(`renamed to @${newName}`);
+    renderUser();
+  } catch (e) { toast(e.message); throw e; }
+}
+
 function bindUI() {
-  // theme toggle
   $("theme-toggle").addEventListener("click", () => {
     const cur = document.documentElement.getAttribute("data-theme") || "light";
     const next = cur === "light" ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", next);
     localStorage.setItem("btask:theme", next);
   });
-
-  // restore theme
   const t = localStorage.getItem("btask:theme");
   if (t) document.documentElement.setAttribute("data-theme", t);
-
-  // today date
   $("today-date").textContent = todayLabel();
 
-  // quick add
   const titleInput = $("quick-title");
   const catSelect = $("quick-category");
   async function submit() {
     const title = titleInput.value.trim();
     if (!title) return;
     try {
-        await api("POST", "/tasks", { title, category: catSelect.value });
-        titleInput.value = "";
-        await loadAll();
-      } catch (e) { toast(e.message); }
+      await api("POST", "/tasks", { title, category: catSelect.value });
+      titleInput.value = "";
+      await loadAll();
+    } catch (e) { toast(e.message); }
   }
   $("quick-add").addEventListener("click", submit);
   titleInput.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
 
-  // filter chips
   document.querySelectorAll(".chip").forEach((c) => {
     c.addEventListener("click", () => {
       document.querySelectorAll(".chip").forEach(x => x.classList.remove("active"));
@@ -254,7 +306,15 @@ function bindUI() {
     });
   });
 
-  // focus log
+  const search = $("search");
+  if (search) {
+    let h;
+    search.addEventListener("input", () => {
+      clearTimeout(h);
+      h = setTimeout(() => { state.search = search.value; renderTasks(); }, 100);
+    });
+  }
+
   $("log-focus").addEventListener("click", async () => {
     const minutes = parseInt(prompt("Focus session minutes:", "25") || "0", 10);
     if (!minutes) return;
@@ -262,17 +322,17 @@ function bindUI() {
     catch (e) { toast(e.message); }
   });
 
-  // avatar opens login
+  // Public toggle (inline)
+  const pt = $("public-toggle");
+  if (pt) {
+    pt.addEventListener("change", () => togglePublic(pt.checked));
+  }
+
+  // Avatar: signout or login
   $("avatar").addEventListener("click", async () => {
     if (state.username) {
-      const ok = confirm(`Signed in as @${state.username}. Sign out?`);
-      if (ok) {
-        localStorage.removeItem(LS_KEY);
-        localStorage.removeItem(LS_KEY + ":user");
-        state.api_key = ""; state.username = "";
-        renderUser();
-        toast("signed out");
-      }
+      // Open settings dialog instead of immediate logout
+      openSettings();
       return;
     }
     const dlg = $("login-dialog");
@@ -287,41 +347,66 @@ function bindUI() {
     }, { once: true });
   });
 
-  // nav (placeholder - all routes are same page)
+  // Settings nav link
   document.querySelectorAll(".nav a").forEach(a => {
     a.addEventListener("click", (e) => {
       e.preventDefault();
       document.querySelectorAll(".nav a").forEach(x => x.classList.remove("active"));
       a.classList.add("active");
-      if (a.textContent === "Archive") {
+      const label = a.textContent.trim().toLowerCase();
+      if (label === "archive") {
         state.filter = "done";
         document.querySelectorAll(".chip").forEach(x => x.classList.remove("active"));
         document.querySelector('.chip[data-filter="done"]').classList.add("active");
         renderTasks();
+      } else if (label === "settings") {
+        openSettings();
       }
     });
   });
+}
+
+function openSettings() {
+  if (!state.username) return;
+  const dlg = $("settings-dialog");
+  $("settings-username").value = state.username;
+  $("settings-public").checked = state.is_public;
+  const info = $("settings-info");
+  info.innerHTML = `
+    <div class="form-row"><span>API key</span><code style="font-family:var(--mono-font);font-size:10px;word-break:break-all;user-select:all">${state.api_key}</code></div>
+    <div class="form-row"><span>Public URL</span><code>${location.origin}/u/${state.username}</code></div>
+  `;
+  dlg.showModal();
+  $("settings-form").addEventListener("submit", async (e) => {
+    const submitter = e.submitter;
+    if (submitter.value !== "ok") { dlg.close(); return; }
+    e.preventDefault();
+    const newName = $("settings-username").value;
+    const wantPublic = $("settings-public").checked;
+    try {
+      if (newName.trim().toLowerCase() !== state.username) await renameHandle(newName);
+      if (wantPublic !== state.is_public) await togglePublic(wantPublic);
+      dlg.close();
+      renderUser();
+    } catch { /* toast already shown */ }
+  }, { once: true });
 }
 
 // ── Boot ───────────────────────────────────────────────────────────
 async function boot() {
   bindUI();
   renderUser();
-  // Try existing session first
   if (state.api_key) {
     try { await api("GET", "/me"); }
     catch { state.api_key = ""; localStorage.removeItem(LS_KEY); }
   }
   if (!state.api_key && !state.username) {
-    // No identity — show empty/samples; user can pick a handle to start tracking
     renderTasks(); renderActivity();
     return;
   }
+  if (state.api_key) await loadMe();
   await loadAll();
-  // Auto-poll stats every 30s for live feel
-  setInterval(async () => {
-    try { await Promise.all([loadStats(), loadActivity()]); renderStats(); renderActivity(); } catch {}
-  }, 30000);
+  connectSSE();
 }
 
 boot().catch(e => { console.error(e); toast("boot failed: " + e.message); });

@@ -4,7 +4,7 @@
 // Port: BTASK_PORT env var (default 8787).
 
 import { Database } from "bun:sqlite";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const PORT = parseInt(process.env.BTASK_PORT || "8787");
@@ -19,6 +19,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     api_key TEXT UNIQUE NOT NULL,
+    is_public INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now'))
   );
   CREATE TABLE IF NOT EXISTS tasks (
@@ -52,17 +53,26 @@ db.exec(`
   );
 `);
 
+// ── In-process pub/sub for SSE ─────────────────────────────────────
+type Evt = { userId: number; type: string; payload: any };
+const subs = new Set<(e: Evt) => void>();
+function publish(e: Evt) { for (const fn of subs) try { fn(e); } catch {} }
+function bumpActivity(userId: number) {
+  const today = new Date().toISOString().slice(0, 10);
+  db.query("INSERT INTO activity (user_id, day, count) VALUES (?, ?, 1) ON CONFLICT(user_id, day) DO UPDATE SET count = count + 1").run(userId, today);
+  publish({ userId, type: "activity", payload: { day: today } });
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────
 function genKey(): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(24)))
     .map(b => b.toString(16).padStart(2, "0"))
     .join("");
 }
-
-function json(data: any, status = 200) {
+function json(data: any, status = 200, extraHeaders: Record<string, string> = {}) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "content-type": "application/json", "access-control-allow-origin": "*" },
+    headers: { "content-type": "application/json", "access-control-allow-origin": "*", "cache-control": "no-store", ...extraHeaders },
   });
 }
 function err(msg: string, status = 400) { return json({ error: msg }, status); }
@@ -78,31 +88,38 @@ function getUser(req: Request) {
     } catch {}
   }
   if (!apiKey) return null;
-  return db.query("SELECT id, username FROM users WHERE api_key = ?").get(apiKey) as { id: number; username: string } | null;
+  return db.query("SELECT id, username, is_public FROM users WHERE api_key = ?").get(apiKey) as { id: number; username: string; is_public: number } | null;
 }
 
 function getOrCreateUser(req: Request, bodyUsername?: string): { user: any; created: boolean } | null {
   let user = getUser(req);
   if (user) return { user, created: false };
-  // Auto-register via X-Btask-User header (GitHub-style for CLI)
   const username = (req.headers.get("x-btask-user") || bodyUsername || "").trim().toLowerCase();
   if (!username || !/^[a-z0-9_-]{2,32}$/.test(username)) return null;
-  const existing = db.query("SELECT id, username, api_key FROM users WHERE username = ?").get(username) as any;
+  const existing = db.query("SELECT id, username, api_key, is_public FROM users WHERE username = ?").get(username) as any;
   if (existing) return { user: existing, created: false };
   const api_key = genKey();
   const info = db.query("INSERT INTO users (username, api_key) VALUES (?, ?)").run(username, api_key);
-  return { user: { id: info.lastInsertRowid, username, api_key }, created: true };
+  return { user: { id: info.lastInsertRowid, username, api_key, is_public: 0 }, created: true };
 }
 
-function bumpActivity(userId: number) {
-  const today = new Date().toISOString().slice(0, 10);
-  db.query("INSERT INTO activity (user_id, day, count) VALUES (?, ?, 1) ON CONFLICT(user_id, day) DO UPDATE SET count = count + 1").run(userId, today);
+// Last-7-days with zero-filled gaps (oldest first)
+function last7Days(rows: { day: string; count: number }[]) {
+  const map = new Map(rows.map(r => [r.day, r.count]));
+  const today = new Date(); today.setUTCHours(0,0,0,0);
+  const out: { day: string; count: number }[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setUTCDate(today.getUTCDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    out.push({ day: key, count: map.get(key) ?? 0 });
+  }
+  return out;
 }
 
 // ── Routes ──────────────────────────────────────────────────────────
 const routes: { method: string; path: RegExp; handler: (req: Request, params: any) => Promise<Response> | Response }[] = [
   // health
-  { method: "GET", path: /^\/api\/health$/, handler: () => json({ ok: true, service: "btask-web", version: "1.0.0" }) },
+  { method: "GET", path: /^\/api\/health$/, handler: () => json({ ok: true, service: "btask-web", version: "1.1.0", uptime_s: Math.floor(process.uptime()) }) },
 
   // user self-register / login
   { method: "POST", path: /^\/api\/users$/, handler: async (req) => {
@@ -119,6 +136,44 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
     return json({ user: u });
   }},
 
+  // update me (rename handle, toggle public board)
+  { method: "PATCH", path: /^\/api\/me$/, handler: async (req) => {
+    const u = getUser(req);
+    if (!u) return err("unauthorized", 401);
+    const body = await req.json().catch(() => ({}));
+    const updates: string[] = [];
+    const args: any[] = [];
+    if (body.username !== undefined) {
+      const nu = String(body.username).trim().toLowerCase();
+      if (!/^[a-z0-9_-]{2,32}$/.test(nu)) return err("invalid username (2-32: a-z 0-9 _ -)", 400);
+      const conflict = db.query("SELECT id FROM users WHERE username = ? AND id != ?").get(nu, u.id);
+      if (conflict) return err("username taken", 409);
+      updates.push("username = ?"); args.push(nu);
+    }
+    if (body.is_public !== undefined) { updates.push("is_public = ?"); args.push(body.is_public ? 1 : 0); }
+    if (updates.length === 0) return json({ user: u });
+    args.push(u.id);
+    db.query(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`).run(...args);
+    const updated = db.query("SELECT id, username, is_public, created_at FROM users WHERE id = ?").get(u.id);
+    return json({ user: updated });
+  }},
+
+  // public profile (read-only) by username
+  { method: "GET", path: /^\/api\/u\/([a-z0-9_-]+)$/, handler: (_req, params) => {
+    const username = params[1];
+    const u = db.query("SELECT id, username, is_public, created_at FROM users WHERE username = ?").get(username) as any;
+    if (!u || !u.is_public) return err("not found", 404);
+    const totals = db.query(`
+      SELECT COUNT(*) AS total,
+        SUM(CASE WHEN status='done' THEN 1 ELSE 0 END) AS done
+      FROM tasks WHERE user_id = ? AND archived = 0
+    `).get(u.id) as any;
+    const tasks = db.query("SELECT id, category, title, progress, status, completed_at, time_estimate, created_at FROM tasks WHERE user_id = ? AND archived = 0 ORDER BY created_at DESC LIMIT 50").all(u.id);
+    const focus = db.query("SELECT COALESCE(SUM(minutes),0) AS m FROM focus_sessions WHERE user_id = ?").get(u.id) as any;
+    const recent = db.query("SELECT day, count FROM activity WHERE user_id = ? AND day >= date('now', '-6 days')").all(u.id);
+    return json({ user: { username: u.username, is_public: !!u.is_public, created_at: u.created_at }, totals, tasks, focus_minutes: focus.m, activity_7d: last7Days(recent) });
+  }},
+
   // tasks CRUD
   { method: "GET", path: /^\/api\/tasks$/, handler: (req) => {
     const u = getUser(req);
@@ -127,18 +182,21 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
     const category = url.searchParams.get("category");
     const status = url.searchParams.get("status");
     const includeArchived = url.searchParams.get("archived") === "1";
-    let q = "SELECT * FROM tasks WHERE user_id = ?";
+    const q = (url.searchParams.get("q") || "").trim();
+    let sql = "SELECT * FROM tasks WHERE user_id = ?";
     const args: any[] = [u.id];
-    if (!includeArchived) q += " AND archived = 0";
-    if (category) { q += " AND category = ?"; args.push(category); }
-    if (status) { q += " AND status = ?"; args.push(status); }
-    q += " ORDER BY created_at DESC";
-    return json({ tasks: db.query(q).all(...args) });
+    if (!includeArchived) sql += " AND archived = 0";
+    if (category) { sql += " AND category = ?"; args.push(category); }
+    if (status) { sql += " AND status = ?"; args.push(status); }
+    if (q) { sql += " AND title LIKE ?"; args.push(`%${q.replace(/[%_]/g, "\\$&")}%`); }
+    sql += " ORDER BY created_at DESC";
+    const tasks = q ? db.query(sql).all(...args) : db.query(sql).all(...args);
+    return json({ tasks });
   }},
 
   { method: "POST", path: /^\/api\/tasks$/, handler: async (req) => {
     const r = getOrCreateUser(req);
-    if (!r) return err("unauthorized (provide Authorization: Bearer <key> OR X-Btask-User: <username>)", 401);
+    if (!r) return err("unauthorized (provide Authorization: Bearer *** OR X-Btask-User: <username>)", 401);
     const u = r.user;
     const body = await req.json().catch(() => ({}));
     const { category, title, progress, status, time_estimate } = body;
@@ -152,7 +210,34 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
     ).run(u.id, category, title, prog, st, time_estimate || null);
     bumpActivity(u.id);
     const task = db.query("SELECT * FROM tasks WHERE id = ?").get(info.lastInsertRowid);
+    publish({ userId: u.id, type: "task", payload: task });
     return json({ task, api_key: r.created ? u.api_key : undefined }, 201);
+  }},
+
+  // bulk import
+  { method: "POST", path: /^\/api\/tasks\/import$/, handler: async (req) => {
+    const r = getOrCreateUser(req);
+    if (!r) return err("unauthorized", 401);
+    const u = r.user;
+    const body = await req.json().catch(() => ({}));
+    const items: any[] = Array.isArray(body.tasks) ? body.tasks : [];
+    if (!items.length) return err("body.tasks must be a non-empty array", 400);
+    let inserted = 0, errors: any[] = [];
+    const ins = db.prepare("INSERT INTO tasks (user_id, category, title, progress, status, time_estimate) VALUES (?, ?, ?, ?, ?, ?)");
+    const tx = db.transaction((rows: any[]) => {
+      for (let i = 0; i < rows.length; i++) {
+        const t = rows[i];
+        if (!t.title || typeof t.title !== "string" || !["code","read","health","personal","work","maintenance"].includes(t.category)) {
+          errors.push({ index: i, reason: "invalid title or category" }); continue;
+        }
+        ins.run(u.id, t.category, String(t.title).slice(0,200), Math.max(0, Math.min(100, parseInt(t.progress ?? "0"))), t.status || "open", t.time_estimate || null);
+        inserted++;
+      }
+    });
+    tx(items);
+    bumpActivity(u.id);
+    publish({ userId: u.id, type: "import", payload: { count: inserted } });
+    return json({ inserted, errors });
   }},
 
   { method: "PATCH", path: /^\/api\/tasks\/(\d+)$/, handler: async (req, params) => {
@@ -182,12 +267,13 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
     }
     if (body.time_estimate !== undefined) { updates.push("time_estimate = ?"); args.push(body.time_estimate); }
     if (body.archived !== undefined) { updates.push("archived = ?"); args.push(body.archived ? 1 : 0); }
-    if (updates.length === 0) return json({ task }); // noop
+    if (updates.length === 0) return json({ task });
     updates.push("updated_at = datetime('now')");
     args.push(id, u.id);
     db.query(`UPDATE tasks SET ${updates.join(", ")} WHERE id = ? AND user_id = ?`).run(...args);
     if (body.status === "done") bumpActivity(u.id);
     const updated = db.query("SELECT * FROM tasks WHERE id = ?").get(id);
+    publish({ userId: u.id, type: "task", payload: updated });
     return json({ task: updated });
   }},
 
@@ -195,14 +281,15 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
     const u = getUser(req);
     if (!u) return err("unauthorized", 401);
     const id = parseInt(params[1]);
-    // Soft delete (archive) by default; ?hard=1 for permanent
     const url = new URL(req.url);
     const hard = url.searchParams.get("hard") === "1";
     if (hard) {
       const r = db.query("DELETE FROM tasks WHERE id = ? AND user_id = ?").run(id, u.id);
+      if (r.changes > 0) publish({ userId: u.id, type: "task", payload: { id, deleted: true } });
       return r.changes > 0 ? json({ deleted: id }) : err("not found", 404);
     }
     const r = db.query("UPDATE tasks SET archived = 1, updated_at = datetime('now') WHERE id = ? AND user_id = ?").run(id, u.id);
+    if (r.changes > 0) publish({ userId: u.id, type: "task", payload: { id, archived: true } });
     return r.changes > 0 ? json({ archived: id }) : err("not found", 404);
   }},
 
@@ -214,7 +301,9 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
     const r = db.query("UPDATE tasks SET status='done', progress=100, completed_at=datetime('now'), updated_at=datetime('now') WHERE id = ? AND user_id = ?").run(id, u.id);
     if (r.changes === 0) return err("not found", 404);
     bumpActivity(u.id);
-    return json({ task: db.query("SELECT * FROM tasks WHERE id = ?").get(id) });
+    const t = db.query("SELECT * FROM tasks WHERE id = ?").get(id);
+    publish({ userId: u.id, type: "task", payload: t });
+    return json({ task: t });
   }},
   { method: "POST", path: /^\/api\/tasks\/(\d+)\/progress$/, handler: async (req, params) => {
     const u = getUser(req);
@@ -224,10 +313,12 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
     const p = Math.max(0, Math.min(100, parseInt(body.progress ?? "0")));
     const r = db.query("UPDATE tasks SET progress = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?").run(p, id, u.id);
     if (r.changes === 0) return err("not found", 404);
-    return json({ task: db.query("SELECT * FROM tasks WHERE id = ?").get(id) });
+    const t = db.query("SELECT * FROM tasks WHERE id = ?").get(id);
+    publish({ userId: u.id, type: "task", payload: t });
+    return json({ task: t });
   }},
 
-  // stats
+  // stats (with zero-filled activity)
   { method: "GET", path: /^\/api\/stats$/, handler: (req) => {
     const u = getUser(req);
     if (!u) return err("unauthorized", 401);
@@ -244,8 +335,6 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
       WHERE user_id = ? AND day >= date('now', '-6 days')
       ORDER BY day
     `).all(u.id) as any[];
-    // streak = consecutive days with count > 0 ending today or yesterday
-    const days = recent.map(r => r.day);
     let streak = 0;
     const today = new Date(); today.setUTCHours(0,0,0,0);
     for (let i = 0; i < 30; i++) {
@@ -255,14 +344,13 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
       if (hit && hit.count > 0) streak++;
       else if (i > 0) break;
     }
-    // XP: 10 per done task + 1 per focus minute
     const xp = (totals.done || 0) * 10 + (focus.total_min || 0);
     return json({
       totals,
       focus_minutes: focus.total_min,
       streak_days: streak,
       xp,
-      activity_7d: recent,
+      activity_7d: last7Days(recent),
     });
   }},
 
@@ -275,6 +363,7 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
     if (!m || m < 0 || m > 600) return err("minutes must be 1-600", 400);
     db.query("INSERT INTO focus_sessions (user_id, minutes) VALUES (?, ?)").run(u.id, m);
     bumpActivity(u.id);
+    publish({ userId: u.id, type: "focus", payload: { minutes: m } });
     return json({ logged: m });
   }},
 
@@ -286,7 +375,43 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
       WHERE user_id = ? AND day >= date('now', '-6 days')
       ORDER BY day
     `).all(u.id);
-    return json({ activity: rows });
+    return json({ activity: last7Days(rows) });
+  }},
+
+  // SSE stream of user's events
+  { method: "GET", path: /^\/api\/events$/, handler: (req) => {
+    const u = getUser(req);
+    if (!u) return err("unauthorized", 401);
+    const stream = new ReadableStream({
+      start(controller) {
+        const enc = new TextEncoder();
+        const send = (e: Evt) => {
+          if (e.userId !== u.id) return;
+          const line = `event: ${e.type}\ndata: ${JSON.stringify(e.payload)}\n\n`;
+          try { controller.enqueue(enc.encode(line)); } catch {}
+        };
+        // initial hello
+        controller.enqueue(enc.encode(`event: hello\ndata: {"user":"${u.username}","ts":${Date.now()}}\n\n`));
+        // 15s keep-alive comment
+        const ka = setInterval(() => {
+          try { controller.enqueue(enc.encode(`: keep-alive ${Date.now()}\n\n`)); } catch { clearInterval(ka); }
+        }, 15000);
+        subs.add(send);
+        // cleanup on close
+        const close = () => { clearInterval(ka); subs.delete(send); try { controller.close(); } catch {} };
+        // Bun will call cancel() when client disconnects
+        (controller as any)._close = close;
+      },
+      cancel() { (this as any)._close?.(); },
+    });
+    return new Response(stream, {
+      headers: {
+        "content-type": "text/event-stream",
+        "cache-control": "no-store",
+        "access-control-allow-origin": "*",
+        "x-accel-buffering": "no",
+      },
+    });
   }},
 ];
 
@@ -297,7 +422,6 @@ const server = Bun.serve({
   async fetch(req) {
     const url = new URL(req.url);
 
-    // CORS preflight
     if (req.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
@@ -310,28 +434,40 @@ const server = Bun.serve({
       });
     }
 
-    // API routes
     for (const r of routes) {
       if (r.method !== req.method) continue;
       const m = url.pathname.match(r.path);
       if (m) return r.handler(req, m);
     }
 
-    // Static files (fallback to index.html)
     if (req.method === "GET") {
       let p = url.pathname === "/" ? "/index.html" : url.pathname;
+      // public board at /u/<username>
+      const uMatch = url.pathname.match(/^\/u\/([a-z0-9_-]+)\/?$/);
+      if (uMatch) {
+        const publicPath = join(STATIC_DIR, "public.html");
+        if (existsSync(publicPath)) {
+          return new Response(Bun.file(publicPath), { headers: { "content-type": "text/html", "cache-control": "no-cache" } });
+        }
+      }
       const full = join(STATIC_DIR, p);
       if (existsSync(full)) {
         const file = Bun.file(full);
-        return new Response(file, { headers: { "cache-control": "public, max-age=300" } });
+        // static = cache 5m; HTML = no-cache so updates roll out fast
+        const isHtml = p.endsWith(".html");
+        return new Response(file, {
+          headers: {
+            "content-type": isHtml ? "text/html" : (file.type || "application/octet-stream"),
+            "cache-control": isHtml ? "no-cache" : "public, max-age=300",
+          },
+        });
       }
-      // SPA fallback
       const idx = join(STATIC_DIR, "index.html");
-      if (existsSync(idx)) return new Response(Bun.file(idx), { headers: { "content-type": "text/html" } });
+      if (existsSync(idx)) return new Response(Bun.file(idx), { headers: { "content-type": "text/html", "cache-control": "no-cache" } });
     }
 
     return json({ error: "not found" }, 404);
   },
 });
 
-console.log(`[btask-web] listening on http://0.0.0.0:${server.port}  db=${DB_PATH}`);
+console.log(`[btask-web] listening on http://0.0.0.0:${server.port}  db=${DB_PATH}  v1.1.0`);

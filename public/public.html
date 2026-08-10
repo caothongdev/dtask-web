@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title id="page-title">btask — public board</title>
+  <meta name="description" content="A public btask board. Read-only." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .public-banner {
+      background: var(--accent);
+      color: var(--surface);
+      padding: 6px 16px;
+      font-family: var(--mono-font);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+    .public-banner a { color: var(--surface); text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="public-banner">
+    public board · <span id="banner-user">@user</span> · <a href="/">claim your own →</a>
+  </div>
+  <main id="app" class="boot">
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">btask</span>
+        <span class="ver" id="handle">—</span>
+      </div>
+      <nav class="nav">
+        <a href="#" id="back-link">← back</a>
+        <button class="theme-toggle" id="theme-toggle" title="toggle theme" aria-label="toggle theme">
+          <span class="material-symbols-outlined">contrast</span>
+        </button>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-left">
+        <div class="kicker">
+          <span class="kicker-text">Public Board</span>
+          <span class="kicker-date" id="since">—</span>
+        </div>
+        <h1 class="display"><span id="display-name">loading…</span></h1>
+        <p class="lede">Read-only view. Toggle dark mode on the right.</p>
+      </div>
+      <div class="hero-right">
+        <div class="activity">
+          <div class="activity-head">
+            <span class="kicker-text">Activity_Log</span>
+            <span class="kicker-meta">[7D]</span>
+          </div>
+          <div class="activity-bars" id="activity-bars"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cols">
+      <div class="col-main">
+        <div class="section-head">
+          <span class="kicker-text">Tasks</span>
+        </div>
+        <div id="task-groups" class="task-groups"></div>
+        <div class="empty hidden" id="empty">
+          <span>No tasks yet.</span>
+        </div>
+      </div>
+      <aside class="col-side">
+        <div class="stat-block">
+          <span class="kicker-text">Focus Time</span>
+          <span class="metric-lg" id="focus-time">00:00:00</span>
+        </div>
+        <div class="stat-grid">
+          <div class="stat">
+            <span class="kicker-text">Total</span>
+            <span class="metric-md" id="m-total">0</span>
+          </div>
+          <div class="stat">
+            <span class="kicker-text">Done</span>
+            <span class="metric-md" id="m-done">0</span>
+          </div>
+          <div class="stat">
+            <span class="kicker-text">Open</span>
+            <span class="metric-md" id="m-open">0</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <footer class="footer">
+      <span>btask · public board (read-only)</span>
+      <span class="muted"><a href="/">make your own →</a></span>
+    </footer>
+  </main>
+
+  <script>
+    const username = location.pathname.replace(/^\/u\//, "").replace(/\/$/, "").trim();
+    if (!username) location.replace("/");
+    document.getElementById("handle").textContent = "@" + username;
+    document.getElementById("banner-user").textContent = "@" + username;
+    document.getElementById("page-title").textContent = "@" + username + " — btask";
+    document.getElementById("display-name").textContent = "@" + username;
+    document.getElementById("back-link").href = "/";
+
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+      const cur = document.documentElement.getAttribute("data-theme") || "light";
+      const next = cur === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("btask:theme", next);
+    });
+    const t = localStorage.getItem("btask:theme");
+    if (t) document.documentElement.setAttribute("data-theme", t);
+
+    async function load() {
+      try {
+        const r = await fetch(`/api/u/${encodeURIComponent(username)}`, { cache: "no-store" });
+        if (!r.ok) {
+          document.getElementById("display-name").textContent = "not found";
+          document.getElementById("empty").classList.remove("hidden");
+          document.getElementById("empty").querySelector("span").textContent =
+            "@" + username + " hasn't made their board public yet.";
+          return;
+        }
+        const d = await r.json();
+        render(d);
+      } catch (e) {
+        document.getElementById("display-name").textContent = "network error";
+      }
+    }
+
+    function render(d) {
+      const created = new Date(d.user.created_at + "Z");
+      document.getElementById("since").textContent = "since " + created.toISOString().slice(0,10);
+
+      // stats
+      document.getElementById("m-total").textContent = d.totals?.total ?? 0;
+      document.getElementById("m-done").textContent = d.totals?.done ?? 0;
+      document.getElementById("m-open").textContent = (d.totals?.total ?? 0) - (d.totals?.done ?? 0);
+      const fs = (d.focus_minutes || 0) * 60;
+      const h = Math.floor(fs / 3600), m = Math.floor((fs % 3600) / 60), s = fs % 60;
+      document.getElementById("focus-time").textContent =
+        [h,m,s].map(n => String(n).padStart(2,"0")).join(":");
+
+      // activity
+      const host = document.getElementById("activity-bars");
+      host.innerHTML = "";
+      const dowShort = ["S","M","T","W","T","F","S"];
+      const today = new Date();
+      const map = new Map(d.activity_7d.map(a => [a.day, a.count]));
+      const max = Math.max(1, ...map.values());
+      for (let i = 6; i >= 0; i--) {
+        const day = new Date(today); day.setDate(today.getDate() - i);
+        const key = day.toISOString().slice(0, 10);
+        const count = map.get(key) ?? 0;
+        const h = count > 0 ? Math.max(8, Math.round((count / max) * 70)) : 2;
+        const cell = document.createElement("div");
+        cell.className = "activity-cell";
+        cell.innerHTML = `<div class="activity-bar${count === 0 ? " zero" : ""}" style="height:${h}px" title="${key}: ${count}"></div><span class="dow">${dowShort[day.getDay()]}</span>`;
+        host.appendChild(cell);
+      }
+
+      // tasks grouped by category
+      const groups = {};
+      for (const t of d.tasks) (groups[t.category] ||= []).push(t);
+      const tg = document.getElementById("task-groups");
+      tg.innerHTML = "";
+      const tasks = d.tasks;
+      if (tasks.length === 0) {
+        document.getElementById("empty").classList.remove("hidden");
+        return;
+      }
+      for (const [cat, items] of Object.entries(groups)) {
+        const head = document.createElement("div");
+        head.className = "task-group-head";
+        head.innerHTML = `<span class="task-group-name">${cat}</span><span class="task-group-count">${items.filter(i => i.status==='done').length}/${items.length}</span>`;
+        const group = document.createElement("div");
+        group.className = "task-group";
+        group.appendChild(head);
+        for (const t of items) group.appendChild(taskEl(t));
+        tg.appendChild(group);
+      }
+    }
+
+    function taskEl(t) {
+      const isDone = t.status === "done";
+      const row = document.createElement("div");
+      row.className = "task" + (isDone ? " done" : "");
+      row.innerHTML = `
+        <div class="task-checkbox ${isDone ? "checked" : ""}"></div>
+        <span class="task-text" title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</span>
+        <span class="task-progress-wrap">
+          <span class="task-progress-bar"><span style="width:${t.progress||0}%"></span></span>
+          <span class="task-pct">${t.progress||0}%</span>
+        </span>
+        <span></span>
+      `;
+      return row;
+    }
+    function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+    load();
+  </script>
+</body>
+</html>

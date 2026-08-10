@@ -1,0 +1,16 @@
+{
+  "name": "btask",
+  "short_name": "btask",
+  "description": "Minimalist monochrome task tracker. CLI + web.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1c1c",
+  "theme_color": "#1a1c1c",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
