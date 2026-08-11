@@ -37,6 +37,7 @@ db.exec(`
     FOREIGN KEY(user_id) REFERENCES users(id)
   );
   CREATE INDEX IF NOT EXISTS tasks_user_status ON tasks(user_id, status, archived);
+  CREATE INDEX IF NOT EXISTS users_public ON users(is_public, username);
   CREATE TABLE IF NOT EXISTS focus_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
@@ -88,7 +89,7 @@ function getUser(req: Request) {
     } catch {}
   }
   if (!apiKey) return null;
-  return db.query("SELECT id, username, is_public FROM users WHERE api_key = ?").get(apiKey) as { id: number; username: string; is_public: number } | null;
+  return Q.getUserByKey.get(apiKey) as { id: number; username: string; is_public: number } | null;
 }
 
 function getOrCreateUser(req: Request, bodyUsername?: string): { user: any; created: boolean } | null {
@@ -96,10 +97,10 @@ function getOrCreateUser(req: Request, bodyUsername?: string): { user: any; crea
   if (user) return { user, created: false };
   const username = (req.headers.get("x-btask-user") || bodyUsername || "").trim().toLowerCase();
   if (!username || !/^[a-z0-9_-]{2,32}$/.test(username)) return null;
-  const existing = db.query("SELECT id, username, api_key, is_public FROM users WHERE username = ?").get(username) as any;
+  const existing = Q.getUserByName.get(username) as any;
   if (existing) return { user: existing, created: false };
   const api_key = genKey();
-  const info = db.query("INSERT INTO users (username, api_key) VALUES (?, ?)").run(username, api_key);
+  const info = Q.insertUser.run(username, api_key);
   return { user: { id: info.lastInsertRowid, username, api_key, is_public: 0 }, created: true };
 }
 
@@ -115,6 +116,30 @@ function last7Days(rows: { day: string; count: number }[]) {
   }
   return out;
 }
+
+// ── Prepared statements (hot path cache) ────────────────────────
+// .query() compiles each call; .prepare() caches the bytecode.
+// Significant for high-RQ endpoints (SSE-pushed reloads).
+const Q = {
+  getUserByKey: db.prepare("SELECT id, username, is_public FROM users WHERE api_key = ?"),
+  getUserByName: db.prepare("SELECT id, username, api_key, is_public FROM users WHERE username = ?"),
+  getUserByNamePublic: db.prepare("SELECT id, username, is_public, created_at FROM users WHERE username = ?"),
+  isUsernameTaken: db.prepare("SELECT id FROM users WHERE username = ? AND id != ?"),
+  updateUser: db.prepare("UPDATE users SET is_public = ? WHERE id = ?"),
+  updateUsername: db.prepare("UPDATE users SET username = ? WHERE id = ?"),
+  bumpActivity: db.prepare("INSERT INTO activity (user_id, day, count) VALUES (?, ?, 1) ON CONFLICT(user_id, day) DO UPDATE SET count = count + 1"),
+  insertTask: db.prepare("INSERT INTO tasks (user_id, category, title, progress, status, time_estimate) VALUES (?, ?, ?, ?, ?, ?)"),
+  insertUser: db.prepare("INSERT INTO users (username, api_key) VALUES (?, ?)"),
+  selectTask: db.prepare("SELECT * FROM tasks WHERE id = ?"),
+  archiveTask: db.prepare("UPDATE tasks SET archived = 1, updated_at = datetime('now') WHERE id = ? AND user_id = ?"),
+  hardDeleteTask: db.prepare("DELETE FROM tasks WHERE id = ? AND user_id = ?"),
+  markDone: db.prepare("UPDATE tasks SET status='done', progress=100, completed_at=datetime('now'), updated_at=datetime('now') WHERE id = ? AND user_id = ?"),
+  setProgress: db.prepare("UPDATE tasks SET progress = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?"),
+  focusSum: db.prepare("SELECT COALESCE(SUM(minutes),0) AS total_min FROM focus_sessions WHERE user_id = ?"),
+  insertFocus: db.prepare("INSERT INTO focus_sessions (user_id, minutes) VALUES (?, ?)"),
+  activity7d: db.prepare("SELECT day, count FROM activity WHERE user_id = ? AND day >= date('now', '-6 days') ORDER BY day"),
+  totalsFor: db.prepare(`SELECT COUNT(*) AS total, SUM(CASE WHEN status='done' THEN 1 ELSE 0 END) AS done, SUM(CASE WHEN archived=1 THEN 1 ELSE 0 END) AS archived FROM tasks WHERE user_id = ?`),
+};
 
 // ── Routes ──────────────────────────────────────────────────────────
 const routes: { method: string; path: RegExp; handler: (req: Request, params: any) => Promise<Response> | Response }[] = [
@@ -416,9 +441,11 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
 ];
 
 // ── Server ──────────────────────────────────────────────────────────
-const server = Bun.serve({
+export const server = Bun.serve({
   port: PORT,
   hostname: "0.0.0.0",
+  idleTimeout: 60,        // 60s before idle TCP connection is closed
+  maxRequestBodySize: 10 * 1024 * 1024,  // 10 MB cap on POST bodies
   async fetch(req) {
     const url = new URL(req.url);
 
