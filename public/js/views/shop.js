@@ -118,14 +118,6 @@ export function renderShopView(container) {
   const lifetimeEarned = user.lifetime_earned ?? currentCoins;
   const lifetimeSpent = user.lifetime_spent ?? 0;
 
-  // Background fetch if rewards or transactions have not been fetched yet
-  if (!store.state.rewards || store.state.rewards.length === 0) {
-    store.refreshRewards();
-  }
-  if (!store.state.transactions || store.state.transactions.length === 0) {
-    store.refreshTransactions();
-  }
-
   const rewards = store.state.rewards || [];
   const transactions = store.state.transactions || [];
 
@@ -189,7 +181,7 @@ export function renderShopView(container) {
         ` : `
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             ${rewards.map((reward) => {
-              const isLocked = currentCoins < reward.cost || reward.is_locked;
+              const isLocked = currentCoins < reward.cost;
               const neededCoins = Math.max(0, reward.cost - currentCoins);
               const isTimed = reward.type === "timed" || (reward.mins && reward.mins > 0);
 
@@ -422,7 +414,6 @@ export function renderShopView(container) {
   if (refreshLedgerBtn) {
     refreshLedgerBtn.onclick = async () => {
       await store.refreshTransactions();
-      renderShopView(container);
     };
   }
 
@@ -495,7 +486,6 @@ export function renderShopView(container) {
         store.showToast(`Created reward: "${name}"`, "success");
         closeCreateRewardDialog();
         await store.refreshRewards();
-        renderShopView(container);
       } catch (err) {
         alert(err.message || "Failed to create reward");
       }

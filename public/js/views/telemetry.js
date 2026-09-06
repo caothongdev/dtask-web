@@ -192,11 +192,6 @@ export function renderTelemetryView(container) {
   };
   const tasks = store.state.tasks || [];
 
-  // Background refresh if stats are missing
-  if (!store.state.stats) {
-    store.refreshStats();
-  }
-
   const currentLevel = levelInfo.level || 1;
   const currentRank = levelInfo.rank || "Apprentice";
   const progXp = levelInfo.prog_xp || 0;
