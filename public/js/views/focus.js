@@ -92,7 +92,12 @@ export function setupFocusCompletedListener() {
 
 export function handleFocusKeydown(e) {
   // Never intercept keys when user is typing in form inputs
-  if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) {
+  if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT" || e.target.isContentEditable)) {
+    return;
+  }
+
+  // If a modal dialog is open, let Escape close the dialog instead of banking the timer
+  if (e.code === "Escape" && typeof document !== "undefined" && document.querySelector("dialog[open]")) {
     return;
   }
 

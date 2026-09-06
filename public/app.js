@@ -73,6 +73,9 @@ export function handleGlobalKeydown(e, options = {}) {
   // If a modal is open, ignore other navigation hotkeys
   if (anyDialogOpen) return false;
 
+  // Do not intercept browser-native shortcuts (e.g. Ctrl+1..5, Cmd+A, Alt+Key)
+  if (e.ctrlKey || e.metaKey || e.altKey) return false;
+
   // View switching: keys 1 through 5
   if (VIEW_HOTKEYS[e.key]) {
     e.preventDefault?.();
