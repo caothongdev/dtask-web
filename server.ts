@@ -25,7 +25,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
-    category TEXT NOT NULL CHECK(category IN ('code','read','health','personal','work','maintenance')),
+    category TEXT NOT NULL CHECK(category IN ('code','read','health','personal','work','maintenance','learn','build')),
     title TEXT NOT NULL,
     progress INTEGER DEFAULT 0 CHECK(progress BETWEEN 0 AND 100),
     status TEXT DEFAULT 'open' CHECK(status IN ('open','done','review','dev','idle','run')),
@@ -53,6 +53,104 @@ db.exec(`
     FOREIGN KEY(user_id) REFERENCES users(id)
   );
 `);
+
+export const DEFAULT_REWARDS = [
+  { name: "20 min Anime / Show", cost: 20, mins: 20, type: "timed", icon: "🍿" },
+  { name: "Coffee & Snack Break", cost: 15, mins: 15, type: "timed", icon: "☕" },
+  { name: "45 min Video Games", cost: 45, mins: 45, type: "timed", icon: "🎮" },
+  { name: "15 min Social Media", cost: 15, mins: 15, type: "timed", icon: "📱" },
+  { name: "1 Movie / 2 Episodes", cost: 60, mins: 60, type: "timed", icon: "🎬" },
+  { name: "Cheat Meal / Treat", cost: 100, mins: 0, type: "instant", icon: "🍕" },
+  { name: "Wishlist Item Purchase", cost: 250, mins: 0, type: "instant", icon: "🎁" },
+];
+
+export function runMigrations(database: Database) {
+  // 1. users table columns
+  const userCols = new Set(database.query("PRAGMA table_info(users)").all().map((c: any) => c.name));
+  if (!userCols.has("coins")) database.exec("ALTER TABLE users ADD COLUMN coins INTEGER DEFAULT 0;");
+  if (!userCols.has("lifetime_earned")) database.exec("ALTER TABLE users ADD COLUMN lifetime_earned INTEGER DEFAULT 0;");
+  if (!userCols.has("lifetime_spent")) database.exec("ALTER TABLE users ADD COLUMN lifetime_spent INTEGER DEFAULT 0;");
+
+  // 2. tasks table columns
+  const taskCols = new Set(database.query("PRAGMA table_info(tasks)").all().map((c: any) => c.name));
+  const newCols: [string, string][] = [
+    ["at", "TEXT"],
+    ["mins", "INTEGER DEFAULT 0"],
+    ["time_spent", "INTEGER DEFAULT 0"],
+    ["book_title", "TEXT"],
+    ["book_text", "TEXT"],
+    ["page", "INTEGER DEFAULT 0"],
+    ["pages", "INTEGER DEFAULT 0"],
+    ["xp", "INTEGER DEFAULT 10"],
+    ["coins", "INTEGER DEFAULT 10"],
+    ["running_since", "INTEGER"],
+    ["prev_time_spent", "INTEGER"],
+    ["prev_page", "INTEGER"],
+    ["prev_progress", "INTEGER"],
+  ];
+  for (const [col, def] of newCols) {
+    if (!taskCols.has(col)) {
+      database.exec(`ALTER TABLE tasks ADD COLUMN ${col} ${def};`);
+    }
+  }
+
+  // 3. rewards table
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS rewards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      name TEXT NOT NULL,
+      cost INTEGER NOT NULL,
+      mins INTEGER DEFAULT 0,
+      type TEXT CHECK(type IN ('timed', 'instant')),
+      icon TEXT DEFAULT '🎁',
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
+  // Seed default rewards if empty
+  const count = (database.query("SELECT COUNT(*) as c FROM rewards WHERE user_id IS NULL").get() as any)?.c || 0;
+  if (count === 0) {
+    const ins = database.prepare("INSERT INTO rewards (user_id, name, cost, mins, type, icon) VALUES (NULL, ?, ?, ?, ?, ?)");
+    for (const r of DEFAULT_REWARDS) {
+      ins.run(r.name, r.cost, r.mins, r.type, r.icon);
+    }
+  }
+
+  // 4. transactions table
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS transactions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      type TEXT CHECK(type IN ('earn', 'spend', 'revert')),
+      amount INTEGER NOT NULL,
+      reason TEXT,
+      reward_id INTEGER,
+      ts TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY(user_id) REFERENCES users(id)
+    );
+  `);
+
+  // 5. Category migration for legacy data
+  try {
+    database.exec(`
+      UPDATE tasks SET category = 'build' WHERE category = 'work';
+      UPDATE tasks SET category = 'health' WHERE category = 'personal';
+      UPDATE tasks SET category = 'code' WHERE category = 'maintenance';
+    `);
+  } catch {
+    database.exec("PRAGMA ignore_check_constraints = ON;");
+    database.exec(`
+      UPDATE tasks SET category = 'build' WHERE category = 'work';
+      UPDATE tasks SET category = 'health' WHERE category = 'personal';
+      UPDATE tasks SET category = 'code' WHERE category = 'maintenance';
+    `);
+    database.exec("PRAGMA ignore_check_constraints = OFF;");
+  }
+}
+
+runMigrations(db);
+
 
 // ── In-process pub/sub for SSE ─────────────────────────────────────
 type Evt = { userId: number; type: string; payload: any };
