@@ -1,181 +1,397 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" class="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>btask — minimalist task dashboard</title>
-  <meta name="description" content="btask — a minimalist CLI/web task tracker. Personal, monochrome, fast." />
+  <title>dtask — Neutrals for Balance HUD</title>
+  <meta name="description" content="dtask — minimalist CLI/web task tracker with RPG gamification, timeline slots, and focus engine." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#1a1c1c" />
+  <meta name="theme-color" content="#090a0c" />
+
   <!-- Open Graph -->
-  <meta property="og:title" content="btask — minimalist task dashboard" />
-  <meta property="og:description" content="Minimalist monochrome task tracker. CLI + web. Public boards at /u/<your-handle>." />
+  <meta property="og:title" content="dtask — Neutrals for Balance HUD" />
+  <meta property="og:description" content="Obsidian task tracker with RPG gamification, timeline slots, and live focus engines." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://btask.hoangkaothong.com" />
-  <meta property="og:image" content="https://btask.hoangkaothong.com/og.png" />
-  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Fonts: Space Mono, Geist, JetBrains Mono, Material Symbols Outlined -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN & Neutrals for Balance Design Tokens -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: '#090a0c',
+            surface: '#121315',
+            'surface-container-lowest': '#0d0e10',
+            'surface-container-low': '#1b1c1e',
+            'surface-container': '#1f2022',
+            'surface-container-high': '#292a2c',
+            'surface-container-highest': '#343537',
+            primary: '#f4f4f0',
+            secondary: '#ccc6ba',
+            'secondary-fixed': '#e8e2d6',
+            'stone-accent': '#d8d2c6',
+            outline: '#8f918d',
+            'outline-variant': '#444844',
+          },
+          borderRadius: {
+            none: '0px',
+            sm: '0px',
+            DEFAULT: '0px',
+            md: '0px',
+            lg: '0px',
+            xl: '0px',
+            '2xl': '0px',
+            '3xl': '0px',
+            full: '0px',
+          },
+          fontFamily: {
+            'display-hero': ['Space Mono', 'monospace'],
+            'headline-lg': ['Space Mono', 'monospace'],
+            'headline-md': ['Space Mono', 'monospace'],
+            'headline-sm': ['Space Mono', 'monospace'],
+            'body-lg': ['Geist', 'sans-serif'],
+            'body-md': ['Geist', 'sans-serif'],
+            'body-sm': ['Geist', 'sans-serif'],
+            'code-body': ['JetBrains Mono', 'monospace'],
+            'code-stat': ['JetBrains Mono', 'monospace'],
+            'label-caps': ['JetBrains Mono', 'monospace'],
+            'label-md': ['JetBrains Mono', 'monospace'],
+            'label-sm': ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* Strict 0px Border Radius & Base Obsidian Canvas */
+    *, *::before, *::after {
+      border-radius: 0px !important;
+    }
+    body {
+      background-color: #090a0c;
+      color: #f4f4f0;
+      font-family: 'Geist', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    .font-space { font-family: 'Space Mono', monospace; }
+    .font-geist { font-family: 'Geist', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Custom terminal scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0d0e10;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #292a2c;
+      border: 1px solid #444844;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #444844;
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(2px);
+    }
+  </style>
 </head>
-<body>
-  <main id="app" class="boot">
-    <header class="topbar">
-      <div class="brand">
-        <span class="logo">btask</span>
-        <span class="ver" id="ver">v1.1.0</span>
+<body class="bg-background text-primary selection:bg-stone-accent selection:text-surface">
+  <!-- Fixed Topbar HUD -->
+  <header class="fixed top-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur border-b border-outline-variant">
+    <!-- Top HUD Row -->
+    <div class="h-12 px-4 md:px-8 flex items-center justify-between border-b border-outline-variant/50">
+      <div class="flex items-center gap-4">
+        <!-- ASCII Logo -->
+        <span class="font-space text-xs md:text-sm font-bold tracking-wider text-primary select-none">+-.[ dtask ].-+</span>
+        <!-- Daemon Badge -->
+        <span id="hud-daemon" class="hidden sm:inline-block text-[11px] font-mono px-2 py-0.5 bg-surface-container border border-outline-variant text-stone-accent tracking-wide">
+          [SYS: DAEMON ACTIVE v2.4.1]
+        </span>
       </div>
-      <nav class="nav">
-        <a class="active" href="#tasks">Tasks</a>
-        <a href="#archive">Archive</a>
-        <a href="#settings">Settings</a>
-        <button class="avatar" id="avatar" title="account" aria-label="account">
-          <span id="avatar-letter">A</span>
+
+      <!-- Real-time Clock & Telemetry Readout -->
+      <div class="hidden lg:flex items-center gap-3 text-[11px] font-mono text-outline">
+        <span id="hud-utc-clock">UTC 00:00:00</span>
+        <span class="text-outline-variant">|</span>
+        <span id="hud-telemetry">CPU 0.8% · MEM 38MB</span>
+      </div>
+
+      <!-- Status Chips & User Avatar -->
+      <div class="flex items-center gap-2">
+        <span id="hud-timer" class="hidden text-xs font-mono px-2 py-0.5 border border-primary text-primary bg-surface-container-high font-bold animate-pulse">
+          [FOCUS: 00:00]
+        </span>
+        <span id="hud-level" class="text-xs font-mono px-2 py-0.5 border border-outline-variant bg-surface-container text-secondary">
+          [LVL] 1 Apprentice
+        </span>
+        <span id="hud-coins" class="text-xs font-mono px-2 py-0.5 border border-outline-variant bg-surface-container text-secondary-fixed">
+          ⟐ 0 COINS
+        </span>
+        <button id="hud-avatar" class="w-7 h-7 bg-surface-container-high border border-outline hover:border-primary text-primary text-xs font-mono flex items-center justify-center transition-colors ml-1" title="Account / Settings">
+          <span id="hud-avatar-initial">?</span>
         </button>
-        <button class="theme-toggle" id="theme-toggle" title="toggle theme" aria-label="toggle theme">
-          <span class="material-symbols-outlined">contrast</span>
-        </button>
-      </nav>
-    </header>
-
-    <section class="hero">
-      <div class="hero-left">
-        <div class="kicker">
-          <span class="kicker-text">Today</span>
-          <span class="kicker-date" id="today-date">MON, AUG 18</span>
-        </div>
-        <h1 class="display">Make today count.</h1>
-        <p class="lede">A monochrome command surface for everything on your plate. Type, hit enter, ship.</p>
-        <div class="quick-add">
-          <input id="quick-title" type="text" placeholder="Type or capture a new task…" autocomplete="off" />
-          <select id="quick-category" aria-label="category">
-            <option value="code">code</option>
-            <option value="read">read</option>
-            <option value="health">health</option>
-            <option value="personal">personal</option>
-            <option value="work">work</option>
-            <option value="maintenance">maintenance</option>
-          </select>
-          <button id="quick-add">Add</button>
-        </div>
       </div>
-      <div class="hero-right">
-        <div class="activity">
-          <div class="activity-head">
-            <span class="kicker-text">Activity_Log</span>
-            <span class="kicker-meta" id="live-dot"><span class="dot live"></span> [LIVE]</span>
-          </div>
-          <div class="activity-bars" id="activity-bars" aria-label="7 day activity"></div>
-        </div>
-      </div>
-    </section>
+    </div>
 
-    <section class="cols">
-      <div class="col-main">
-        <div class="section-head">
-          <span class="kicker-text">Tasks</span>
-          <span class="filter-row">
-            <input id="search" type="search" placeholder="search…" aria-label="search tasks" />
-            <button data-filter="all" class="chip active">all</button>
-            <button data-filter="open" class="chip">open</button>
-            <button data-filter="done" class="chip">done</button>
-          </span>
-        </div>
-        <div id="task-groups" class="task-groups"></div>
-        <div class="empty hidden" id="empty">
-          <span>No tasks yet. Add one above, or via <code>btask add "task title"</code>.</span>
-        </div>
-      </div>
+    <!-- 5-Tab Navigation Bar with hotkeys -->
+    <nav id="main-nav" class="flex items-center gap-1 overflow-x-auto px-4 md:px-8 py-1.5 bg-surface-container-lowest text-xs font-mono border-t border-outline-variant/30">
+      <a href="#tasks" data-view="tasks" class="nav-tab px-3 py-1 text-primary bg-surface-container border border-outline hover:border-primary transition-colors font-medium whitespace-nowrap">
+        [1] Dashboard / Tasks
+      </a>
+      <a href="#timeline" data-view="timeline" class="nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap">
+        [2] Daily Timeline
+      </a>
+      <a href="#focus" data-view="focus" class="nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap">
+        [3] Focus Engine (Timer)
+      </a>
+      <a href="#shop" data-view="shop" class="nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap">
+        [4] Rewards Shop & Loot
+      </a>
+      <a href="#telemetry" data-view="telemetry" class="nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap">
+        [5] Telemetry & Stats
+      </a>
+    </nav>
+  </header>
 
-      <aside class="col-side">
-        <div class="stat-block">
-          <span class="kicker-text">Focus Time</span>
-          <span class="metric-lg" id="focus-time">04:20:00</span>
-          <button class="link-btn" id="log-focus">+ log session</button>
-        </div>
-
-        <div class="stat-grid">
-          <div class="stat">
-            <span class="kicker-text">Completed</span>
-            <span class="metric-md" id="m-done">0/0</span>
-          </div>
-          <div class="stat">
-            <span class="kicker-text">Streak</span>
-            <span class="metric-md" id="m-streak">0d</span>
-          </div>
-          <div class="stat">
-            <span class="kicker-text">XP</span>
-            <span class="metric-md" id="m-xp">0</span>
-          </div>
-          <div class="stat">
-            <span class="kicker-text">Efficiency</span>
-            <span class="metric-md" id="m-eff">0%</span>
-          </div>
-        </div>
-
-        <div class="sys-status">
-          <span class="kicker-text">System Status</span>
-          <div class="sys-row">
-            <span class="dot ok"></span>
-            <span id="sys-text">Operational</span>
-          </div>
-          <div class="api-info">
-            <span class="kicker-text">Public Board</span>
-            <code id="public-url">—</code>
-            <label class="toggle">
-              <input type="checkbox" id="public-toggle" />
-              <span>make my board public</span>
-            </label>
-          </div>
-          <div class="api-info">
-            <span class="kicker-text">API</span>
-            <code id="api-base">https://btask.hoangkaothong.com/api</code>
-          </div>
-        </div>
-      </aside>
-    </section>
-
-    <footer class="footer">
-      <span>btask-web · <a href="/README.md" target="_blank">docs</a> · <a href="https://github.com/caothongdev/btask" target="_blank">cli</a></span>
-      <span class="muted" id="user-line">—</span>
-    </footer>
+  <!-- View Root Container -->
+  <main id="view-root" class="pt-24 px-4 md:px-8 pb-16 min-h-screen bg-background">
+    <!-- Initial Loading / View Mount Surface -->
+    <div id="view-placeholder" class="max-w-4xl mx-auto mt-12 p-8 border border-outline-variant bg-surface text-center">
+      <p class="font-space text-lg text-primary mb-2">+-.[ dtask core online ].-+</p>
+      <p class="text-sm font-geist text-secondary">Loading workspace components...</p>
+    </div>
   </main>
 
-  <div class="toast hidden" id="toast"></div>
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 pointer-events-none flex flex-col gap-2"></div>
 
-  <dialog id="login-dialog">
+  <!-- Claim Handle / Login Dialog -->
+  <dialog id="login-dialog" class="bg-surface border border-outline text-primary p-6 max-w-md w-full shadow-2xl backdrop:bg-black/80">
     <form method="dialog" id="login-form">
-      <h2>Claim your btask handle</h2>
-      <p>Pick a username to track your progress. We auto-generate an API key.</p>
-      <input id="login-username" type="text" placeholder="your-handle" autocomplete="off" required minlength="2" maxlength="32" pattern="[a-zA-Z0-9_-]+" />
-      <div class="dialog-actions">
-        <button value="cancel">Cancel</button>
-        <button value="ok" class="primary">Claim</button>
+      <h2 class="font-space text-lg font-bold mb-2">Claim your dtask handle</h2>
+      <p class="text-sm font-geist text-secondary mb-4">Pick a username to track your RPG level, tasks, and coins. We auto-generate a secure API key.</p>
+      <input id="login-username" type="text" placeholder="your-handle" autocomplete="off" required minlength="2" maxlength="32" pattern="[a-zA-Z0-9_-]+" class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-sm font-mono text-primary mb-4 focus:outline-none focus:border-primary" />
+      <div class="flex justify-end gap-3 font-mono text-xs">
+        <button type="button" id="login-cancel-btn" class="px-4 py-2 border border-outline-variant hover:border-outline text-secondary hover:text-primary">Cancel</button>
+        <button type="submit" value="ok" class="px-4 py-2 bg-primary text-surface font-bold hover:bg-stone-accent">Claim Handle</button>
       </div>
     </form>
   </dialog>
 
-  <dialog id="settings-dialog">
+  <!-- Settings Dialog -->
+  <dialog id="settings-dialog" class="bg-surface border border-outline text-primary p-6 max-w-md w-full shadow-2xl backdrop:bg-black/80">
     <form method="dialog" id="settings-form">
-      <h2>Settings</h2>
-      <label class="form-row">
-        <span>Handle</span>
-        <input id="settings-username" type="text" minlength="2" maxlength="32" pattern="[a-zA-Z0-9_-]+" />
-      </label>
-      <label class="form-row toggle-row">
-        <span>Public board</span>
-        <input id="settings-public" type="checkbox" />
-      </label>
-      <div class="form-info" id="settings-info"></div>
-      <div class="dialog-actions">
-        <button value="cancel">Cancel</button>
-        <button value="ok" class="primary">Save</button>
+      <h2 class="font-space text-lg font-bold mb-2">Operator Settings</h2>
+      <div class="space-y-4 mb-6">
+        <div>
+          <label class="block text-xs font-mono text-secondary mb-1">Handle</label>
+          <input id="settings-username" type="text" minlength="2" maxlength="32" pattern="[a-zA-Z0-9_-]+" class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-sm font-mono text-primary focus:outline-none focus:border-primary" />
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="settings-public" class="border border-outline bg-surface-container" />
+          <label for="settings-public" class="text-xs font-mono text-secondary cursor-pointer">Make my profile board public (/u/:handle)</label>
+        </div>
+        <div>
+          <label class="block text-xs font-mono text-secondary mb-1">API Key</label>
+          <input id="settings-key" type="text" readonly class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2 text-xs font-mono text-outline select-all" />
+        </div>
+      </div>
+      <div class="flex justify-between items-center font-mono text-xs">
+        <button type="button" id="settings-logout-btn" class="text-xs text-red-400 hover:underline">Log Out</button>
+        <div class="flex gap-2">
+          <button type="button" id="settings-cancel-btn" class="px-4 py-2 border border-outline-variant hover:border-outline text-secondary hover:text-primary">Cancel</button>
+          <button type="submit" value="ok" class="px-4 py-2 bg-primary text-surface font-bold hover:bg-stone-accent">Save</button>
+        </div>
       </div>
     </form>
   </dialog>
 
-  <script src="/app.js" defer></script>
+  <!-- Core Modules Bootstrap -->
+  <script type="module">
+    import { api } from "/js/api.js";
+    import { store } from "/js/store.js";
+    import { sound } from "/js/audio.js";
+
+    // 1. UTC Clock
+    function updateClock() {
+      const el = document.getElementById("hud-utc-clock");
+      if (el) {
+        const now = new Date();
+        el.textContent = `UTC ${now.toUTCString().slice(17, 25)}`;
+      }
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // 2. Health & Telemetry
+    async function updateTelemetry() {
+      try {
+        const res = await fetch("/api/health");
+        if (res.ok) {
+          const data = await res.json();
+          const el = document.getElementById("hud-telemetry");
+          if (el && data.uptime_s !== undefined) {
+            el.textContent = `UP ${data.uptime_s}s · v${data.version || "2.4.1"}`;
+          }
+        }
+      } catch {}
+    }
+    updateTelemetry();
+    setInterval(updateTelemetry, 30000);
+
+    // 3. Store HUD Sync
+    function syncHud(state) {
+      const levelEl = document.getElementById("hud-level");
+      if (levelEl) {
+        const lvl = state.levelInfo?.level || 1;
+        const rank = state.levelInfo?.rank || "Apprentice";
+        levelEl.textContent = `[LVL] ${lvl} ${rank}`;
+      }
+
+      const coinsEl = document.getElementById("hud-coins");
+      if (coinsEl) {
+        coinsEl.textContent = `⟐ ${state.user?.coins ?? 0} COINS`;
+      }
+
+      const avatarInitialEl = document.getElementById("hud-avatar-initial");
+      if (avatarInitialEl) {
+        avatarInitialEl.textContent = state.user?.username ? state.user.username[0].toUpperCase() : "?";
+      }
+
+      const timerEl = document.getElementById("hud-timer");
+      if (timerEl) {
+        if (state.activeTimer && state.activeTimer.running) {
+          const rem = Math.max(0, state.activeTimer.targetSeconds - state.activeTimer.elapsedSeconds);
+          const m = String(Math.floor(rem / 60)).padStart(2, "0");
+          const s = String(rem % 60).padStart(2, "0");
+          timerEl.textContent = `[FOCUS: ${m}:${s}]`;
+          timerEl.classList.remove("hidden");
+        } else if (state.relaxTimer && state.relaxTimer.running) {
+          const rem = Math.max(0, state.relaxTimer.totalSeconds - state.relaxTimer.elapsedSeconds);
+          const m = String(Math.floor(rem / 60)).padStart(2, "0");
+          const s = String(rem % 60).padStart(2, "0");
+          timerEl.textContent = `[RELAX: ${m}:${s}]`;
+          timerEl.classList.remove("hidden");
+        } else {
+          timerEl.classList.add("hidden");
+        }
+      }
+    }
+
+    store.subscribe((state) => {
+      syncHud(state);
+    });
+
+    // 4. Dialog Controls
+    const avatarBtn = document.getElementById("hud-avatar");
+    const loginDialog = document.getElementById("login-dialog");
+    const settingsDialog = document.getElementById("settings-dialog");
+
+    if (avatarBtn) {
+      avatarBtn.addEventListener("click", () => {
+        if (store.state.user) {
+          const uInput = document.getElementById("settings-username");
+          const pInput = document.getElementById("settings-public");
+          const kInput = document.getElementById("settings-key");
+          if (uInput) uInput.value = store.state.user.username || "";
+          if (pInput) pInput.checked = !!store.state.user.is_public;
+          if (kInput) kInput.value = api.getToken() || "";
+          settingsDialog?.showModal();
+        } else {
+          loginDialog?.showModal();
+        }
+      });
+    }
+
+    document.getElementById("login-cancel-btn")?.addEventListener("click", () => loginDialog?.close());
+    document.getElementById("settings-cancel-btn")?.addEventListener("click", () => settingsDialog?.close());
+
+    document.getElementById("login-form")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = document.getElementById("login-username");
+      const uname = (input?.value || "").trim();
+      if (!uname) return;
+      try {
+        await api.login(uname);
+        await store.loadAll();
+        loginDialog?.close();
+        store.showToast(`Logged in as @${uname}`, "success");
+      } catch (err) {
+        alert(err.message || "Login failed");
+      }
+    });
+
+    document.getElementById("settings-form")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const uInput = document.getElementById("settings-username");
+      const pInput = document.getElementById("settings-public");
+      try {
+        await api.updateMe({
+          username: uInput?.value?.trim(),
+          is_public: pInput?.checked,
+        });
+        await store.refreshUserAndStats();
+        settingsDialog?.close();
+        store.showToast("Settings saved", "success");
+      } catch (err) {
+        alert(err.message || "Failed to save settings");
+      }
+    });
+
+    document.getElementById("settings-logout-btn")?.addEventListener("click", () => {
+      api.clearToken();
+      store.state.user = null;
+      store.state.levelInfo = null;
+      store.state.tasks = [];
+      store.emit("state_changed", store.state);
+      settingsDialog?.close();
+      store.showToast("Logged out", "info");
+    });
+
+    // 5. Navigation Tab Highlighting
+    function syncNavTabs() {
+      const hash = location.hash.replace("#", "") || "tasks";
+      const tabs = document.querySelectorAll(".nav-tab");
+      tabs.forEach((tab) => {
+        const view = tab.getAttribute("data-view");
+        if (view === hash) {
+          tab.className = "nav-tab px-3 py-1 text-primary bg-surface-container border border-outline hover:border-primary transition-colors font-medium whitespace-nowrap";
+        } else {
+          tab.className = "nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap";
+        }
+      });
+    }
+
+    window.addEventListener("hashchange", syncNavTabs);
+    syncNavTabs();
+
+    // 6. Initial Load
+    if (api.getToken() || api.username) {
+      store.loadAll();
+    } else {
+      // Prompt claim handle on first visit
+      setTimeout(() => {
+        if (!store.state.user && !api.getToken()) {
+          loginDialog?.showModal();
+        }
+      }, 500);
+    }
+  </script>
 </body>
 </html>
