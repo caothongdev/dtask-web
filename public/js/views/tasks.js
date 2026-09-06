@@ -22,8 +22,8 @@ function renderAsciiBar(pct, blocks = 10) {
   return "█".repeat(filled) + "░".repeat(empty);
 }
 
-function parseFlags(input) {
-  let title = input;
+export function parseFlags(input) {
+  let title = input || "";
   let at = null;
   let mins = 0;
   let book_title = null;
@@ -75,23 +75,17 @@ let showBookInputs = false;
 export function renderTasksView(container) {
   if (!container) return;
 
+  // If container already has the tasks view scaffolding, update only the list and telemetry in-place
+  if (container.querySelector("#tasks-list-container")) {
+    updateTasksListOnly(container);
+    return;
+  }
+
   const tasks = store.state.tasks || [];
   const user = store.state.user || {};
   const stats = store.state.stats || {};
   const levelInfo = store.state.levelInfo || { level: 1, rank: "Apprentice", total_xp: 0, pct: 0 };
   const categories = ["code", "learn", "health", "read", "build"];
-
-  // Filter tasks
-  const q = searchQuery.trim().toLowerCase();
-  const filteredTasks = tasks.filter((t) => {
-    if (filterStatus === "open" && t.status === "done") return false;
-    if (filterStatus === "done" && t.status !== "done") return false;
-    if (filterCategory !== "all" && t.category !== filterCategory) return false;
-    if (q && !t.title.toLowerCase().includes(q) && !(t.book_title && t.book_title.toLowerCase().includes(q))) {
-      return false;
-    }
-    return true;
-  });
 
   const totalTasks = tasks.length;
   const doneTasks = tasks.filter((t) => t.status === "done").length;
@@ -288,26 +282,12 @@ export function renderTasksView(container) {
               value="${escapeHtml(searchQuery)}"
               class="w-full bg-transparent text-primary text-xs focus:outline-none placeholder-outline"
             />
-            ${
-              searchQuery
-                ? `<button id="tasks-search-clear" class="text-outline hover:text-primary text-xs">✕</button>`
-                : ""
-            }
+            <button id="tasks-search-clear" class="${searchQuery ? "" : "hidden"} text-outline hover:text-primary text-xs">✕</button>
           </div>
         </div>
 
-        <!-- 3. Task Cards List -->
+        <!-- 3. Task Cards List Container -->
         <div id="tasks-list-container" class="flex flex-col gap-4">
-          ${
-            filteredTasks.length === 0
-              ? `
-            <div class="p-8 border border-outline-variant bg-surface-container-low text-center font-mono text-secondary">
-              <p class="text-sm font-space text-primary mb-1">┌─[ NO TASKS FOUND ]────────────────────────┐</p>
-              <p class="text-xs text-outline">No tasks match current filter parameters. Press <kbd class="px-1.5 py-0.5 bg-surface-container border border-outline-variant text-primary font-bold">A</kbd> or use command bar above.</p>
-            </div>
-          `
-              : renderTaskGroups(filteredTasks)
-          }
         </div>
       </section>
 
@@ -325,25 +305,25 @@ export function renderTasksView(container) {
           <div class="grid grid-cols-2 gap-3">
             <div class="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col">
               <span class="text-outline text-[11px] uppercase tracking-wider">// COMPLETED</span>
-              <span class="text-base font-bold text-primary mt-1 font-space">${doneTasks} / ${totalTasks}</span>
-              <span class="text-[10px] text-outline mt-0.5">${efficiency}% efficiency</span>
+              <span id="stat-completed" class="text-base font-bold text-primary mt-1 font-space">${doneTasks} / ${totalTasks}</span>
+              <span id="stat-eff" class="text-[10px] text-outline mt-0.5">${efficiency}% efficiency</span>
             </div>
 
             <div class="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col">
               <span class="text-outline text-[11px] uppercase tracking-wider">// STREAK</span>
-              <span class="text-base font-bold text-stone-accent mt-1 font-space">${streakDays} DAYS</span>
+              <span id="stat-streak" class="text-base font-bold text-stone-accent mt-1 font-space">${streakDays} DAYS</span>
               <span class="text-[10px] text-outline mt-0.5">active cadence</span>
             </div>
 
             <div class="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col">
               <span class="text-outline text-[11px] uppercase tracking-wider">// TOTAL XP</span>
-              <span class="text-base font-bold text-primary mt-1 font-space">${totalXp}</span>
-              <span class="text-[10px] text-secondary mt-0.5">${levelInfo.rank || "Apprentice"}</span>
+              <span id="stat-xp" class="text-base font-bold text-primary mt-1 font-space">${totalXp}</span>
+              <span id="stat-rank" class="text-[10px] text-secondary mt-0.5">${levelInfo.rank || "Apprentice"}</span>
             </div>
 
             <div class="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col">
               <span class="text-outline text-[11px] uppercase tracking-wider">// COINS</span>
-              <span class="text-base font-bold text-secondary-fixed mt-1 font-space">⟐ ${user.coins ?? 0}</span>
+              <span id="stat-coins" class="text-base font-bold text-secondary-fixed mt-1 font-space">⟐ ${user.coins ?? 0}</span>
               <span class="text-[10px] text-outline mt-0.5">wallet balance</span>
             </div>
           </div>
@@ -351,11 +331,11 @@ export function renderTasksView(container) {
           <!-- Segmented XP Level Progress -->
           <div class="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col gap-1.5">
             <div class="flex justify-between items-center text-[11px]">
-              <span class="text-secondary font-bold">[LVL ${levelInfo.level}] ${levelInfo.rank}</span>
-              <span class="text-outline">${levelInfo.prog_xp || 0} / ${levelInfo.needed_xp || 100} XP (${levelInfo.pct || 0}%)</span>
+              <span id="stat-lvl-rank" class="text-secondary font-bold">[LVL ${levelInfo.level}] ${levelInfo.rank}</span>
+              <span id="stat-lvl-prog" class="text-outline">${levelInfo.prog_xp || 0} / ${levelInfo.needed_xp || 100} XP (${levelInfo.pct || 0}%)</span>
             </div>
             <div class="w-full bg-surface-container h-2 border border-outline-variant overflow-hidden">
-              <div class="bg-stone-accent h-full transition-all duration-300" style="width: ${levelInfo.pct || 0}%"></div>
+              <div id="stat-lvl-bar" class="bg-stone-accent h-full transition-all duration-300" style="width: ${levelInfo.pct || 0}%"></div>
             </div>
           </div>
         </div>
@@ -399,6 +379,73 @@ export function renderTasksView(container) {
   `;
 
   bindViewEvents(container);
+  updateTasksListOnly(container);
+}
+
+function updateTasksListOnly(container) {
+  const listContainer = container.querySelector("#tasks-list-container");
+  if (!listContainer) return;
+
+  const tasks = store.state.tasks || [];
+  const user = store.state.user || {};
+  const stats = store.state.stats || {};
+  const levelInfo = store.state.levelInfo || { level: 1, rank: "Apprentice", total_xp: 0, pct: 0 };
+
+  // Filter tasks
+  const q = searchQuery.trim().toLowerCase();
+  const filteredTasks = tasks.filter((t) => {
+    if (filterStatus === "open" && t.status === "done") return false;
+    if (filterStatus === "done" && t.status !== "done") return false;
+    if (filterCategory !== "all" && t.category !== filterCategory) return false;
+    if (q && !t.title.toLowerCase().includes(q) && !(t.book_title && t.book_title.toLowerCase().includes(q))) {
+      return false;
+    }
+    return true;
+  });
+
+  const totalTasks = tasks.length;
+  const doneTasks = tasks.filter((t) => t.status === "done").length;
+  const efficiency = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+  const streakDays = stats.streak_days ?? (user.streak || 0);
+  const totalXp = levelInfo.total_xp || 0;
+
+  if (filteredTasks.length === 0) {
+    listContainer.innerHTML = `
+      <div class="p-8 border border-outline-variant bg-surface-container-low text-center font-mono text-secondary">
+        <p class="text-sm font-space text-primary mb-1">┌─[ NO TASKS FOUND ]────────────────────────┐</p>
+        <p class="text-xs text-outline">No tasks match current filter parameters. Press <kbd class="px-1.5 py-0.5 bg-surface-container border border-outline-variant text-primary font-bold">A</kbd> or use command bar above.</p>
+      </div>
+    `;
+  } else {
+    listContainer.innerHTML = renderTaskGroups(filteredTasks);
+  }
+
+  // Update Telemetry metrics in sidebar
+  const completedEl = container.querySelector("#stat-completed");
+  const effEl = container.querySelector("#stat-eff");
+  const streakEl = container.querySelector("#stat-streak");
+  const xpEl = container.querySelector("#stat-xp");
+  const rankEl = container.querySelector("#stat-rank");
+  const coinsEl = container.querySelector("#stat-coins");
+  const lvlRankEl = container.querySelector("#stat-lvl-rank");
+  const lvlProgEl = container.querySelector("#stat-lvl-prog");
+  const lvlBarEl = container.querySelector("#stat-lvl-bar");
+
+  if (completedEl) completedEl.textContent = `${doneTasks} / ${totalTasks}`;
+  if (effEl) effEl.textContent = `${efficiency}% efficiency`;
+  if (streakEl) streakEl.textContent = `${streakDays} DAYS`;
+  if (xpEl) xpEl.textContent = String(totalXp);
+  if (rankEl) rankEl.textContent = levelInfo.rank || "Apprentice";
+  if (coinsEl) coinsEl.textContent = `⟐ ${user.coins ?? 0}`;
+  if (lvlRankEl) lvlRankEl.textContent = `[LVL ${levelInfo.level}] ${levelInfo.rank}`;
+  if (lvlProgEl) lvlProgEl.textContent = `${levelInfo.prog_xp || 0} / ${levelInfo.needed_xp || 100} XP (${levelInfo.pct || 0}%)`;
+  if (lvlBarEl) lvlBarEl.style.width = `${levelInfo.pct || 0}%`;
+
+  const clearBtn = container.querySelector("#tasks-search-clear");
+  if (clearBtn) {
+    if (searchQuery) clearBtn.classList.remove("hidden");
+    else clearBtn.classList.add("hidden");
+  }
 }
 
 function renderTaskGroups(tasks) {
@@ -441,7 +488,6 @@ function renderTaskCard(task) {
   const isDone = task.status === "done";
   const isTime = Number(task.mins) > 0;
   const isBook = Number(task.pages) > 0 || !!task.book_title;
-  const isCheck = !isTime && !isBook;
 
   // Mode badge
   let modeBadge = `<span class="px-1.5 py-0.2 text-[10px] font-mono border border-outline-variant bg-surface-container text-outline">[✓ CHECK]</span>`;
@@ -565,9 +611,19 @@ function renderTaskCard(task) {
       </div>
 
       <!-- Right: Progress Meter & Action Buttons -->
-      <div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+      <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
         ${progressSection}
         ${modeActionBtn}
+
+        <!-- Edit Button -->
+        <button
+          data-action="edit"
+          data-task-id="${task.id}"
+          class="task-edit-btn px-2 py-1 border border-outline-variant/50 hover:border-primary text-outline hover:text-primary font-mono text-xs transition-colors"
+          title="Edit Task"
+        >
+          [EDIT]
+        </button>
 
         <!-- Delete Button -->
         <button
@@ -583,19 +639,127 @@ function renderTaskCard(task) {
   `;
 }
 
+export function openEditTaskModal(task, onUpdate) {
+  if (!task) return;
+
+  const overlay = document.createElement("div");
+  overlay.id = "edit-task-modal-overlay";
+  overlay.className = "fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-container-lowest/90 backdrop-blur-sm";
+
+  const modal = document.createElement("div");
+  modal.className = "w-full max-w-lg bg-surface border border-outline p-6 shadow-2xl font-mono text-xs text-primary flex flex-col gap-4";
+
+  modal.innerHTML = `
+    <div class="flex items-center justify-between pb-2 border-b border-outline-variant">
+      <span class="text-stone-accent font-bold text-sm font-space">┌─[ EDIT TASK #${task.id} ]</span>
+      <button id="edit-modal-close" class="text-secondary hover:text-primary font-bold">✕</button>
+    </div>
+    <form id="edit-task-form" class="flex flex-col gap-3">
+      <div>
+        <label class="block text-outline text-[11px] mb-1">// TITLE:</label>
+        <input id="edit-task-title" type="text" value="${escapeHtml(task.title)}" required class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-primary focus:outline-none focus:border-stone-accent" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-outline text-[11px] mb-1">// CATEGORY:</label>
+          <select id="edit-task-category" class="w-full bg-surface-container-lowest border border-outline px-2 py-2 text-primary focus:outline-none">
+            ${["code", "learn", "health", "read", "build"].map(c => `<option value="${c}" ${task.category === c ? "selected" : ""}>${c.toUpperCase()}</option>`).join("")}
+          </select>
+        </div>
+        <div>
+          <label class="block text-outline text-[11px] mb-1">// AT (HH:MM):</label>
+          <input id="edit-task-at" type="text" placeholder="09:00" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" maxlength="5" value="${escapeHtml(task.at || "")}" class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-primary focus:outline-none focus:border-stone-accent" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-outline text-[11px] mb-1">// TARGET MINS:</label>
+          <input id="edit-task-mins" type="number" min="0" max="600" value="${task.mins || 0}" class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-primary focus:outline-none focus:border-stone-accent" />
+        </div>
+        <div>
+          <label class="block text-outline text-[11px] mb-1">// TOTAL PAGES:</label>
+          <input id="edit-task-pages" type="number" min="0" value="${task.pages || 0}" class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-primary focus:outline-none focus:border-stone-accent" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-outline text-[11px] mb-1">// BOOK TITLE:</label>
+        <input id="edit-task-book-title" type="text" value="${escapeHtml(task.book_title || "")}" placeholder="Optional book title..." class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-primary focus:outline-none focus:border-stone-accent" />
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant">
+        <button type="button" id="edit-modal-cancel" class="px-4 py-1.5 border border-outline-variant hover:border-outline text-secondary hover:text-primary">Cancel</button>
+        <button type="submit" class="px-4 py-1.5 bg-primary text-surface font-bold hover:bg-stone-accent">[SAVE CHANGES]</button>
+      </div>
+    </form>
+  `;
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  modal.querySelector("#edit-modal-close")?.addEventListener("click", close);
+  modal.querySelector("#edit-modal-cancel")?.addEventListener("click", close);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+
+  modal.querySelector("#edit-task-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const title = modal.querySelector("#edit-task-title")?.value.trim();
+    const category = modal.querySelector("#edit-task-category")?.value;
+    const atVal = modal.querySelector("#edit-task-at")?.value.trim() || null;
+    const minsVal = parseInt(modal.querySelector("#edit-task-mins")?.value, 10) || 0;
+    const pagesVal = parseInt(modal.querySelector("#edit-task-pages")?.value, 10) || 0;
+    const bookTitleVal = modal.querySelector("#edit-task-book-title")?.value.trim() || null;
+
+    if (!title) return;
+
+    try {
+      await api.updateTask(task.id, {
+        title,
+        category,
+        at: atVal,
+        mins: minsVal,
+        pages: pagesVal,
+        book_title: bookTitleVal,
+      });
+      store.showToast(`Task #${task.id} updated`, "success");
+      close();
+      await store.refreshTasks();
+      await store.refreshUserAndStats();
+      if (onUpdate) onUpdate();
+    } catch (err) {
+      store.showToast(err.message || "Failed to update task", "error");
+    }
+  });
+}
+
 function bindViewEvents(container) {
-  // 1. Quick Add Category selection pills
+  // 1. Quick Add Category selection pills — in-place toggle
   container.querySelectorAll(".cat-pill").forEach((btn) => {
     btn.addEventListener("click", () => {
       selectedCategory = btn.getAttribute("data-category") || "code";
-      renderTasksView(container);
+      container.querySelectorAll(".cat-pill").forEach((b) => {
+        if (b.getAttribute("data-category") === selectedCategory) {
+          b.className = "cat-pill px-2.5 py-1 uppercase tracking-wide border bg-primary text-surface border-primary font-bold transition-colors";
+        } else {
+          b.className = "cat-pill px-2.5 py-1 uppercase tracking-wide border bg-surface-container border-outline-variant text-secondary hover:border-outline hover:text-primary transition-colors";
+        }
+      });
     });
   });
 
-  // 2. Toggle Book Mode fields
-  container.querySelector("#quick-add-toggle-book")?.addEventListener("click", () => {
+  // 2. Toggle Book Mode fields — in-place toggle
+  const bookToggleBtn = container.querySelector("#quick-add-toggle-book");
+  const bookFields = container.querySelector("#quick-add-book-fields");
+  bookToggleBtn?.addEventListener("click", () => {
     showBookInputs = !showBookInputs;
-    renderTasksView(container);
+    if (showBookInputs) {
+      bookFields?.classList.remove("hidden");
+      bookFields?.classList.add("flex");
+      bookToggleBtn.className = "px-2.5 py-1 border bg-surface-container-high border-stone-accent text-primary font-bold hover:border-outline transition-colors";
+    } else {
+      bookFields?.classList.add("hidden");
+      bookFields?.classList.remove("flex");
+      bookToggleBtn.className = "px-2.5 py-1 border bg-surface-container border-outline-variant text-secondary hover:border-outline transition-colors";
+    }
   });
 
   // 3. Quick Add Form Submit
@@ -613,8 +777,11 @@ function bindViewEvents(container) {
     // Parse inline flags like --at, --mins, --book
     const parsed = parseFlags(rawTitle);
 
+    // Finding 5: Flag-only Quick Add title fallback
+    const finalTitle = parsed.title || parsed.book_title || rawTitle;
+
     const taskPayload = {
-      title: parsed.title || rawTitle,
+      title: finalTitle,
       category: selectedCategory,
     };
 
@@ -656,30 +823,49 @@ function bindViewEvents(container) {
       if (minsInput) minsInput.value = "";
       if (bookTitleInput) bookTitleInput.value = "";
       if (pagesInput) pagesInput.value = "";
+      // Finding 1: Blur input on submit so it does not block re-renders
+      titleInput.blur();
       await store.refreshTasks();
       await store.refreshUserAndStats();
+      updateTasksListOnly(container);
     } catch (err) {
       store.showToast(err.message || "Failed to create task", "error");
     }
   });
 
-  // 4. Status Filter chips
+  // 4. Status Filter chips — in-place style & list update
   container.querySelectorAll(".filter-status-chip").forEach((btn) => {
     btn.addEventListener("click", () => {
       filterStatus = btn.getAttribute("data-filter-status") || "all";
-      renderTasksView(container);
+      container.querySelectorAll(".filter-status-chip").forEach((b) => {
+        const st = b.getAttribute("data-filter-status");
+        if (st === filterStatus) {
+          b.className = "filter-status-chip px-2.5 py-0.5 uppercase tracking-wide border bg-primary text-surface border-primary font-bold transition-colors";
+        } else {
+          b.className = "filter-status-chip px-2.5 py-0.5 uppercase tracking-wide border bg-surface-container border-outline-variant text-secondary hover:text-primary transition-colors";
+        }
+      });
+      updateTasksListOnly(container);
     });
   });
 
-  // 5. Category Filter chips
+  // 5. Category Filter chips — in-place style & list update
   container.querySelectorAll(".filter-cat-chip").forEach((btn) => {
     btn.addEventListener("click", () => {
       filterCategory = btn.getAttribute("data-filter-category") || "all";
-      renderTasksView(container);
+      container.querySelectorAll(".filter-cat-chip").forEach((b) => {
+        const cat = b.getAttribute("data-filter-category");
+        if (cat === filterCategory) {
+          b.className = "filter-cat-chip px-2 py-0.5 uppercase border bg-stone-accent text-surface border-stone-accent font-bold transition-colors";
+        } else {
+          b.className = "filter-cat-chip px-2 py-0.5 uppercase border bg-surface-container border-outline-variant text-secondary hover:text-primary transition-colors";
+        }
+      });
+      updateTasksListOnly(container);
     });
   });
 
-  // 6. Search Input
+  // 6. Search Input — updates list in-place without losing focus
   const searchInput = container.querySelector("#tasks-search");
   if (searchInput) {
     let debounceTimer;
@@ -687,15 +873,16 @@ function bindViewEvents(container) {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         searchQuery = e.target.value;
-        renderTasksView(container);
-      }, 150);
+        updateTasksListOnly(container);
+      }, 50);
     });
   }
 
   // Clear search
   container.querySelector("#tasks-search-clear")?.addEventListener("click", () => {
     searchQuery = "";
-    renderTasksView(container);
+    if (searchInput) searchInput.value = "";
+    updateTasksListOnly(container);
   });
 
   // 7. Task card actions (Event delegation)
@@ -714,6 +901,7 @@ function bindViewEvents(container) {
 
       if (action === "toggle-done") {
         await store.toggleTaskDone(taskId);
+        updateTasksListOnly(container);
       } else if (action === "delete") {
         if (confirm(`Delete task #${task.id} ("${task.title}")?`)) {
           try {
@@ -721,16 +909,22 @@ function bindViewEvents(container) {
             store.showToast("Task deleted", "info");
             await store.refreshTasks();
             await store.refreshUserAndStats();
+            updateTasksListOnly(container);
           } catch (err) {
             store.showToast(err.message || "Failed to delete task", "error");
           }
         }
+      } else if (action === "edit") {
+        openEditTaskModal(task, () => {
+          updateTasksListOnly(container);
+        });
       } else if (action === "focus") {
         store.startFocusTimer(task);
         location.hash = "#focus";
       } else if (action === "read") {
         openReaderModal(task, () => {
           store.refreshTasks();
+          updateTasksListOnly(container);
         });
       } else if (action === "page-prev") {
         const newPage = Math.max(0, (task.page || 0) - 1);
@@ -738,6 +932,7 @@ function bindViewEvents(container) {
           await api.updateBook(task.id, newPage);
           sound.playCoinTick();
           await store.refreshTasks();
+          updateTasksListOnly(container);
         } catch (err) {
           store.showToast(err.message || "Failed to update page", "error");
         }
@@ -753,6 +948,7 @@ function bindViewEvents(container) {
             await store.refreshUserAndStats();
           }
           await store.refreshTasks();
+          updateTasksListOnly(container);
         } catch (err) {
           store.showToast(err.message || "Failed to advance page", "error");
         }
@@ -771,6 +967,7 @@ function bindViewEvents(container) {
         const coinsEarned = Math.floor(mins / 2);
         store.showToast(`Logged ${mins}m focus session (+${mins} XP, +${coinsEarned} ⟐)`, "success");
         await store.refreshUserAndStats();
+        updateTasksListOnly(container);
       } catch (err) {
         store.showToast(err.message || "Failed to log focus", "error");
       }

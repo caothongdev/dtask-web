@@ -304,11 +304,7 @@
       if (getActiveView() === "tasks") {
         const root = document.getElementById("view-root");
         if (root && (event === "state_changed" || event === "tasks_loaded" || event === "task_updated")) {
-          const activeEl = document.activeElement;
-          const isTyping = activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA");
-          if (!isTyping) {
-            renderTasksView(root);
-          }
+          renderTasksView(root);
         }
       }
     });

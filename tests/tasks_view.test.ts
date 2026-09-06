@@ -2,6 +2,7 @@ import { test, expect, afterAll } from "bun:test";
 import { server } from "../server";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { parseFlags } from "../public/js/views/tasks.js";
 
 afterAll(() => {
   server?.stop(true);
@@ -57,6 +58,11 @@ test("Tasks view implements required command bar, filters, mode cards, and telem
   expect(content).toContain("toggleTaskDone");
   expect(content).toContain("[DEL]");
 
+  // Task Edit action & in-place list update
+  expect(content).toContain("[EDIT]");
+  expect(content).toContain("openEditTaskModal");
+  expect(content).toContain("updateTasksListOnly");
+
   // Telemetry sidebar & quick focus logger
   expect(content).toContain("TELEMETRY &amp; STATS");
   expect(content).toContain("efficiency");
@@ -94,4 +100,69 @@ test("public/index.html mounts renderTasksView and handles routing to #tasks", a
   const storePath = join(import.meta.dir, "..", "public/js/store.js");
   const storeContent = readFileSync(storePath, "utf8");
   expect(storeContent).toContain("toggleTaskDone");
+});
+
+test("parseFlags correctly parses all flag variations and handles edge cases", () => {
+  // 1. Regular task title without flags
+  const plain = parseFlags("Write unit tests");
+  expect(plain.title).toBe("Write unit tests");
+  expect(plain.at).toBeNull();
+  expect(plain.mins).toBe(0);
+  expect(plain.book_title).toBeNull();
+  expect(plain.pages).toBe(0);
+
+  // 2. Scheduled time flag (--at)
+  const scheduled = parseFlags("Team Standup --at 09:30");
+  expect(scheduled.title).toBe("Team Standup");
+  expect(scheduled.at).toBe("09:30");
+
+  // 3. Focus duration flag (--mins)
+  const timed = parseFlags("Refactor core engine --mins 45");
+  expect(timed.title).toBe("Refactor core engine");
+  expect(timed.mins).toBe(45);
+
+  // 4. Book flag with quotes and page count
+  const bookWithPages = parseFlags('Reading Session --book "Designing Data-Intensive Applications" 400');
+  expect(bookWithPages.title).toBe("Reading Session");
+  expect(bookWithPages.book_title).toBe("Designing Data-Intensive Applications");
+  expect(bookWithPages.pages).toBe(400);
+
+  // 5. Book flag single word without pages
+  const bookSimple = parseFlags("Read --book SICP");
+  expect(bookSimple.title).toBe("Read");
+  expect(bookSimple.book_title).toBe("SICP");
+
+  // 6. Explicit --pages flag
+  const pagesFlag = parseFlags("Rust Book --pages 280");
+  expect(pagesFlag.title).toBe("Rust Book");
+  expect(pagesFlag.pages).toBe(280);
+
+  // 7. Combined flags in mixed order
+  const combined = parseFlags("Deep Work --mins 90 --at 14:00");
+  expect(combined.title).toBe("Deep Work");
+  expect(combined.mins).toBe(90);
+  expect(combined.at).toBe("14:00");
+
+  // 8. Flag-only input fallback (title will be empty or book title)
+  const flagOnlyBook = parseFlags('--book "The Mythical Man-Month" 200');
+  expect(flagOnlyBook.title).toBe("");
+  expect(flagOnlyBook.book_title).toBe("The Mythical Man-Month");
+  expect(flagOnlyBook.pages).toBe(200);
+  // Test fallback logic used in tasks.js:
+  const fallbackTitle = flagOnlyBook.title || flagOnlyBook.book_title || '--book "The Mythical Man-Month" 200';
+  expect(fallbackTitle).toBe("The Mythical Man-Month");
+});
+
+test("Tasks view includes Edit task action and updates tasks via api.updateTask", () => {
+  const tasksPath = join(import.meta.dir, "..", "public/js/views/tasks.js");
+  const content = readFileSync(tasksPath, "utf8");
+
+  expect(content).toContain("data-action=\"edit\"");
+  expect(content).toContain("task-edit-btn");
+  expect(content).toContain("openEditTaskModal");
+  expect(content).toContain("api.updateTask");
+  expect(content).toContain("edit-task-title");
+  expect(content).toContain("edit-task-category");
+  expect(content).toContain("edit-task-at");
+  expect(content).toContain("edit-task-mins");
 });
