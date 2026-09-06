@@ -7,12 +7,12 @@ import { Database } from "bun:sqlite";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const PORT = parseInt(process.env.BTASK_PORT || "8787");
-const DB_PATH = process.env.BTASK_DB || join(import.meta.dir, "db.sqlite");
+const PORT = parseInt(process.env.BTASK_PORT || (process.env.NODE_ENV === "test" ? "0" : "8787"));
+const DB_PATH = process.env.BTASK_DB || (process.env.NODE_ENV === "test" ? `/tmp/btask-test-${process.pid}.sqlite` : join(import.meta.dir, "db.sqlite"));
 const STATIC_DIR = join(import.meta.dir, "public");
 
 // ── DB ──────────────────────────────────────────────────────────────
-const db = new Database(DB_PATH, { create: true });
+export const db = new Database(DB_PATH, { create: true });
 db.exec("PRAGMA journal_mode = WAL");
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
@@ -162,6 +162,61 @@ function bumpActivity(userId: number) {
   publish({ userId, type: "activity", payload: { day: today } });
 }
 
+// ── Gamification formulas ──────────────────────────────────────────
+export function xpForLevel(lvl: number): number {
+  return 100 + (lvl - 1) * 20;
+}
+
+export function getLevelInfo(totalXp: number) {
+  let lvl = 1;
+  let rem = Math.max(0, totalXp);
+  while (true) {
+    const req = xpForLevel(lvl);
+    if (rem < req) break;
+    rem -= req;
+    lvl++;
+  }
+  const needed = xpForLevel(lvl);
+  const pct = needed > 0 ? (rem / needed) * 100 : 0;
+
+  let rank = "Apprentice";
+  if (lvl >= 50) rank = "Grandmaster";
+  else if (lvl >= 40) rank = "Champion";
+  else if (lvl >= 30) rank = "Veteran";
+  else if (lvl >= 20) rank = "Adept";
+  else if (lvl >= 10) rank = "Journeyman";
+
+  return { level: lvl, rank, prog_xp: rem, needed_xp: needed, pct: Math.round(pct * 10) / 10, total_xp: totalXp };
+}
+
+export function addXpAndCoins(database: Database, userId: number, xpToAdd: number, coinsToAdd: number, reason: string) {
+  const totals = database.query(`
+    SELECT
+      (SELECT COALESCE(SUM(COALESCE(xp, 10)), 0) FROM tasks WHERE user_id = ? AND status = 'done' AND archived = 0) +
+      (SELECT COALESCE(SUM(minutes), 0) FROM focus_sessions WHERE user_id = ?) AS total_xp
+  `).get(userId, userId) as any;
+
+  const oldXp = totals?.total_xp || 0;
+  const oldLvl = getLevelInfo(oldXp).level;
+  const newLvl = getLevelInfo(oldXp + xpToAdd).level;
+
+  let bonusCoins = 0;
+  if (newLvl > oldLvl) {
+    bonusCoins = (newLvl - oldLvl) * 50;
+  }
+
+  const finalCoins = coinsToAdd + bonusCoins;
+  database.query("UPDATE users SET coins = MAX(0, coins + ?), lifetime_earned = lifetime_earned + ? WHERE id = ?")
+    .run(finalCoins, Math.max(0, finalCoins), userId);
+
+  if (finalCoins > 0) {
+    database.query("INSERT INTO transactions (user_id, type, amount, reason) VALUES (?, 'earn', ?, ?)")
+      .run(userId, finalCoins, reason + (bonusCoins > 0 ? ` (+${bonusCoins} Level Up bonus!)` : ""));
+  }
+
+  return { newLvl, bonusCoins, totalXp: oldXp + xpToAdd };
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────
 function genKey(): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(24)))
@@ -187,7 +242,7 @@ function getUser(req: Request) {
     } catch {}
   }
   if (!apiKey) return null;
-  return Q.getUserByKey.get(apiKey) as { id: number; username: string; is_public: number } | null;
+  return Q.getUserByKey.get(apiKey) as { id: number; username: string; is_public: number; coins: number; lifetime_earned: number; lifetime_spent: number; created_at: string } | null;
 }
 
 function getOrCreateUser(req: Request, bodyUsername?: string): { user: any; created: boolean } | null {
@@ -199,7 +254,7 @@ function getOrCreateUser(req: Request, bodyUsername?: string): { user: any; crea
   if (existing) return { user: existing, created: false };
   const api_key = genKey();
   const info = Q.insertUser.run(username, api_key);
-  return { user: { id: info.lastInsertRowid, username, api_key, is_public: 0 }, created: true };
+  return { user: { id: info.lastInsertRowid, username, api_key, is_public: 0, coins: 0, lifetime_earned: 0, lifetime_spent: 0 }, created: true };
 }
 
 // Last-7-days with zero-filled gaps (oldest first)
@@ -219,8 +274,8 @@ function last7Days(rows: { day: string; count: number }[]) {
 // .query() compiles each call; .prepare() caches the bytecode.
 // Significant for high-RQ endpoints (SSE-pushed reloads).
 const Q = {
-  getUserByKey: db.prepare("SELECT id, username, is_public FROM users WHERE api_key = ?"),
-  getUserByName: db.prepare("SELECT id, username, api_key, is_public FROM users WHERE username = ?"),
+  getUserByKey: db.prepare("SELECT id, username, is_public, coins, lifetime_earned, lifetime_spent, created_at FROM users WHERE api_key = ?"),
+  getUserByName: db.prepare("SELECT id, username, api_key, is_public, coins, lifetime_earned, lifetime_spent, created_at FROM users WHERE username = ?"),
   getUserByNamePublic: db.prepare("SELECT id, username, is_public, created_at FROM users WHERE username = ?"),
   isUsernameTaken: db.prepare("SELECT id FROM users WHERE username = ? AND id != ?"),
   updateUser: db.prepare("UPDATE users SET is_public = ? WHERE id = ?"),
@@ -256,7 +311,23 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
   { method: "GET", path: /^\/api\/me$/, handler: (req) => {
     const u = getUser(req);
     if (!u) return err("unauthorized", 401);
-    return json({ user: u });
+    const fullUser = db.query("SELECT id, username, is_public, coins, lifetime_earned, lifetime_spent, created_at FROM users WHERE id = ?").get(u.id) as any;
+    const totals = db.query(`
+      SELECT
+        (SELECT COALESCE(SUM(COALESCE(xp, 10)), 0) FROM tasks WHERE user_id = ? AND status = 'done' AND archived = 0) +
+        (SELECT COALESCE(SUM(minutes), 0) FROM focus_sessions WHERE user_id = ?) AS total_xp
+    `).get(u.id, u.id) as any;
+    const totalXp = totals?.total_xp || 0;
+    const levelInfo = getLevelInfo(totalXp);
+    return json({
+      user: fullUser,
+      wallet: {
+        coins: fullUser?.coins ?? 0,
+        lifetime_earned: fullUser?.lifetime_earned ?? 0,
+        lifetime_spent: fullUser?.lifetime_spent ?? 0,
+      },
+      level_info: levelInfo,
+    });
   }},
 
   // update me (rename handle, toggle public board)
@@ -277,7 +348,7 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
     if (updates.length === 0) return json({ user: u });
     args.push(u.id);
     db.query(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`).run(...args);
-    const updated = db.query("SELECT id, username, is_public, created_at FROM users WHERE id = ?").get(u.id);
+    const updated = db.query("SELECT id, username, is_public, coins, lifetime_earned, lifetime_spent, created_at FROM users WHERE id = ?").get(u.id);
     return json({ user: updated });
   }},
 
@@ -295,6 +366,72 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
     const focus = db.query("SELECT COALESCE(SUM(minutes),0) AS m FROM focus_sessions WHERE user_id = ?").get(u.id) as any;
     const recent = db.query("SELECT day, count FROM activity WHERE user_id = ? AND day >= date('now', '-6 days')").all(u.id);
     return json({ user: { username: u.username, is_public: !!u.is_public, created_at: u.created_at }, totals, tasks, focus_minutes: focus.m, activity_7d: last7Days(recent) });
+  }},
+
+  // rewards & wallet
+  { method: "GET", path: /^\/api\/rewards$/, handler: (req) => {
+    const u = getUser(req);
+    if (!u) return err("unauthorized", 401);
+    const user = db.query("SELECT coins FROM users WHERE id = ?").get(u.id) as any;
+    const coins = user?.coins ?? 0;
+    const rows = db.query("SELECT * FROM rewards WHERE user_id IS NULL OR user_id = ? ORDER BY id ASC").all(u.id) as any[];
+    const rewards = rows.map(r => ({
+      ...r,
+      is_locked: coins < r.cost,
+      needed_coins: Math.max(0, r.cost - coins),
+    }));
+    return json({ rewards });
+  }},
+
+  { method: "POST", path: /^\/api\/rewards$/, handler: async (req) => {
+    const u = getUser(req);
+    if (!u) return err("unauthorized", 401);
+    const body = await req.json().catch(() => ({}));
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    if (!name || name.length > 100) return err("name required (max 100)", 400);
+    const cost = parseInt(body.cost);
+    if (isNaN(cost) || cost < 1) return err("cost must be integer >= 1", 400);
+    const mins = body.mins !== undefined ? parseInt(body.mins) : 0;
+    if (isNaN(mins) || mins < 0) return err("mins must be integer >= 0", 400);
+    const type = body.type || (mins > 0 ? "timed" : "instant");
+    if (type !== "timed" && type !== "instant") return err("type must be timed or instant", 400);
+    const icon = typeof body.icon === "string" && body.icon.trim() ? body.icon.trim() : "🎁";
+    const info = db.query(
+      "INSERT INTO rewards (user_id, name, cost, mins, type, icon) VALUES (?, ?, ?, ?, ?, ?)"
+    ).run(u.id, name, cost, mins, type, icon);
+    const reward = db.query("SELECT * FROM rewards WHERE id = ?").get(info.lastInsertRowid);
+    publish({ userId: u.id, type: "reward_create", payload: reward });
+    return json({ reward }, 201);
+  }},
+
+  { method: "POST", path: /^\/api\/rewards\/(\d+)\/buy$/, handler: (req, params) => {
+    const u = getUser(req);
+    if (!u) return err("unauthorized", 401);
+    const id = parseInt(params[1]);
+    const reward = db.query("SELECT * FROM rewards WHERE id = ? AND (user_id IS NULL OR user_id = ?)").get(id, u.id) as any;
+    if (!reward) return err("reward not found", 404);
+    const user = db.query("SELECT coins, lifetime_spent FROM users WHERE id = ?").get(u.id) as any;
+    const currentCoins = user?.coins ?? 0;
+    if (currentCoins < reward.cost) {
+      return json({ error: "Insufficient coins", required: reward.cost, available: currentCoins }, 400);
+    }
+    const coinsLeft = currentCoins - reward.cost;
+    db.query("UPDATE users SET coins = coins - ?, lifetime_spent = lifetime_spent + ? WHERE id = ?").run(reward.cost, reward.cost, u.id);
+    db.query("INSERT INTO transactions (user_id, type, amount, reason, reward_id) VALUES (?, 'spend', ?, ?, ?)").run(
+      u.id,
+      reward.cost,
+      `Bought ${reward.name}`,
+      reward.id
+    );
+    publish({ userId: u.id, type: "reward_buy", payload: { reward, coins_left: coinsLeft } });
+    return json({ ok: true, reward, coins_left: coinsLeft, relax_mins: reward.mins });
+  }},
+
+  { method: "GET", path: /^\/api\/transactions$/, handler: (req) => {
+    const u = getUser(req);
+    if (!u) return err("unauthorized", 401);
+    const transactions = db.query("SELECT * FROM transactions WHERE user_id = ? ORDER BY id DESC LIMIT 50").all(u.id);
+    return json({ transactions });
   }},
 
   // tasks CRUD
@@ -538,60 +675,76 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
   }},
 ];
 
-// ── Server ──────────────────────────────────────────────────────────
-export const server = Bun.serve({
-  port: PORT,
-  hostname: "0.0.0.0",
-  idleTimeout: 60,        // 60s before idle TCP connection is closed
-  maxRequestBodySize: 10 * 1024 * 1024,  // 10 MB cap on POST bodies
-  async fetch(req) {
-    const url = new URL(req.url);
+function createServer() {
+  return Bun.serve({
+    port: PORT,
+    hostname: "0.0.0.0",
+    idleTimeout: 60,        // 60s before idle TCP connection is closed
+    maxRequestBodySize: 10 * 1024 * 1024,  // 10 MB cap on POST bodies
+    async fetch(req) {
+      const url = new URL(req.url);
 
-    if (req.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: {
-          "access-control-allow-origin": "*",
-          "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
-          "access-control-allow-headers": "authorization, content-type, x-btask-user",
-          "access-control-max-age": "86400",
-        },
-      });
-    }
-
-    for (const r of routes) {
-      if (r.method !== req.method) continue;
-      const m = url.pathname.match(r.path);
-      if (m) return r.handler(req, m);
-    }
-
-    if (req.method === "GET") {
-      let p = url.pathname === "/" ? "/index.html" : url.pathname;
-      // public board at /u/<username>
-      const uMatch = url.pathname.match(/^\/u\/([a-z0-9_-]+)\/?$/);
-      if (uMatch) {
-        const publicPath = join(STATIC_DIR, "public.html");
-        if (existsSync(publicPath)) {
-          return new Response(Bun.file(publicPath), { headers: { "content-type": "text/html", "cache-control": "no-cache" } });
-        }
-      }
-      const full = join(STATIC_DIR, p);
-      if (existsSync(full)) {
-        const file = Bun.file(full);
-        // static = cache 5m; HTML = no-cache so updates roll out fast
-        const isHtml = p.endsWith(".html");
-        return new Response(file, {
+      if (req.method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
           headers: {
-            "content-type": isHtml ? "text/html" : (file.type || "application/octet-stream"),
-            "cache-control": isHtml ? "no-cache" : "public, max-age=300",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
+            "access-control-allow-headers": "authorization, content-type, x-btask-user",
+            "access-control-max-age": "86400",
           },
         });
       }
-      const idx = join(STATIC_DIR, "index.html");
-      if (existsSync(idx)) return new Response(Bun.file(idx), { headers: { "content-type": "text/html", "cache-control": "no-cache" } });
-    }
 
-    return json({ error: "not found" }, 404);
+      for (const r of routes) {
+        if (r.method !== req.method) continue;
+        const m = url.pathname.match(r.path);
+        if (m) return r.handler(req, m);
+      }
+
+      if (req.method === "GET") {
+        let p = url.pathname === "/" ? "/index.html" : url.pathname;
+        // public board at /u/<username>
+        const uMatch = url.pathname.match(/^\/u\/([a-z0-9_-]+)\/?$/);
+        if (uMatch) {
+          const publicPath = join(STATIC_DIR, "public.html");
+          if (existsSync(publicPath)) {
+            return new Response(Bun.file(publicPath), { headers: { "content-type": "text/html", "cache-control": "no-cache" } });
+          }
+        }
+        const full = join(STATIC_DIR, p);
+        if (existsSync(full)) {
+          const file = Bun.file(full);
+          // static = cache 5m; HTML = no-cache so updates roll out fast
+          const isHtml = p.endsWith(".html");
+          return new Response(file, {
+            headers: {
+              "content-type": isHtml ? "text/html" : (file.type || "application/octet-stream"),
+              "cache-control": isHtml ? "no-cache" : "public, max-age=300",
+            },
+          });
+        }
+        const idx = join(STATIC_DIR, "index.html");
+        if (existsSync(idx)) return new Response(Bun.file(idx), { headers: { "content-type": "text/html", "cache-control": "no-cache" } });
+      }
+
+      return json({ error: "not found" }, 404);
+    },
+  });
+}
+
+let _server = createServer();
+
+export const server = new Proxy({} as any, {
+  get(_target, prop) {
+    if (prop === "port" && (!_server || _server.port === 0)) {
+      _server = createServer();
+    }
+    const val = (_server as any)[prop];
+    if (typeof val === "function") {
+      return val.bind(_server);
+    }
+    return val;
   },
 });
 
