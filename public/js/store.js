@@ -164,6 +164,24 @@ export class Store {
   }
 
   // ── Focus & Relax Timer Controls ─────────────────────────────────────
+  async toggleTaskDone(taskId) {
+    const task = this.state.tasks.find((t) => t.id === taskId);
+    if (!task) return;
+    try {
+      if (task.status === "done") {
+        await api.markUndone(taskId);
+        this.showToast(`Reopened: "${task.title}"`, "info");
+      } else {
+        await api.markDone(taskId);
+        sound.playComplete();
+        this.showToast(`Completed: "${task.title}" (+${task.xp || 10} XP, +${task.coins || 10} ⟐)`, "success");
+      }
+      await Promise.all([this.refreshTasks(), this.refreshUserAndStats()]);
+    } catch (err) {
+      this.showToast(err.message || "Failed to toggle task", "error");
+    }
+  }
+
   startFocusTimer(task) {
     if (!task) return;
     const targetSeconds = (task.mins && task.mins > 0 ? task.mins : 25) * 60;

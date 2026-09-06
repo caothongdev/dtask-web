@@ -227,6 +227,7 @@
     import { api } from "/js/api.js";
     import { store } from "/js/store.js";
     import { sound } from "/js/audio.js";
+    import { renderTasksView } from "/js/views/tasks.js";
 
     // 1. UTC Clock
     function updateClock() {
@@ -294,8 +295,22 @@
       }
     }
 
-    store.subscribe((state) => {
+    function getActiveView() {
+      return location.hash.replace("#", "") || "tasks";
+    }
+
+    store.subscribe((state, event) => {
       syncHud(state);
+      if (getActiveView() === "tasks") {
+        const root = document.getElementById("view-root");
+        if (root && (event === "state_changed" || event === "tasks_loaded" || event === "task_updated")) {
+          const activeEl = document.activeElement;
+          const isTyping = activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA");
+          if (!isTyping) {
+            renderTasksView(root);
+          }
+        }
+      }
     });
 
     // 4. Dialog Controls
@@ -364,9 +379,27 @@
       store.showToast("Logged out", "info");
     });
 
-    // 5. Navigation Tab Highlighting
+    // 5. Navigation Tab Highlighting & SPA View Router
+    function renderCurrentView() {
+      const view = getActiveView();
+      store.state.currentView = view;
+      const root = document.getElementById("view-root");
+      if (!root) return;
+
+      if (view === "tasks") {
+        renderTasksView(root);
+      } else {
+        root.innerHTML = `
+          <div class="max-w-4xl mx-auto mt-12 p-8 border border-outline-variant bg-surface text-center font-mono">
+            <p class="font-space text-lg text-primary mb-2">+-.[ dtask // [${view.toUpperCase()}] ].-+</p>
+            <p class="text-sm text-secondary">View module ready for activation.</p>
+          </div>
+        `;
+      }
+    }
+
     function syncNavTabs() {
-      const hash = location.hash.replace("#", "") || "tasks";
+      const hash = getActiveView();
       const tabs = document.querySelectorAll(".nav-tab");
       tabs.forEach((tab) => {
         const view = tab.getAttribute("data-view");
@@ -376,10 +409,23 @@
           tab.className = "nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap";
         }
       });
+      renderCurrentView();
     }
 
     window.addEventListener("hashchange", syncNavTabs);
     syncNavTabs();
+
+    // Hotkey 'A' to focus Quick Add input
+    window.addEventListener("keydown", (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (e.key === "a" || e.key === "A") {
+        const titleInput = document.getElementById("quick-add-title");
+        if (titleInput) {
+          e.preventDefault();
+          titleInput.focus();
+        }
+      }
+    });
 
     // 6. Initial Load
     if (api.getToken() || api.username) {
