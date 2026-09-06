@@ -155,12 +155,17 @@ let currentDateOffset = 0; // 0 = TODAY, -1 = yesterday, +1 = tomorrow
 let selectedCategoryFilter = "all";
 let showFull24h = false;
 let timelineIntervalId = null;
+export let currentActiveTask = null;
+export function getCurrentActiveTask() {
+  return currentActiveTask;
+}
 
 export function cleanupTimelineView() {
   if (timelineIntervalId) {
     clearInterval(timelineIntervalId);
     timelineIntervalId = null;
   }
+  currentActiveTask = null;
 }
 
 // ── Main View Renderer ──────────────────────────────────────────────────
@@ -227,6 +232,8 @@ export function renderTimelineView(container) {
       }
     }
   }
+
+  currentActiveTask = activeTask;
 
   // Unscheduled tasks
   const unscheduledTasks = tasks.filter((t) => !t.archived && (!t.at || parseAtTime(t.at) === null) && t.status !== "done");
@@ -761,7 +768,16 @@ export function renderTimelineView(container) {
     <dialog id="quick-schedule-dialog" class="bg-surface border border-outline text-primary p-6 max-w-md w-full shadow-2xl backdrop:bg-black/80 font-mono text-xs">
       <form method="dialog" id="quick-schedule-form">
         <h2 class="font-space text-base font-bold mb-1 text-primary">Schedule Timeline Slot</h2>
-        <p class="text-secondary mb-4 text-[11px]">Assign an existing task or create a new slot at this hour.</p>
+        <p id="schedule-modal-subtitle" class="text-secondary mb-3 text-[11px]">Assign an existing task or create a new slot at this hour.</p>
+
+        <!-- Prominent Rescheduling Banner (shown when editing an existing slot) -->
+        <div id="schedule-reschedule-banner" class="hidden mb-4 p-2.5 bg-surface-container-high border border-stone-accent text-primary flex items-center justify-between">
+          <div class="flex flex-col gap-0.5 min-w-0">
+            <span class="text-[10px] text-stone-accent font-bold">// RESCHEDULING TASK:</span>
+            <span id="schedule-reschedule-title" class="font-bold truncate text-primary text-xs"></span>
+          </div>
+          <span id="schedule-reschedule-cat" class="px-1.5 py-0.5 bg-surface-container border border-outline-variant text-[10px] uppercase font-bold text-stone-accent ml-2 shrink-0"></span>
+        </div>
 
         <div class="space-y-4 mb-6">
           <!-- Time Slot Field -->
@@ -779,7 +795,7 @@ export function renderTimelineView(container) {
           </div>
 
           <!-- Mode Picker: Pick Existing or Create New -->
-          <div class="flex items-center gap-2 pt-1 border-t border-outline-variant/40">
+          <div id="schedule-tabs-row" class="flex items-center gap-2 pt-1 border-t border-outline-variant/40">
             <button
               type="button"
               id="tab-pick-existing"
@@ -798,7 +814,7 @@ export function renderTimelineView(container) {
 
           <!-- Pick Existing Task Section -->
           <div id="section-pick-existing" class="space-y-3">
-            <label class="block text-outline mb-1">// SELECT UNSCHEDULED TASK:</label>
+            <label class="block text-outline mb-1">// SELECT TASK:</label>
             <select
               id="schedule-task-select"
               class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary"
@@ -880,25 +896,97 @@ export function renderTimelineView(container) {
 }
 
 // ── Live Clock & Countdown Updates (Every 1s) ───────────────────────────
-function updateTimelineLiveClocks(container) {
-  const marker = container.querySelector("#timeline-now-marker");
+export function updateTimelineLiveClocks(container) {
+  if (!container) return;
   const now = new Date();
-  const timeFormatted = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+  const currentH = now.getHours();
+  const currentM = now.getMinutes();
+  const currentS = now.getSeconds();
+  const timeFormatted = `${String(currentH).padStart(2, "0")}:${String(currentM).padStart(2, "0")}:${String(currentS).padStart(2, "0")}`;
 
-  if (marker) {
-    const textEl = marker.querySelector(".tracking-wider");
-    if (textEl) {
-      textEl.textContent = `► NOW [${timeFormatted}]`;
+  // 1. Dynamic NOW Marker positioning & hour rollover
+  if (currentDateOffset === 0) {
+    let marker = container.querySelector("#timeline-now-marker");
+    const currentHourSlot = container.querySelector(`[data-hour="${currentH}"]`);
+
+    if (currentHourSlot) {
+      if (!marker) {
+        marker = document.createElement("div");
+        marker.id = "timeline-now-marker";
+        marker.className = "my-1 py-1 px-3 bg-stone-accent text-surface font-bold flex items-center justify-between shadow-lg border border-primary transition-all duration-300";
+        marker.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 bg-surface animate-ping"></span>
+            <span class="tracking-wider live-marker-time">► NOW [${timeFormatted}]</span>
+            <span class="hidden sm:inline text-[11px] opacity-80">// SYS_BUS ACTIVE</span>
+          </div>
+          <span class="text-[11px] font-mono">CYCLE RUNNING</span>
+        `;
+        currentHourSlot.prepend(marker);
+      } else {
+        const parentHourSlot = marker.closest("[data-hour]");
+        if (parentHourSlot && parentHourSlot.getAttribute("data-hour") !== String(currentH)) {
+          // Hour rollover: move marker to the new hour slot
+          currentHourSlot.prepend(marker);
+        }
+      }
+
+      // Minute offset within hour: 0% to 100%
+      const minutePct = ((currentM * 60 + currentS) / 3600) * 100;
+      marker.dataset.minuteOffset = String(minutePct.toFixed(1));
+      marker.style.transform = `translateY(${Math.min(12, (minutePct / 100) * 16)}px)`;
+
+      const textEl = marker.querySelector(".live-marker-time") || marker.querySelector(".tracking-wider");
+      if (textEl) {
+        textEl.textContent = `► NOW [${timeFormatted}]`;
+      }
+    } else if (marker) {
+      marker.remove();
     }
   }
 
-  // Update active countdown banner if active timer or slot running
+  // 2. Active Slot Countdown & Auto-transition
   const countdownEl = container.querySelector("#live-active-countdown");
-  if (countdownEl && store.state.activeTimer && store.state.activeTimer.running) {
-    const rem = Math.max(0, store.state.activeTimer.targetSeconds - store.state.activeTimer.elapsedSeconds);
-    const m = Math.floor(rem / 60);
-    const s = rem % 60;
-    countdownEl.textContent = `${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`;
+  if (countdownEl) {
+    if (store.state.activeTimer && store.state.activeTimer.running) {
+      const rem = Math.max(0, store.state.activeTimer.targetSeconds - store.state.activeTimer.elapsedSeconds);
+      const m = Math.floor(rem / 60);
+      const s = rem % 60;
+      countdownEl.textContent = `${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`;
+    } else if (currentActiveTask && currentActiveTask.at) {
+      const startMins = parseAtTime(currentActiveTask.at);
+      const duration = currentActiveTask.mins && currentActiveTask.mins > 0 ? currentActiveTask.mins : 30;
+      const endMinutes = startMins + duration;
+      const nowSeconds = currentH * 3600 + currentM * 60 + currentS;
+      const remainingSeconds = endMinutes * 60 - nowSeconds;
+
+      if (remainingSeconds > 0) {
+        const m = Math.floor(remainingSeconds / 60);
+        const s = remainingSeconds % 60;
+        countdownEl.textContent = `${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`;
+      } else {
+        // Active slot ended -> transition to idle / re-render
+        currentActiveTask = null;
+        renderTimelineView(container);
+        return;
+      }
+    }
+  } else {
+    // If showing IDLE, check if a scheduled slot just became active
+    const nowMins = currentH * 60 + currentM;
+    const tasks = store.state.tasks || [];
+    const shouldBeActive = tasks.find((t) => {
+      if (t.archived || t.status === "done" || !t.at) return false;
+      const startM = parseAtTime(t.at);
+      if (startM === null) return false;
+      const duration = t.mins && t.mins > 0 ? t.mins : 30;
+      return startM <= nowMins && nowMins < startM + duration;
+    });
+
+    if (shouldBeActive && (!currentActiveTask || currentActiveTask.id !== shouldBeActive.id)) {
+      renderTimelineView(container);
+      return;
+    }
   }
 }
 
@@ -1004,10 +1092,42 @@ export function openQuickScheduleModal(initialTimeStr = "12:00", preselectedTask
   const minsInput = document.getElementById("schedule-new-mins");
   const cancelBtn = document.getElementById("schedule-cancel-btn");
   const form = document.getElementById("quick-schedule-form");
+  const banner = document.getElementById("schedule-reschedule-banner");
+  const bannerTitle = document.getElementById("schedule-reschedule-title");
+  const bannerCat = document.getElementById("schedule-reschedule-cat");
 
   if (timeInput) timeInput.value = initialTimeStr;
-  if (taskSelect && preselectedTaskId) {
-    taskSelect.value = String(preselectedTaskId);
+
+  const tasks = store.state.tasks || [];
+  const preselTask = preselectedTaskId ? tasks.find((t) => t.id === preselectedTaskId) : null;
+
+  // Prominent banner display for rescheduling
+  if (preselTask && banner && bannerTitle && bannerCat) {
+    bannerTitle.textContent = `#${preselTask.id}: ${preselTask.title}`;
+    bannerCat.textContent = `[${preselTask.category || "code"}]`;
+    banner.classList.remove("hidden");
+  } else if (banner) {
+    banner.classList.add("hidden");
+  }
+
+  // Populate task options ensuring preselectedTask is included even if already scheduled
+  if (taskSelect) {
+    const unscheduledTasks = tasks.filter((t) => !t.archived && (!t.at || parseAtTime(t.at) === null) && t.status !== "done");
+    let options = '<option value="">-- Choose task to assign --</option>';
+
+    if (preselTask) {
+      options += `<option value="${preselTask.id}" selected>#${preselTask.id}: ${escapeHtml(preselTask.title)} [${preselTask.category || "code"}] (Selected)</option>`;
+    }
+
+    for (const t of unscheduledTasks) {
+      if (!preselTask || t.id !== preselTask.id) {
+        options += `<option value="${t.id}">#${t.id}: ${escapeHtml(t.title)} [${t.category || "code"}]</option>`;
+      }
+    }
+    taskSelect.innerHTML = options;
+    if (preselTask) {
+      taskSelect.value = String(preselTask.id);
+    }
   }
 
   let activeTab = "pick"; // "pick" | "create"
@@ -1026,17 +1146,20 @@ export function openQuickScheduleModal(initialTimeStr = "12:00", preselectedTask
     }
   }
 
-  tabPick?.addEventListener("click", () => {
+  updateTabs();
+
+  // Clean listener cleanup using property assignments (prevents stacking)
+  tabPick.onclick = () => {
     activeTab = "pick";
     updateTabs();
-  });
+  };
 
-  tabCreate?.addEventListener("click", () => {
+  tabCreate.onclick = () => {
     activeTab = "create";
     updateTabs();
-  });
+  };
 
-  cancelBtn?.addEventListener("click", () => dialog.close());
+  cancelBtn.onclick = () => dialog.close();
 
   form.onsubmit = async (e) => {
     e.preventDefault();
@@ -1048,14 +1171,14 @@ export function openQuickScheduleModal(initialTimeStr = "12:00", preselectedTask
 
     try {
       if (activeTab === "pick") {
-        const taskId = parseInt(taskSelect?.value, 10);
+        const taskId = parseInt(taskSelect?.value, 10) || (preselTask ? preselTask.id : null);
         if (!taskId) {
           alert("Please select a task from the list, or switch to '+ Create New Task'.");
           return;
         }
         await api.updateTask(taskId, { at: timeVal });
         sound.playCoinTick();
-        store.showToast(`Scheduled slot at ${timeVal}`, "success");
+        store.showToast(`Rescheduled #${taskId} to ${timeVal}`, "success");
       } else {
         const titleVal = (titleInput?.value || "").trim();
         if (!titleVal) {

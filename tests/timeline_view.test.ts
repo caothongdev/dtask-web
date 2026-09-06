@@ -94,3 +94,44 @@ test("Timeline view script includes 24h timeline grid, NOW marker, and interacti
   expect(content).toContain("UNPINNED DAEMON POOL");
   expect(content).toContain("START FOCUS");
 });
+
+test("openQuickScheduleModal implements rescheduling banner and preselected task inclusion", () => {
+  const path = join(import.meta.dir, "..", "public/js/views/timeline.js");
+  const content = readFileSync(path, "utf8");
+
+  // 1. Rescheduling banner elements present
+  expect(content).toContain("schedule-reschedule-banner");
+  expect(content).toContain("schedule-reschedule-title");
+  expect(content).toContain("schedule-reschedule-cat");
+  expect(content).toContain("// RESCHEDULING TASK:");
+
+  // 2. Preselected task is included in taskSelect options even when already scheduled
+  expect(content).toContain("preselTask");
+  expect(content).toContain("selected");
+  expect(content).toContain("taskSelect.value = String(preselTask.id)");
+  expect(content).toContain("Rescheduled #");
+
+  // 3. Clean listener property assignment to prevent stacking
+  expect(content).toContain("tabPick.onclick =");
+  expect(content).toContain("tabCreate.onclick =");
+  expect(content).toContain("cancelBtn.onclick =");
+  expect(content).toContain("form.onsubmit =");
+});
+
+test("updateTimelineLiveClocks handles hour rollover and inactive timer countdown", () => {
+  const path = join(import.meta.dir, "..", "public/js/views/timeline.js");
+  const content = readFileSync(path, "utf8");
+
+  // 1. Hour rollover check moves marker to current hour slot
+  expect(content).toContain("parentHourSlot.getAttribute(\"data-hour\") !== String(currentH)");
+  expect(content).toContain("currentHourSlot.prepend(marker)");
+
+  // 2. Vertical minute offset calculation
+  expect(content).toContain("minutePct = ((currentM * 60 + currentS) / 3600) * 100");
+  expect(content).toContain("minuteOffset");
+
+  // 3. Active slot countdown calculated from clock when timer not running
+  expect(content).toContain("endMinutes * 60 - nowSeconds");
+  expect(content).toContain("currentActiveTask");
+});
+
