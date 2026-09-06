@@ -4,7 +4,8 @@
 const LS_KEY = "btask:session";
 
 export class ApiClient {
-  constructor() {
+  constructor(baseUrl = "") {
+    this.baseUrl = baseUrl;
     this.token = "";
     this.username = "";
     if (typeof localStorage !== "undefined") {
@@ -47,7 +48,11 @@ export class ApiClient {
   }
 
   async request(path, options = {}) {
-    const url = path.startsWith("http") ? path : `/api${path.startsWith("/") ? path : `/${path}`}`;
+    let url = path;
+    if (!path.startsWith("http")) {
+      const base = this.baseUrl || (typeof window !== "undefined" && window.location?.origin && window.location.origin !== "null" ? window.location.origin : "");
+      url = `${base}/api${path.startsWith("/") ? path : `/${path}`}`;
+    }
     const headers = {
       "Content-Type": "application/json",
       ...(options.headers || {})

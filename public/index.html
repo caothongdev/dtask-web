@@ -163,7 +163,7 @@
       <a href="#shop" data-view="shop" class="nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap">
         [4] Rewards Shop & Loot
       </a>
-      <a href="#telemetry" data-view="telemetry" class="nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap">
+      <a href="#stats" data-view="stats" class="nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap">
         [5] Telemetry & Stats
       </a>
     </nav>
@@ -230,6 +230,8 @@
     import { renderTasksView } from "/js/views/tasks.js";
     import { renderTimelineView, cleanupTimelineView } from "/js/views/timeline.js";
     import { renderFocusView, cleanupFocusView } from "/js/views/focus.js";
+    import { renderShopView, cleanupShopView } from "/js/views/shop.js";
+    import { renderTelemetryView, cleanupTelemetryView } from "/js/views/telemetry.js";
 
     // 1. UTC Clock
     function updateClock() {
@@ -319,6 +321,14 @@
         if (event === "state_changed" || event === "tasks_loaded" || event === "task_updated" || event === "timer_tick" || event === "timer_started" || event === "timer_paused" || event === "timer_resumed" || event === "timer_stopped" || event === "relax_started" || event === "relax_paused" || event === "relax_resumed" || event === "relax_stopped" || event === "relax_completed" || event === "focus_completed") {
           renderFocusView(root);
         }
+      } else if (activeView === "shop") {
+        if (event === "state_changed" || event === "rewards_loaded" || event === "reward_bought" || event === "reward_create" || event === "transactions_loaded") {
+          renderShopView(root);
+        }
+      } else if (activeView === "stats" || activeView === "telemetry") {
+        if (event === "state_changed" || event === "stats_loaded" || event === "tasks_loaded" || event === "activity") {
+          renderTelemetryView(root);
+        }
       }
     });
 
@@ -395,19 +405,22 @@
       const root = document.getElementById("view-root");
       if (!root) return;
 
+      cleanupTimelineView?.();
+      cleanupFocusView?.();
+      cleanupShopView?.();
+      cleanupTelemetryView?.();
+
       if (view === "tasks") {
-        cleanupTimelineView();
-        cleanupFocusView();
         renderTasksView(root);
       } else if (view === "timeline") {
-        cleanupFocusView();
         renderTimelineView(root);
       } else if (view === "focus") {
-        cleanupTimelineView();
         renderFocusView(root);
+      } else if (view === "shop") {
+        renderShopView(root);
+      } else if (view === "stats" || view === "telemetry") {
+        renderTelemetryView(root);
       } else {
-        cleanupTimelineView();
-        cleanupFocusView();
         root.innerHTML = `
           <div class="max-w-4xl mx-auto mt-12 p-8 border border-outline-variant bg-surface text-center font-mono">
             <p class="font-space text-lg text-primary mb-2">+-.[ dtask // [${view.toUpperCase()}] ].-+</p>
@@ -419,10 +432,11 @@
 
     function syncNavTabs() {
       const hash = getActiveView();
+      const normalizedView = (hash === "telemetry") ? "stats" : hash;
       const tabs = document.querySelectorAll(".nav-tab");
       tabs.forEach((tab) => {
         const view = tab.getAttribute("data-view");
-        if (view === hash) {
+        if (view === normalizedView) {
           tab.className = "nav-tab px-3 py-1 text-primary bg-surface-container border border-outline hover:border-primary transition-colors font-medium whitespace-nowrap";
         } else {
           tab.className = "nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap";
@@ -444,7 +458,7 @@
           titleInput.focus();
         }
       } else if (["1", "2", "3", "4", "5"].includes(e.key)) {
-        const viewMap = { "1": "tasks", "2": "timeline", "3": "focus", "4": "shop", "5": "telemetry" };
+        const viewMap = { "1": "tasks", "2": "timeline", "3": "focus", "4": "shop", "5": "stats" };
         if (viewMap[e.key]) {
           location.hash = viewMap[e.key];
         }
