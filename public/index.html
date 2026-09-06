@@ -228,6 +228,7 @@
     import { store } from "/js/store.js";
     import { sound } from "/js/audio.js";
     import { renderTasksView } from "/js/views/tasks.js";
+    import { renderTimelineView, cleanupTimelineView } from "/js/views/timeline.js";
 
     // 1. UTC Clock
     function updateClock() {
@@ -301,10 +302,17 @@
 
     store.subscribe((state, event) => {
       syncHud(state);
-      if (getActiveView() === "tasks") {
-        const root = document.getElementById("view-root");
-        if (root && (event === "state_changed" || event === "tasks_loaded" || event === "task_updated")) {
+      const activeView = getActiveView();
+      const root = document.getElementById("view-root");
+      if (!root) return;
+
+      if (activeView === "tasks") {
+        if (event === "state_changed" || event === "tasks_loaded" || event === "task_updated") {
           renderTasksView(root);
+        }
+      } else if (activeView === "timeline") {
+        if (event === "state_changed" || event === "tasks_loaded" || event === "task_updated" || event === "timeline_loaded") {
+          renderTimelineView(root);
         }
       }
     });
@@ -383,8 +391,12 @@
       if (!root) return;
 
       if (view === "tasks") {
+        cleanupTimelineView();
         renderTasksView(root);
+      } else if (view === "timeline") {
+        renderTimelineView(root);
       } else {
+        cleanupTimelineView();
         root.innerHTML = `
           <div class="max-w-4xl mx-auto mt-12 p-8 border border-outline-variant bg-surface text-center font-mono">
             <p class="font-space text-lg text-primary mb-2">+-.[ dtask // [${view.toUpperCase()}] ].-+</p>
