@@ -373,6 +373,24 @@ const Q = {
   totalsFor: db.prepare(`SELECT COUNT(*) AS total, SUM(CASE WHEN status='done' THEN 1 ELSE 0 END) AS done, SUM(CASE WHEN archived=1 THEN 1 ELSE 0 END) AS archived FROM tasks WHERE user_id = ?`),
 };
 
+export function getUserStreak(userId: number): number {
+  const recent = db.query(`
+    SELECT day, count FROM activity
+    WHERE user_id = ? AND day >= date('now', '-30 days')
+    ORDER BY day
+  `).all(userId) as any[];
+  let streak = 0;
+  const today = new Date(); today.setUTCHours(0,0,0,0);
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(today); d.setUTCDate(today.getUTCDate() - i);
+    const key = d.toISOString().slice(0,10);
+    const hit = recent.find(r => r.day === key);
+    if (hit && hit.count > 0) streak++;
+    else if (i > 0) break;
+  }
+  return streak;
+}
+
 // ── Routes ──────────────────────────────────────────────────────────
 const routes: { method: string; path: RegExp; handler: (req: Request, params: any) => Promise<Response> | Response }[] = [
   // health
@@ -444,7 +462,22 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
     const tasks = db.query("SELECT id, category, title, progress, status, completed_at, time_estimate, created_at FROM tasks WHERE user_id = ? AND archived = 0 ORDER BY created_at DESC LIMIT 50").all(u.id);
     const focus = db.query("SELECT COALESCE(SUM(minutes),0) AS m FROM focus_sessions WHERE user_id = ?").get(u.id) as any;
     const recent = db.query("SELECT day, count FROM activity WHERE user_id = ? AND day >= date('now', '-6 days')").all(u.id);
-    return json({ user: { username: u.username, is_public: !!u.is_public, created_at: u.created_at }, totals, tasks, focus_minutes: focus.m, activity_7d: last7Days(recent) });
+    const streak = getUserStreak(u.id);
+    const totalXp = (db.query(`
+      SELECT
+        (SELECT COALESCE(SUM(COALESCE(xp, 10)), 0) FROM tasks WHERE user_id = ? AND status = 'done' AND archived = 0) +
+        (SELECT COALESCE(SUM(minutes), 0) FROM focus_sessions WHERE user_id = ?) AS total_xp
+    `).get(u.id, u.id) as any)?.total_xp || 0;
+    const level_info = getLevelInfo(totalXp);
+    return json({
+      user: { username: u.username, is_public: !!u.is_public, created_at: u.created_at },
+      totals,
+      tasks,
+      focus_minutes: focus.m,
+      streak_days: streak,
+      level_info,
+      activity_7d: last7Days(recent),
+    });
   }},
 
   // rewards & wallet
@@ -958,16 +991,8 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
       SELECT day, count FROM activity
       WHERE user_id = ? AND day >= date('now', '-6 days')
       ORDER BY day
-    `).all(u.id) as any[];
-    let streak = 0;
-    const today = new Date(); today.setUTCHours(0,0,0,0);
-    for (let i = 0; i < 30; i++) {
-      const d = new Date(today); d.setUTCDate(today.getUTCDate() - i);
-      const key = d.toISOString().slice(0,10);
-      const hit = recent.find(r => r.day === key);
-      if (hit && hit.count > 0) streak++;
-      else if (i > 0) break;
-    }
+    `).all(u.id);
+    const streak = getUserStreak(u.id);
     const xp = (totals.done || 0) * 10 + (focus.total_min || 0);
     return json({
       totals,
@@ -985,6 +1010,8 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
     const body = await req.json().catch(() => ({}));
     const m = parseInt(body.minutes ?? "0");
     if (!m || m < 0 || m > 600) return err("minutes must be 1-600", 400);
+    const earnedCoins = Math.floor(m / 2);
+    addXpAndCoins(db, u.id, m, earnedCoins, `Focus session: ${m} mins`);
     db.query("INSERT INTO focus_sessions (user_id, minutes) VALUES (?, ?)").run(u.id, m);
     bumpActivity(u.id);
     publish({ userId: u.id, type: "focus", payload: { minutes: m } });

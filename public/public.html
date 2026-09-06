@@ -1,211 +1,488 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" class="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title id="page-title">btask — public board</title>
-  <meta name="description" content="A public btask board. Read-only." />
+  <title id="page-title">dtask — Public Profile</title>
+  <meta name="description" content="dtask — public read-only operator board with RPG metrics, level rank, and activity log." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#090a0c" />
+
+  <!-- Fonts: Space Mono, Geist, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN & Neutrals for Balance Design Tokens -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: '#090a0c',
+            surface: '#121315',
+            'surface-container-lowest': '#0d0e10',
+            'surface-container-low': '#1b1c1e',
+            'surface-container': '#1f2022',
+            'surface-container-high': '#292a2c',
+            'surface-container-highest': '#343537',
+            primary: '#f4f4f0',
+            secondary: '#ccc6ba',
+            'secondary-fixed': '#e8e2d6',
+            'stone-accent': '#d8d2c6',
+            outline: '#8f918d',
+            'outline-variant': '#444844',
+          },
+          borderRadius: {
+            none: '0px',
+            sm: '0px',
+            DEFAULT: '0px',
+            md: '0px',
+            lg: '0px',
+            xl: '0px',
+            '2xl': '0px',
+            '3xl': '0px',
+            full: '0px',
+          },
+          fontFamily: {
+            'display-hero': ['Space Mono', 'monospace'],
+            'headline-lg': ['Space Mono', 'monospace'],
+            'headline-md': ['Space Mono', 'monospace'],
+            'headline-sm': ['Space Mono', 'monospace'],
+            'body-lg': ['Geist', 'sans-serif'],
+            'body-md': ['Geist', 'sans-serif'],
+            'body-sm': ['Geist', 'sans-serif'],
+            'code-body': ['JetBrains Mono', 'monospace'],
+            'code-stat': ['JetBrains Mono', 'monospace'],
+            'label-caps': ['JetBrains Mono', 'monospace'],
+            'label-md': ['JetBrains Mono', 'monospace'],
+            'label-sm': ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+
   <style>
-    .public-banner {
-      background: var(--accent);
-      color: var(--surface);
-      padding: 6px 16px;
-      font-family: var(--mono-font);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      text-align: center;
+    /* Strict 0px Border Radius & Base Obsidian Canvas */
+    *, *::before, *::after {
+      border-radius: 0px !important;
     }
-    .public-banner a { color: var(--surface); text-decoration: underline; }
+    body {
+      background-color: #090a0c;
+      color: #f4f4f0;
+      font-family: 'Geist', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    .font-space { font-family: 'Space Mono', monospace; }
+    .font-geist { font-family: 'Geist', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Custom terminal scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0d0e10;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #292a2c;
+      border: 1px solid #444844;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #444844;
+    }
   </style>
 </head>
-<body>
-  <div class="public-banner">
-    public board · <span id="banner-user">@user</span> · <a href="/">claim your own →</a>
-  </div>
-  <main id="app" class="boot">
-    <header class="topbar">
-      <div class="brand">
-        <span class="logo">btask</span>
-        <span class="ver" id="handle">—</span>
-      </div>
-      <nav class="nav">
-        <a href="#" id="back-link">← back</a>
-        <button class="theme-toggle" id="theme-toggle" title="toggle theme" aria-label="toggle theme">
-          <span class="material-symbols-outlined">contrast</span>
-        </button>
-      </nav>
-    </header>
+<body class="bg-background text-primary selection:bg-stone-accent selection:text-surface min-h-screen flex flex-col">
 
-    <section class="hero">
-      <div class="hero-left">
-        <div class="kicker">
-          <span class="kicker-text">Public Board</span>
-          <span class="kicker-date" id="since">—</span>
-        </div>
-        <h1 class="display"><span id="display-name">loading…</span></h1>
-        <p class="lede">Read-only view. Toggle dark mode on the right.</p>
+  <!-- Top ASCII Banner -->
+  <header class="border-b border-outline-variant bg-surface">
+    <div class="max-w-6xl mx-auto px-4 md:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <a href="/" class="font-space text-xs md:text-sm font-bold tracking-wider text-primary hover:text-stone-accent transition-colors select-none">
+          +-.[ dtask ].-+
+        </a>
+        <span class="text-[11px] font-mono px-2 py-0.5 bg-surface-container border border-outline-variant text-stone-accent tracking-wide">
+          [SYS: DAEMON ACTIVE]
+        </span>
+        <span class="text-[11px] font-mono px-2 py-0.5 bg-surface-container-high border border-outline text-secondary tracking-wide">
+          [PUBLIC PROFILE]
+        </span>
       </div>
-      <div class="hero-right">
-        <div class="activity">
-          <div class="activity-head">
-            <span class="kicker-text">Activity_Log</span>
-            <span class="kicker-meta">[7D]</span>
+
+      <div class="flex items-center gap-3">
+        <a id="api-link" href="#" target="_blank" class="text-[11px] font-mono px-2.5 py-1 border border-outline-variant bg-surface-container-low hover:border-primary text-secondary hover:text-primary transition-colors flex items-center gap-1">
+          <span>[DIRECT JSON API]</span>
+          <span class="text-stone-accent">↗</span>
+        </a>
+        <a href="/" class="text-xs font-mono px-3 py-1 bg-stone-accent text-surface font-bold hover:bg-primary transition-colors">
+          CLAIM YOUR OWN →
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Profile Container -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 md:px-8 py-8 space-y-8">
+
+    <!-- User Hero Section -->
+    <section class="border border-outline-variant bg-surface p-6 md:p-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <!-- Left Hero Dossier -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="flex items-center gap-2 text-xs font-mono text-outline">
+            <span class="text-stone-accent font-bold">┌─[ OPERATOR DOSSIER ]</span>
+            <span>──────────────────────</span>
           </div>
-          <div class="activity-bars" id="activity-bars"></div>
+
+          <div class="flex flex-wrap items-baseline gap-3">
+            <h1 class="font-space text-2xl sm:text-3xl md:text-4xl font-bold text-primary tracking-tight">
+              @<span id="display-name">loading…</span>
+            </h1>
+            <span id="user-status-pill" class="text-[11px] font-mono px-2 py-0.5 border border-outline-variant bg-surface-container text-secondary">
+              [READ-ONLY]
+            </span>
+          </div>
+
+          <p class="text-sm font-geist text-secondary max-w-xl">
+            Public operational log and RPG achievements ledger. Monitored in real time via the dtask daemon telemetry engine.
+          </p>
+
+          <!-- Badges Row -->
+          <div class="flex flex-wrap items-center gap-2 pt-2">
+            <span id="hero-level" class="text-xs font-mono px-2.5 py-1 bg-surface-container border border-outline text-secondary font-bold">
+              [LVL] 1 Apprentice
+            </span>
+            <span id="hero-streak" class="text-xs font-mono px-2.5 py-1 bg-surface-container-high border border-outline-variant text-stone-accent font-mono font-medium">
+              🔥 0d STREAK
+            </span>
+            <span id="hero-since" class="text-xs font-mono px-2 py-1 text-outline">
+              Operator since: —
+            </span>
+          </div>
+        </div>
+
+        <!-- Right 7-Day Activity Histogram -->
+        <div class="lg:col-span-5 border border-outline-variant/60 bg-surface-container-lowest p-4">
+          <div class="flex items-center justify-between mb-3 border-b border-outline-variant/40 pb-2">
+            <span class="text-[11px] font-mono uppercase text-secondary font-bold tracking-wider">
+              ACTIVITY HISTOGRAM
+            </span>
+            <span class="text-[10px] font-mono text-stone-accent">[7-DAY CADENCE]</span>
+          </div>
+
+          <!-- Activity Bars Container -->
+          <div class="h-28 flex items-end justify-between gap-2 pt-2 px-2" id="activity-bars">
+            <!-- Populated via script -->
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="cols">
-      <div class="col-main">
-        <div class="section-head">
-          <span class="kicker-text">Tasks</span>
-        </div>
-        <div id="task-groups" class="task-groups"></div>
-        <div class="empty hidden" id="empty">
-          <span>No tasks yet.</span>
-        </div>
+    <!-- Metrics Ribbon -->
+    <section class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="border border-outline-variant bg-surface p-4">
+        <div class="text-[11px] font-mono uppercase text-outline mb-1">TOTAL TASKS</div>
+        <div class="font-space text-2xl font-bold text-primary" id="m-total">0</div>
       </div>
-      <aside class="col-side">
-        <div class="stat-block">
-          <span class="kicker-text">Focus Time</span>
-          <span class="metric-lg" id="focus-time">00:00:00</span>
-        </div>
-        <div class="stat-grid">
-          <div class="stat">
-            <span class="kicker-text">Total</span>
-            <span class="metric-md" id="m-total">0</span>
-          </div>
-          <div class="stat">
-            <span class="kicker-text">Done</span>
-            <span class="metric-md" id="m-done">0</span>
-          </div>
-          <div class="stat">
-            <span class="kicker-text">Open</span>
-            <span class="metric-md" id="m-open">0</span>
-          </div>
-        </div>
-      </aside>
+      <div class="border border-outline-variant bg-surface p-4">
+        <div class="text-[11px] font-mono uppercase text-outline mb-1">COMPLETED TASKS</div>
+        <div class="font-space text-2xl font-bold text-stone-accent" id="m-done">0</div>
+      </div>
+      <div class="border border-outline-variant bg-surface p-4">
+        <div class="text-[11px] font-mono uppercase text-outline mb-1">OPEN DIRECTIVES</div>
+        <div class="font-space text-2xl font-bold text-secondary" id="m-open">0</div>
+      </div>
+      <div class="border border-outline-variant bg-surface p-4">
+        <div class="text-[11px] font-mono uppercase text-outline mb-1">TOTAL DEEP FOCUS</div>
+        <div class="font-mono text-xl md:text-2xl font-bold text-primary" id="m-focus">00:00:00</div>
+      </div>
     </section>
 
-    <footer class="footer">
-      <span>btask · public board (read-only)</span>
-      <span class="muted"><a href="/">make your own →</a></span>
-    </footer>
+    <!-- Public Task Board -->
+    <section class="border border-outline-variant bg-surface p-6 space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant pb-3">
+        <div class="flex items-center gap-2">
+          <span class="font-space text-sm font-bold text-primary tracking-wide">
+            PUBLIC TASK ROSTER
+          </span>
+          <span id="task-count-badge" class="text-[11px] font-mono px-2 py-0.5 bg-surface-container border border-outline-variant text-secondary">
+            0 TASKS
+          </span>
+        </div>
+        <div class="text-xs font-mono text-outline">
+          SORT: RECENT CREATION · STATUS: VERIFIED
+        </div>
+      </div>
+
+      <!-- Empty Board Message -->
+      <div id="empty-state" class="hidden border border-dashed border-outline-variant p-8 text-center font-mono">
+        <p class="text-sm text-secondary" id="empty-message">No public tasks found on this board.</p>
+        <p class="text-xs text-outline mt-2">The operator has either archived all directives or kept their roster private.</p>
+      </div>
+
+      <!-- Task Table -->
+      <div id="task-table-container" class="overflow-x-auto">
+        <table class="w-full text-left font-mono text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-outline-variant text-outline bg-surface-container-lowest">
+              <th class="py-2.5 px-3 font-medium">STATUS</th>
+              <th class="py-2.5 px-3 font-medium">CATEGORY</th>
+              <th class="py-2.5 px-3 font-medium">DIRECTIVE TITLE</th>
+              <th class="py-2.5 px-3 font-medium">BTOP PROGRESS</th>
+              <th class="py-2.5 px-3 font-medium text-right">RECORDED</th>
+            </tr>
+          </thead>
+          <tbody id="task-table-body" class="divide-y divide-outline-variant/40">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
   </main>
 
+  <!-- Footer -->
+  <footer class="border-t border-outline-variant bg-surface py-6 px-4 md:px-8 text-xs font-mono text-outline">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-primary font-bold">dtask</span>
+        <span>·</span>
+        <span>Public Profile Ledger (Read-Only)</span>
+        <span>·</span>
+        <span class="text-stone-accent">[Neutrals for Balance v2.4.1]</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a id="footer-json" href="#" target="_blank" class="hover:text-primary hover:underline">/api/u/:username</a>
+        <a href="/" class="text-primary hover:underline font-bold">Launch dtask Web &rarr;</a>
+      </div>
+    </div>
+  </footer>
+
   <script>
+    // ── Pure Helpers ────────────────────────────────────────────────────────
+    function escapeHtml(s) {
+      return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      }[c]));
+    }
+
+    function renderBtopAsciiBar(pct = 0, blocks = 16) {
+      const safePct = Math.max(0, Math.min(100, pct || 0));
+      const filled = Math.round((safePct / 100) * blocks);
+      const empty = Math.max(0, blocks - filled);
+      return "█".repeat(filled) + "░".repeat(empty);
+    }
+
+    function formatTimeSeconds(seconds = 0) {
+      const s = Math.max(0, Math.floor(seconds || 0));
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      return [h, m, sec].map((n) => String(n).padStart(2, "0")).join(":");
+    }
+
+    function xpForLevel(lvl) {
+      return 100 + (lvl - 1) * 20;
+    }
+
+    function computeLevelInfo(totalXp = 0) {
+      let lvl = 1;
+      let rem = totalXp;
+      while (rem >= xpForLevel(lvl)) {
+        rem -= xpForLevel(lvl);
+        lvl++;
+      }
+      let rank = "Apprentice";
+      if (lvl >= 50) rank = "Grandmaster";
+      else if (lvl >= 40) rank = "Champion";
+      else if (lvl >= 30) rank = "Veteran";
+      else if (lvl >= 20) rank = "Adept";
+      else if (lvl >= 10) rank = "Journeyman";
+      return { level: lvl, rank };
+    }
+
+    // ── Controller ──────────────────────────────────────────────────────────
     const username = location.pathname.replace(/^\/u\//, "").replace(/\/$/, "").trim();
-    if (!username) location.replace("/");
-    document.getElementById("handle").textContent = "@" + username;
-    document.getElementById("banner-user").textContent = "@" + username;
-    document.getElementById("page-title").textContent = "@" + username + " — btask";
-    document.getElementById("display-name").textContent = "@" + username;
-    document.getElementById("back-link").href = "/";
+    if (!username) {
+      location.replace("/");
+    }
 
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-      const cur = document.documentElement.getAttribute("data-theme") || "light";
-      const next = cur === "light" ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem("btask:theme", next);
-    });
-    const t = localStorage.getItem("btask:theme");
-    if (t) document.documentElement.setAttribute("data-theme", t);
+    document.getElementById("display-name").textContent = username;
+    document.getElementById("page-title").textContent = `@${username} — dtask public board`;
 
-    async function load() {
+    const apiPath = `/api/u/${encodeURIComponent(username)}`;
+    const apiLink = document.getElementById("api-link");
+    if (apiLink) apiLink.href = apiPath;
+    const footerJson = document.getElementById("footer-json");
+    if (footerJson) {
+      footerJson.href = apiPath;
+      footerJson.textContent = `GET ${apiPath}`;
+    }
+
+    async function loadProfile() {
       try {
-        const r = await fetch(`/api/u/${encodeURIComponent(username)}`, { cache: "no-store" });
-        if (!r.ok) {
-          document.getElementById("display-name").textContent = "not found";
-          document.getElementById("empty").classList.remove("hidden");
-          document.getElementById("empty").querySelector("span").textContent =
-            "@" + username + " hasn't made their board public yet.";
+        const res = await fetch(apiPath, { cache: "no-store" });
+        if (!res.ok) {
+          showNotFound();
           return;
         }
-        const d = await r.json();
-        render(d);
-      } catch (e) {
-        document.getElementById("display-name").textContent = "network error";
+        const data = await res.json();
+        renderProfile(data);
+      } catch (err) {
+        showError(err.message);
       }
     }
 
-    function render(d) {
-      const created = new Date(d.user.created_at + "Z");
-      document.getElementById("since").textContent = "since " + created.toISOString().slice(0,10);
+    function showNotFound() {
+      document.getElementById("display-name").textContent = `${username} [NOT FOUND]`;
+      document.getElementById("task-table-container").classList.add("hidden");
+      const empty = document.getElementById("empty-state");
+      empty.classList.remove("hidden");
+      document.getElementById("empty-message").textContent =
+        `@${username} does not exist or has not enabled public visibility.`;
+    }
 
-      // stats
-      document.getElementById("m-total").textContent = d.totals?.total ?? 0;
-      document.getElementById("m-done").textContent = d.totals?.done ?? 0;
-      document.getElementById("m-open").textContent = (d.totals?.total ?? 0) - (d.totals?.done ?? 0);
-      const fs = (d.focus_minutes || 0) * 60;
-      const h = Math.floor(fs / 3600), m = Math.floor((fs % 3600) / 60), s = fs % 60;
-      document.getElementById("focus-time").textContent =
-        [h,m,s].map(n => String(n).padStart(2,"0")).join(":");
+    function showError(msg) {
+      document.getElementById("display-name").textContent = "NETWORK ERROR";
+      const empty = document.getElementById("empty-state");
+      empty.classList.remove("hidden");
+      document.getElementById("empty-message").textContent = `Failed to fetch dossier: ${msg}`;
+    }
 
-      // activity
-      const host = document.getElementById("activity-bars");
-      host.innerHTML = "";
-      const dowShort = ["S","M","T","W","T","F","S"];
-      const today = new Date();
-      const map = new Map(d.activity_7d.map(a => [a.day, a.count]));
-      const max = Math.max(1, ...map.values());
-      for (let i = 6; i >= 0; i--) {
-        const day = new Date(today); day.setDate(today.getDate() - i);
-        const key = day.toISOString().slice(0, 10);
-        const count = map.get(key) ?? 0;
-        const h = count > 0 ? Math.max(8, Math.round((count / max) * 70)) : 2;
-        const cell = document.createElement("div");
-        cell.className = "activity-cell";
-        cell.innerHTML = `<div class="activity-bar${count === 0 ? " zero" : ""}" style="height:${h}px" title="${key}: ${count}"></div><span class="dow">${dowShort[day.getDay()]}</span>`;
-        host.appendChild(cell);
+    function renderProfile(data) {
+      // 1. User & Level Info
+      const createdAt = data.user?.created_at ? new Date(data.user.created_at + "Z") : null;
+      if (createdAt) {
+        document.getElementById("hero-since").textContent = `Operator since: ${createdAt.toISOString().slice(0, 10)}`;
       }
 
-      // tasks grouped by category
-      const groups = {};
-      for (const t of d.tasks) (groups[t.category] ||= []).push(t);
-      const tg = document.getElementById("task-groups");
-      tg.innerHTML = "";
-      const tasks = d.tasks;
+      const totalXp = (data.totals?.done || 0) * 10 + (data.focus_minutes || 0);
+      const lvlInfo = data.level_info || computeLevelInfo(totalXp);
+      document.getElementById("hero-level").textContent = `[LVL] ${lvlInfo.level} ${lvlInfo.rank.toUpperCase()}`;
+
+      const streak = data.streak_days ?? 0;
+      document.getElementById("hero-streak").textContent = `🔥 ${streak}d STREAK`;
+
+      // 2. Metrics Ribbon
+      const total = data.totals?.total ?? (data.tasks?.length || 0);
+      const done = data.totals?.done ?? data.tasks?.filter((t) => t.status === "done").length ?? 0;
+      const open = Math.max(0, total - done);
+      document.getElementById("m-total").textContent = total;
+      document.getElementById("m-done").textContent = done;
+      document.getElementById("m-open").textContent = open;
+
+      const focusSeconds = (data.focus_minutes || 0) * 60;
+      document.getElementById("m-focus").textContent = formatTimeSeconds(focusSeconds);
+
+      // 3. 7-Day Activity Histogram
+      const activityHost = document.getElementById("activity-bars");
+      activityHost.innerHTML = "";
+      const activity = Array.isArray(data.activity_7d) ? data.activity_7d : [];
+      const map = new Map(activity.map((a) => [a.day, a.count]));
+      const maxCount = Math.max(1, ...map.values());
+      const dowShort = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+      const today = new Date();
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const count = map.get(key) ?? 0;
+        const barHeightPct = count > 0 ? Math.max(12, Math.round((count / maxCount) * 100)) : 4;
+        const isToday = i === 0;
+
+        const col = document.createElement("div");
+        col.className = "flex-1 flex flex-col items-center justify-end h-full group relative";
+        col.innerHTML = `
+          <div class="text-[9px] font-mono text-outline mb-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            ${count}
+          </div>
+          <div class="w-full ${count > 0 ? (isToday ? 'bg-primary' : 'bg-stone-accent') : 'bg-surface-container-high'} border ${count > 0 ? 'border-outline' : 'border-outline-variant/40'} transition-all duration-300"
+               style="height: ${barHeightPct}%;"
+               title="${key}: ${count} actions">
+          </div>
+          <span class="text-[10px] font-mono mt-1.5 ${isToday ? 'text-primary font-bold' : 'text-outline'}">
+            ${dowShort[d.getDay()]}
+          </span>
+        `;
+        activityHost.appendChild(col);
+      }
+
+      // 4. Public Tasks Table
+      const tasks = Array.isArray(data.tasks) ? data.tasks : [];
+      document.getElementById("task-count-badge").textContent = `${tasks.length} DIRECTIVES`;
+
+      const tbody = document.getElementById("task-table-body");
+      tbody.innerHTML = "";
+
       if (tasks.length === 0) {
-        document.getElementById("empty").classList.remove("hidden");
+        document.getElementById("task-table-container").classList.add("hidden");
+        const empty = document.getElementById("empty-state");
+        empty.classList.remove("hidden");
+        document.getElementById("empty-message").textContent = "No directives posted by this operator yet.";
         return;
       }
-      for (const [cat, items] of Object.entries(groups)) {
-        const head = document.createElement("div");
-        head.className = "task-group-head";
-        head.innerHTML = `<span class="task-group-name">${cat}</span><span class="task-group-count">${items.filter(i => i.status==='done').length}/${items.length}</span>`;
-        const group = document.createElement("div");
-        group.className = "task-group";
-        group.appendChild(head);
-        for (const t of items) group.appendChild(taskEl(t));
-        tg.appendChild(group);
-      }
+
+      document.getElementById("task-table-container").classList.remove("hidden");
+      document.getElementById("empty-state").classList.add("hidden");
+
+      tasks.forEach((t) => {
+        const isDone = t.status === "done";
+        const progress = Math.max(0, Math.min(100, t.progress || (isDone ? 100 : 0)));
+        const cat = (t.category || "code").toLowerCase();
+        const dateStr = t.completed_at
+          ? t.completed_at.slice(0, 10)
+          : (t.created_at ? t.created_at.slice(0, 10) : "—");
+
+        const row = document.createElement("tr");
+        row.className = "hover:bg-surface-container transition-colors " + (isDone ? "text-secondary opacity-80" : "text-primary");
+        row.innerHTML = `
+          <td class="py-3 px-3 whitespace-nowrap">
+            ${isDone
+              ? `<span class="px-1.5 py-0.5 border border-stone-accent/50 bg-surface-container-high text-stone-accent text-[10px] font-bold">[DONE]</span>`
+              : `<span class="px-1.5 py-0.5 border border-outline-variant bg-surface-container text-outline text-[10px]">[OPEN]</span>`
+            }
+          </td>
+          <td class="py-3 px-3 whitespace-nowrap">
+            <span class="px-1.5 py-0.5 bg-surface-container border border-outline-variant text-[10px] uppercase text-stone-accent">
+              ${escapeHtml(cat)}
+            </span>
+          </td>
+          <td class="py-3 px-3 max-w-xs md:max-w-md truncate">
+            <span class="${isDone ? 'line-through text-outline' : 'text-primary font-medium'}">
+              ${escapeHtml(t.title)}
+            </span>
+          </td>
+          <td class="py-3 px-3 whitespace-nowrap">
+            <div class="flex items-center gap-2">
+              <span class="text-stone-accent tracking-tighter select-none font-mono text-[11px]">
+                ${renderBtopAsciiBar(progress, 14)}
+              </span>
+              <span class="text-[10px] text-outline font-mono w-8 text-right">
+                ${progress}%
+              </span>
+            </div>
+          </td>
+          <td class="py-3 px-3 whitespace-nowrap text-right text-[11px] text-outline">
+            ${escapeHtml(dateStr)}
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
     }
 
-    function taskEl(t) {
-      const isDone = t.status === "done";
-      const row = document.createElement("div");
-      row.className = "task" + (isDone ? " done" : "");
-      row.innerHTML = `
-        <div class="task-checkbox ${isDone ? "checked" : ""}"></div>
-        <span class="task-text" title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</span>
-        <span class="task-progress-wrap">
-          <span class="task-progress-bar"><span style="width:${t.progress||0}%"></span></span>
-          <span class="task-pct">${t.progress||0}%</span>
-        </span>
-        <span></span>
-      `;
-      return row;
-    }
-    function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-
-    load();
+    loadProfile();
   </script>
 </body>
 </html>
