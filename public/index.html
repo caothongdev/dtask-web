@@ -229,6 +229,7 @@
     import { sound } from "/js/audio.js";
     import { renderTasksView } from "/js/views/tasks.js";
     import { renderTimelineView, cleanupTimelineView } from "/js/views/timeline.js";
+    import { renderFocusView, cleanupFocusView } from "/js/views/focus.js";
 
     // 1. UTC Clock
     function updateClock() {
@@ -314,6 +315,10 @@
         if (event === "state_changed" || event === "tasks_loaded" || event === "task_updated" || event === "timeline_loaded") {
           renderTimelineView(root);
         }
+      } else if (activeView === "focus") {
+        if (event === "state_changed" || event === "tasks_loaded" || event === "task_updated" || event === "timer_tick" || event === "timer_started" || event === "timer_paused" || event === "timer_resumed" || event === "timer_stopped" || event === "relax_started" || event === "relax_paused" || event === "relax_resumed" || event === "relax_stopped" || event === "relax_completed" || event === "focus_completed") {
+          renderFocusView(root);
+        }
       }
     });
 
@@ -392,11 +397,17 @@
 
       if (view === "tasks") {
         cleanupTimelineView();
+        cleanupFocusView();
         renderTasksView(root);
       } else if (view === "timeline") {
+        cleanupFocusView();
         renderTimelineView(root);
+      } else if (view === "focus") {
+        cleanupTimelineView();
+        renderFocusView(root);
       } else {
         cleanupTimelineView();
+        cleanupFocusView();
         root.innerHTML = `
           <div class="max-w-4xl mx-auto mt-12 p-8 border border-outline-variant bg-surface text-center font-mono">
             <p class="font-space text-lg text-primary mb-2">+-.[ dtask // [${view.toUpperCase()}] ].-+</p>
@@ -423,7 +434,7 @@
     window.addEventListener("hashchange", syncNavTabs);
     syncNavTabs();
 
-    // Hotkey 'A' to focus Quick Add input
+    // Hotkey 'A' to focus Quick Add input, '1'-'5' to switch views
     window.addEventListener("keydown", (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
       if (e.key === "a" || e.key === "A") {
@@ -431,6 +442,11 @@
         if (titleInput) {
           e.preventDefault();
           titleInput.focus();
+        }
+      } else if (["1", "2", "3", "4", "5"].includes(e.key)) {
+        const viewMap = { "1": "tasks", "2": "timeline", "3": "focus", "4": "shop", "5": "telemetry" };
+        if (viewMap[e.key]) {
+          location.hash = viewMap[e.key];
         }
       }
     });
