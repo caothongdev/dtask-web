@@ -2,12 +2,15 @@ import { test, expect, afterAll } from "bun:test";
 import { server } from "../server";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { store } from "../public/js/store.js";
 import {
   renderBtopAsciiBar,
   formatTime,
   calculateAccruals,
   renderFocusView,
   cleanupFocusView,
+  handleFocusKeydown,
+  setAutoBreakEnabled,
 } from "../public/js/views/focus.js";
 
 afterAll(() => {
@@ -132,4 +135,117 @@ test("Focus view module contains full HUD elements, dual modes, hotkeys, and qui
   // Keyboard hotkeys
   expect(content).toContain("keydown");
   expect(content).toContain("cleanupFocusView");
+});
+
+test("Standby mode re-renders task list on store update without short-circuiting", () => {
+  const container = {
+    innerHTML: "",
+    querySelector: function(sel: string) {
+      if (sel === "[data-focus-rendered]") {
+        return this.innerHTML.includes("data-focus-rendered") ? {} : null;
+      }
+      return null;
+    },
+    querySelectorAll: () => [],
+  };
+
+  // Initial standby render with 0 tasks
+  store.state.activeTimer = null;
+  store.state.relaxTimer = null;
+  store.state.tasks = [];
+  renderFocusView(container as any);
+
+  expect(container.innerHTML).toContain("No open tasks in queue");
+
+  // Update store tasks and re-render in standby mode
+  store.state.tasks = [
+    { id: 101, title: "Kernel scheduler optimization", category: "code", mins: 45, status: "open" }
+  ];
+  renderFocusView(container as any);
+
+  // Verifies standby mode was NOT short-circuited and re-rendered the updated task
+  expect(container.innerHTML).toContain("Kernel scheduler optimization");
+  expect(container.innerHTML).toContain("LAUNCH FOCUS ❯");
+
+  cleanupFocusView();
+});
+
+test("Auto-break handover triggers relax timer when focus completes", () => {
+  store.state.activeTimer = {
+    task: { id: 99, title: "Deep build", category: "build", mins: 25 },
+    running: true,
+    elapsedSeconds: 1500,
+    targetSeconds: 1500,
+  };
+  store.state.relaxTimer = null;
+
+  const container = {
+    innerHTML: "",
+    querySelector: function(sel: string) {
+      if (sel === "[data-focus-rendered]") {
+        return this.innerHTML.includes("data-focus-rendered") ? {} : null;
+      }
+      return null;
+    },
+    querySelectorAll: () => [],
+  };
+
+  renderFocusView(container as any);
+  setAutoBreakEnabled(true);
+
+  // Emit focus_completed event
+  store.emit("focus_completed", { task: store.state.activeTimer.task });
+
+  // Relax timer should automatically be started by handover handler
+  expect(store.state.relaxTimer).not.toBeNull();
+  expect(store.state.relaxTimer?.name).toContain("Guilt-Free Break");
+  expect(store.state.relaxTimer?.running).toBe(true);
+
+  cleanupFocusView();
+  store.state.relaxTimer = null;
+});
+
+test("handleFocusKeydown triggers Shift+Tab relax switch and Ctrl+C stop & bank", () => {
+  // 1. Shift+Tab switches to relax mode from active timer
+  store.state.activeTimer = {
+    task: { id: 88, title: "Compiler pass", category: "code", mins: 30 },
+    running: true,
+    elapsedSeconds: 600,
+    targetSeconds: 1800,
+  };
+  store.state.relaxTimer = null;
+
+  let prevented = false;
+  handleFocusKeydown({
+    shiftKey: true,
+    code: "Tab",
+    preventDefault: () => { prevented = true; },
+  } as any);
+
+  expect(prevented).toBe(true);
+  expect(store.state.activeTimer).toBeNull();
+  expect(store.state.relaxTimer).not.toBeNull();
+  expect(store.state.relaxTimer?.name).toContain("Guilt-Free Break");
+
+  store.state.relaxTimer = null;
+
+  // 2. Ctrl+C stops active timer and banks coins
+  store.state.activeTimer = {
+    task: { id: 89, title: "Documentation audit", category: "read", mins: 20 },
+    running: true,
+    elapsedSeconds: 300,
+    targetSeconds: 1200,
+  };
+
+  let ctrlCPrevented = false;
+  handleFocusKeydown({
+    ctrlKey: true,
+    key: "c",
+    preventDefault: () => { ctrlCPrevented = true; },
+  } as any);
+
+  expect(ctrlCPrevented).toBe(true);
+  expect(store.state.activeTimer).toBeNull();
+
+  cleanupFocusView();
 });

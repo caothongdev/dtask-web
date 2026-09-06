@@ -67,13 +67,55 @@ let currentRenderedMode = null; // "focus" | "relax" | "standby"
 let localTickerId = null;
 let autoBreakEnabled = true;
 let selectedAudioEngine = "binaural"; // "binaural" | "tokyo" | "ambient"
+let unsubFocusCompleted = null;
+
+export function getAutoBreakEnabled() {
+  return autoBreakEnabled;
+}
+
+export function setAutoBreakEnabled(val) {
+  autoBreakEnabled = !!val;
+}
+
+export function setupFocusCompletedListener() {
+  if (!unsubFocusCompleted) {
+    unsubFocusCompleted = store.subscribe("focus_completed", () => {
+      if (autoBreakEnabled) {
+        store.startRelaxTimer(5, "Guilt-Free Break");
+        store.showToast("Focus completed! Auto-break handover activated.", "success");
+      }
+    });
+  }
+}
 
 // ── Keyboard Hotkey Handler ─────────────────────────────────────────────
 
-function handleFocusKeydown(e) {
+export function handleFocusKeydown(e) {
   // Never intercept keys when user is typing in form inputs
   if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) {
     return;
+  }
+
+  // [Shift+Tab]: Quick switch to Relax Mode immediately
+  if (e.shiftKey && (e.code === "Tab" || e.key === "Tab")) {
+    e.preventDefault();
+    if (store.state.activeTimer) {
+      store.stopFocusTimer(true);
+    }
+    store.startRelaxTimer(5, "Guilt-Free Break");
+    store.showToast("Switched to Relax Daemon cooldown", "info");
+    return;
+  }
+
+  // [Ctrl+C]: Stop & Bank active session if no text is selected
+  if (e.ctrlKey && (e.key === "c" || e.key === "C" || e.code === "KeyC")) {
+    const selectedText = typeof window !== "undefined" && window.getSelection ? window.getSelection().toString() : "";
+    if (!selectedText && store.state.activeTimer) {
+      e.preventDefault();
+      store.stopFocusTimer(true);
+      store.showToast("Focus session stopped and banked", "info");
+      return;
+    }
   }
 
   // 1. Focus Mode Hotkeys
@@ -126,6 +168,10 @@ export function cleanupFocusView() {
   if (localTickerId) {
     clearInterval(localTickerId);
     localTickerId = null;
+  }
+  if (unsubFocusCompleted) {
+    unsubFocusCompleted();
+    unsubFocusCompleted = null;
   }
   mountedContainer = null;
   currentRenderedMode = null;
@@ -234,13 +280,16 @@ export function renderFocusView(container) {
     targetMode = "focus";
   }
 
-  // If already in same mode, only do fine-grained DOM telemetry update
-  if (currentRenderedMode === targetMode && container.querySelector("[data-focus-rendered]")) {
+  // If already in same mode, only do fine-grained DOM telemetry update (do not short-circuit standby mode)
+  if (currentRenderedMode === targetMode && targetMode !== "standby" && container.querySelector("[data-focus-rendered]")) {
     updateLiveTelemetry();
     return;
   }
 
   currentRenderedMode = targetMode;
+
+  // Setup auto-break listener
+  setupFocusCompletedListener();
 
   // Ensure keyboard listener is bound once
   if (typeof window !== "undefined") {
