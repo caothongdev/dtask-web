@@ -1,14 +1,14 @@
-// btask-web — minimalist task dashboard + JSON API for CLI users
+// dtask-web — minimalist task dashboard + JSON API for CLI users
 // Single Bun process: serves static HTML/CSS/JS + JSON API.
-// Storage: SQLite at BTASK_DB env var (default /opt/data/btask-web/db.sqlite).
-// Port: BTASK_PORT env var (default 8787).
+// Storage: SQLite at DTASK_DB env var (default /opt/data/dtask-web/db.sqlite).
+// Port: DTASK_PORT env var (default 8787).
 
 import { Database } from "bun:sqlite";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const PORT = parseInt(process.env.BTASK_PORT || (process.env.NODE_ENV === "test" ? "0" : "8787"));
-const DB_PATH = process.env.BTASK_DB || (process.env.NODE_ENV === "test" ? `/tmp/btask-test-${process.pid}.sqlite` : join(import.meta.dir, "db.sqlite"));
+const PORT = parseInt(process.env.DTASK_PORT || process.env.BTASK_PORT || (process.env.NODE_ENV === "test" ? "0" : "8787"));
+const DB_PATH = process.env.DTASK_DB || process.env.BTASK_DB || (process.env.NODE_ENV === "test" ? `/tmp/dtask-test-${process.pid}.sqlite` : join(import.meta.dir, "db.sqlite"));
 const STATIC_DIR = join(import.meta.dir, "public");
 
 // ── DB ──────────────────────────────────────────────────────────────
@@ -327,7 +327,7 @@ function getUser(req: Request) {
 function getOrCreateUser(req: Request, bodyUsername?: string): { user: any; created: boolean } | null {
   let user = getUser(req);
   if (user) return { user, created: false };
-  const username = (req.headers.get("x-btask-user") || bodyUsername || "").trim().toLowerCase();
+  const username = (req.headers.get("x-dtask-user") || req.headers.get("x-btask-user") || bodyUsername || "").trim().toLowerCase();
   if (!username || !/^[a-z0-9_-]{2,32}$/.test(username)) return null;
   const existing = Q.getUserByName.get(username) as any;
   if (existing) return { user: existing, created: false };
@@ -394,7 +394,7 @@ export function getUserStreak(userId: number): number {
 // ── Routes ──────────────────────────────────────────────────────────
 const routes: { method: string; path: RegExp; handler: (req: Request, params: any) => Promise<Response> | Response }[] = [
   // health
-  { method: "GET", path: /^\/api\/health$/, handler: () => json({ ok: true, service: "btask-web", version: "1.1.0", uptime_s: Math.floor(process.uptime()) }) },
+  { method: "GET", path: /^\/api\/health$/, handler: () => json({ ok: true, service: "dtask-web", version: "1.1.0", uptime_s: Math.floor(process.uptime()) }) },
 
   // user self-register / login
   { method: "POST", path: /^\/api\/users$/, handler: async (req) => {
@@ -568,7 +568,7 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
 
   { method: "POST", path: /^\/api\/tasks$/, handler: async (req) => {
     const r = getOrCreateUser(req);
-    if (!r) return err("unauthorized (provide Authorization: Bearer *** OR X-Btask-User: <username>)", 401);
+    if (!r) return err("unauthorized (provide Authorization: Bearer *** OR X-Dtask-User: <username>)", 401);
     const u = r.user;
     const body = await req.json().catch(() => ({}));
     const { category, title, progress, status, time_estimate } = body;
@@ -1081,7 +1081,7 @@ function createServer() {
           headers: {
             "access-control-allow-origin": "*",
             "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
-            "access-control-allow-headers": "authorization, content-type, x-btask-user",
+            "access-control-allow-headers": "authorization, content-type, x-dtask-user, x-btask-user",
             "access-control-max-age": "86400",
           },
         });
@@ -1139,4 +1139,4 @@ export const server = new Proxy({} as any, {
   },
 });
 
-console.log(`[btask-web] listening on http://0.0.0.0:${server.port}  db=${DB_PATH}  v1.1.0`);
+console.log(`[dtask-web] listening on http://0.0.0.0:${server.port}  db=${DB_PATH}  v1.1.0`);

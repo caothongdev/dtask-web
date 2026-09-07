@@ -31,7 +31,7 @@
 
 ### 2.1 Backend: Bun & SQLite
 - **Runtime**: Bun (`server.ts`), single-process native HTTP server.
-- **Database**: SQLite via `bun:sqlite` (`BTASK_DB` or `./db.sqlite`).
+- **Database**: SQLite via `bun:sqlite` (`DTASK_DB` or `./db.sqlite`).
 - **Real-Time Sync**: Server-Sent Events (SSE) via `/api/events` to broadcast task mutations, wallet changes, and focus events across open clients and CLI companions.
 
 ### 2.2 Frontend: Modular Zero-Build Vanilla SPA + Tailwind CSS
@@ -238,7 +238,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   2. *Level Curve & Rank*: Validate XP required per level and correct rank string assignment.
   3. *Wallet & Economics*: Test task completion rewards, level-up $+50$ coin bonus, task reopening deduction, and shop item purchasing.
   4. *Timeline Scheduling*: Validate chronological ordering of scheduled tasks and active slot detection.
-  5. *API Endpoints*: Test all new REST endpoints with Bearer auth and `X-Btask-User`.
+  5. *API Endpoints*: Test all new REST endpoints with Bearer auth and `X-Dtask-User`.
 - **E2E & Visual Verification**:
   - Run Bun server on port 8787 and verify static file serving.
   - Test view transitions across all 5 screens.

@@ -1,6 +1,6 @@
 {
-  "name": "btask",
-  "short_name": "btask",
+  "name": "dtask",
+  "short_name": "dtask",
   "description": "Minimalist monochrome task tracker. CLI + web.",
   "start_url": "/",
   "display": "standalone",

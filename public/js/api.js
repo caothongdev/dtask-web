@@ -1,7 +1,7 @@
 // public/js/api.js
 // Type-safe HTTP fetch client with token persistence and bearer auth injection
 
-const LS_KEY = "btask:session";
+const LS_KEY = "dtask:session";
 
 export class ApiClient {
   constructor(baseUrl = "") {
@@ -9,8 +9,8 @@ export class ApiClient {
     this.token = "";
     this.username = "";
     if (typeof localStorage !== "undefined") {
-      this.token = localStorage.getItem(LS_KEY) || localStorage.getItem("dtask:token") || "";
-      this.username = localStorage.getItem(LS_KEY + ":user") || localStorage.getItem("dtask:user") || "";
+      this.token = localStorage.getItem(LS_KEY) || localStorage.getItem("btask:session") || localStorage.getItem("dtask:token") || "";
+      this.username = localStorage.getItem(LS_KEY + ":user") || localStorage.getItem("btask:session:user") || localStorage.getItem("dtask:user") || "";
     }
   }
 
@@ -27,6 +27,7 @@ export class ApiClient {
       } else {
         localStorage.removeItem(LS_KEY);
         localStorage.removeItem("dtask:token");
+        localStorage.removeItem("btask:session");
       }
       if (username) {
         this.username = username;
@@ -44,6 +45,8 @@ export class ApiClient {
       localStorage.removeItem(LS_KEY + ":user");
       localStorage.removeItem("dtask:token");
       localStorage.removeItem("dtask:user");
+      localStorage.removeItem("btask:session");
+      localStorage.removeItem("btask:session:user");
     }
   }
 
@@ -61,6 +64,7 @@ export class ApiClient {
     if (this.token) {
       headers["Authorization"] = `Bearer ${this.token}`;
     } else if (this.username) {
+      headers["X-Dtask-User"] = this.username;
       headers["X-Btask-User"] = this.username;
     }
 

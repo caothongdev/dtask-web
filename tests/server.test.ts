@@ -1,8 +1,8 @@
-// btask-web test suite — runs against an isolated test DB and random port.
+// dtask-web test suite — runs against an isolated test DB and random port.
 // Usage: bun test  (or: bun test tests/)
 //
 // Coverage:
-//   - auth: bearer key + X-Btask-User auto-register
+//   - auth: bearer key + X-Dtask-User / X-Btask-User auto-register
 //   - tasks CRUD: create / list / patch / done / archive / delete
 //   - search: /api/tasks?q=
 //   - import: bulk JSON
@@ -21,23 +21,23 @@ import { rmSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 // Use isolated test DB so prod data is safe
-const TEST_DB = "/tmp/btask-test.sqlite";
+const TEST_DB = "/tmp/dtask-test.sqlite";
 const TEST_PORT = 0; // 0 = random free port
 
 // Override env BEFORE importing server
-process.env.BTASK_PORT = String(TEST_PORT);
-process.env.BTASK_DB = TEST_DB;
+process.env.DTASK_PORT = String(TEST_PORT);
+process.env.DTASK_DB = TEST_DB;
 process.env.NODE_ENV = "test";
 
 // Now spin up the server in this process
 const serverMod = await import("../server.ts");
 const baseUrl = `http://127.0.0.1:${serverMod.server.port}`;
 
-// Build a fresh client; use X-Btask-User auto-register (no need to hit /api/users)
+// Build a fresh client; use X-Dtask-User auto-register (no need to hit /api/users)
 async function api(method: string, path: string, body?: any, key?: string): Promise<{ status: number; data: any }> {
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (key) headers["authorization"] = `Bearer ${key}`;
-  if (body?.__username && !key) headers["x-btask-user"] = body.__username;
+  if (body?.__username && !key) headers["x-dtask-user"] = body.__username;
   const cleanBody = body ? { ...body } : undefined;
   if (cleanBody) delete cleanBody.__username;
   const r = await fetch(baseUrl + path, {
@@ -63,12 +63,13 @@ afterAll(() => {
   }
 });
 
-describe("btask-web v1.1.0", () => {
+describe("dtask-web v1.1.0", () => {
   // ── Health & metadata ─────────────────────────────────────────
   it("/api/health returns version + uptime", async () => {
     const r = await api("GET", "/api/health");
     expect(r.status).toBe(200);
     expect(r.data.ok).toBe(true);
+    expect(r.data.service).toBe("dtask-web");
     expect(r.data.version).toBe("1.1.0");
     expect(typeof r.data.uptime_s).toBe("number");
   });
@@ -95,11 +96,22 @@ describe("btask-web v1.1.0", () => {
   });
 
   // ── User / auth ───────────────────────────────────────────────
-  it("X-Btask-User auto-registers and returns api_key on first task create", async () => {
+  it("X-Dtask-User auto-registers and returns api_key on first task create", async () => {
     const r = await api("POST", "/api/tasks", { __username: "test-user-1", title: "first", category: "code" });
     expect(r.status).toBe(201);
     expect(r.data.task.title).toBe("first");
     expect(r.data.api_key).toMatch(/^[a-f0-9]{48}$/);
+  });
+
+  it("X-Btask-User backwards-compatibility auto-registers and returns api_key", async () => {
+    const r = await fetch(baseUrl + "/api/tasks", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-btask-user": "compat-user" },
+      body: JSON.stringify({ title: "compat-task", category: "code" }),
+    });
+    expect(r.status).toBe(201);
+    const data = await r.json();
+    expect(data.api_key).toMatch(/^[a-f0-9]{48}$/);
   });
 
   it("invalid username (special chars) returns 400/401", async () => {
