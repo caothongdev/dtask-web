@@ -103,7 +103,7 @@ test("openQuickScheduleModal implements rescheduling banner and preselected task
   expect(content).toContain("schedule-reschedule-banner");
   expect(content).toContain("schedule-reschedule-title");
   expect(content).toContain("schedule-reschedule-cat");
-  expect(content).toContain("// RESCHEDULING TASK:");
+  expect(content).toContain("Rescheduling Task:");
 
   // 2. Preselected task is included in taskSelect options even when already scheduled
   expect(content).toContain("preselTask");

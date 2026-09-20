@@ -105,10 +105,9 @@ test("Full user lifecycle: register -> create tasks (time, book, slot) -> comple
   const pubHtml = await pubRes.text();
   expect(pubHtml).toContain("dtask");
   expect(pubHtml).toContain("Space Mono");
-  expect(pubHtml).toContain("+-.[ dtask ].-+");
-  expect(pubHtml).toContain("[SYS: DAEMON ACTIVE]");
-  expect(pubHtml).toContain("[PUBLIC PROFILE]");
-  expect(pubHtml).toContain("DIRECT JSON API");
+  expect(pubHtml).toContain("System Active");
+  expect(pubHtml).toContain("Public Profile");
+  expect(pubHtml).toContain("JSON API");
   expect(pubHtml).toContain("#090a0c");
 });
 

@@ -177,7 +177,7 @@ export function renderShopView(container) {
             <span class="font-sans text-sm font-extrabold text-stone-accent">REWARDS CATALOG</span>
             <span class="font-mono text-xs text-outline">(${rewards.length} ITEMS AVAILABLE)</span>
           </div>
-          <span class="font-mono text-[11px] text-outline">AUTO_SYNC // ACTIVE</span>
+          <span class="font-mono text-[11px] text-outline">Auto-Sync Active</span>
         </div>
 
         ${rewards.length === 0 ? `

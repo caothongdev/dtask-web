@@ -34,7 +34,7 @@ export function renderProfileView(container) {
           </div>
           <div class="min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
-              <h2 class="text-xl font-extrabold text-stone-accent font-mono">dtask::whoami</h2>
+              <h2 class="text-xl font-extrabold text-stone-accent">User Profile</h2>
               <span class="text-[10px] font-mono px-2 py-0.5 rounded-md border font-bold ${
                 isPublic
                   ? "bg-success-soft text-success border-emerald-200"

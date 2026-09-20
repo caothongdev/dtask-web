@@ -197,7 +197,7 @@ test("renderProfileView displays whoami card, stat grid, and preferences", () =>
   renderProfileView(container as any);
 
   expect(container.innerHTML).toContain("data-profile-view");
-  expect(container.innerHTML).toContain("dtask::whoami");
+  expect(container.innerHTML).toContain("User Profile");
   expect(container.innerHTML).toContain("@profile_ops");
   expect(container.innerHTML).toContain("PUBLIC PROFILE");
   expect(container.innerHTML).toContain("Practitioner");

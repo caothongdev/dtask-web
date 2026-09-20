@@ -342,7 +342,7 @@ export function renderTasksView(container) {
           <!-- XP Level Progress -->
           <div class="bg-surface-subtle p-3 rounded-xl border border-outline-variant flex flex-col gap-1.5">
             <div class="flex justify-between items-center text-[11px]">
-              <span id="stat-lvl-rank" class="text-secondary font-bold">[LVL ${levelInfo.level}] ${levelInfo.rank}</span>
+              <span id="stat-lvl-rank" class="text-secondary font-bold">Level ${levelInfo.level} · ${levelInfo.rank}</span>
               <span id="stat-lvl-prog" class="text-outline">${levelInfo.prog_xp || 0} / ${levelInfo.needed_xp || 100} XP (${levelInfo.pct || 0}%)</span>
             </div>
             <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
@@ -378,11 +378,11 @@ export function renderTasksView(container) {
 
         <!-- Hotkey Reference Card -->
         <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 font-mono text-[11px] text-outline flex flex-col gap-2">
-          <span class="text-secondary font-bold uppercase tracking-wider">HOTKEYS &amp; HINTS</span>
-          <div class="flex justify-between"><span>[1]-[9]</span><span class="text-stone-accent font-semibold">Switch views</span></div>
-          <div class="flex justify-between"><span>[A]</span><span class="text-stone-accent font-semibold">Quick add task</span></div>
-          <div class="flex justify-between"><span>[Space]</span><span class="text-stone-accent font-semibold">Pause / resume focus</span></div>
-          <div class="flex justify-between"><span>[Esc]</span><span class="text-stone-accent font-semibold">Close modals</span></div>
+          <span class="text-secondary font-bold uppercase tracking-wider">Hotkeys &amp; Shortcuts</span>
+          <div class="flex justify-between items-center"><kbd class="px-1.5 py-0.5 bg-surface-subtle border border-outline-variant rounded font-mono text-[10px] text-stone-accent font-semibold">1-9</kbd><span class="text-stone-accent font-semibold">Switch views</span></div>
+          <div class="flex justify-between items-center"><kbd class="px-1.5 py-0.5 bg-surface-subtle border border-outline-variant rounded font-mono text-[10px] text-stone-accent font-semibold">A</kbd><span class="text-stone-accent font-semibold">Quick add task</span></div>
+          <div class="flex justify-between items-center"><kbd class="px-1.5 py-0.5 bg-surface-subtle border border-outline-variant rounded font-mono text-[10px] text-stone-accent font-semibold">Space</kbd><span class="text-stone-accent font-semibold">Pause / resume focus</span></div>
+          <div class="flex justify-between items-center"><kbd class="px-1.5 py-0.5 bg-surface-subtle border border-outline-variant rounded font-mono text-[10px] text-stone-accent font-semibold">Esc</kbd><span class="text-stone-accent font-semibold">Close modals</span></div>
         </div>
 
       </aside>
@@ -449,7 +449,7 @@ function updateTasksListOnly(container) {
   if (xpEl) xpEl.textContent = String(totalXp);
   if (rankEl) rankEl.textContent = levelInfo.rank || "Apprentice";
   if (coinsEl) coinsEl.innerHTML = `<span class="flex items-center gap-1.5">${icons.coin("w-4 h-4 text-amber-500")} ${user.coins ?? 0}</span>`;
-  if (lvlRankEl) lvlRankEl.textContent = `[LVL ${levelInfo.level}] ${levelInfo.rank}`;
+  if (lvlRankEl) lvlRankEl.textContent = `Level ${levelInfo.level} · ${levelInfo.rank}`;
   if (lvlProgEl) lvlProgEl.textContent = `${levelInfo.prog_xp || 0} / ${levelInfo.needed_xp || 100} XP (${levelInfo.pct || 0}%)`;
   if (lvlBarEl) lvlBarEl.style.width = `${levelInfo.pct || 0}%`;
 
@@ -646,17 +646,23 @@ function renderTaskCard(task) {
         <button
           data-action="edit"
           data-task-id="${task.id}"
-          class="task-edit-btn px-2 py-1 border border-outline-variant hover:border-primary text-outline hover:text-primary font-mono text-xs rounded-lg transition-colors"
+          class="task-edit-btn px-2 py-1 border border-outline-variant hover:border-primary text-secondary hover:text-primary rounded-lg transition-colors flex items-center gap-1 text-xs"
           title="Edit Task"
-        >EDIT</button>
+        >
+          ${icons.edit("w-3.5 h-3.5")}
+          <span>Edit</span>
+        </button>
 
         <!-- Delete Button -->
         <button
           data-action="delete"
           data-task-id="${task.id}"
-          class="task-del-btn px-2 py-1 border border-outline-variant hover:border-danger hover:bg-danger-soft text-outline hover:text-danger font-mono text-xs rounded-lg transition-colors"
+          class="task-del-btn px-2 py-1 border border-outline-variant hover:border-danger hover:bg-danger-soft text-secondary hover:text-danger rounded-lg transition-colors flex items-center gap-1 text-xs"
           title="Delete Task"
-        >DEL</button>
+        >
+          ${icons.trash("w-3.5 h-3.5")}
+          <span>Delete</span>
+        </button>
       </div>
     </div>
   `;

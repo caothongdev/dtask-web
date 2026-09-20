@@ -109,25 +109,25 @@ test("Focus view module contains full HUD elements, dual modes, hotkeys, and qui
   const content = readFileSync(path, "utf8");
 
   // Focus mode components
-  expect(content).toContain("FOCUS_DAEMON // RUNNING");
-  expect(content).toContain("ACTIVE_FLOW_PULSE");
-  expect(content).toContain("[BTOP_RESOURCE_FILL]");
+  expect(content).toContain("Focus Mode");
+  expect(content).toContain("Active Flow");
+  expect(content).toContain("Focus Progress");
   expect(content).toContain("XP_REWARD_PIPELINE");
   expect(content).toContain("COIN_LEDGER_ACTIVE");
   expect(content).toContain("EXECUTION_BUS_CONTROLS");
-  expect(content).toContain("[Space]");
-  expect(content).toContain("[Enter]");
-  expect(content).toContain("[Ctrl+C / Esc]");
+  expect(content).toContain("Space");
+  expect(content).toContain("Enter");
+  expect(content).toContain("Ctrl+C / Esc");
   expect(content).toContain("Guilt-Free Break Ready");
 
   // Relax mode components
-  expect(content).toContain("RELAX_DAEMON");
+  expect(content).toContain("Relax Session");
   expect(content).toContain("WARM STONE AMBIENT");
   expect(content).toContain("Return to Work");
 
   // Quick Dispatcher / Standby mode (when no timer is active)
-  expect(content).toContain("FOCUS_DAEMON // STANDBY");
-  expect(content).toContain("QUICK_DISPATCHER");
+  expect(content).toContain("Focus Session · Standby");
+  expect(content).toContain("Quick Dispatcher");
   expect(content).toContain("25m");
   expect(content).toContain("45m");
   expect(content).toContain("60m");
@@ -165,7 +165,7 @@ test("Standby mode re-renders task list on store update without short-circuiting
 
   // Verifies standby mode was NOT short-circuited and re-rendered the updated task
   expect(container.innerHTML).toContain("Kernel scheduler optimization");
-  expect(container.innerHTML).toContain("LAUNCH FOCUS ❯");
+  expect(container.innerHTML).toContain("Launch Focus");
 
   cleanupFocusView();
 });

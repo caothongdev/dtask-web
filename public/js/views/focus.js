@@ -204,13 +204,13 @@ function updateLiveTelemetry() {
     if (remEl) remEl.textContent = `${formatTime(rem)} REMAINING`;
 
     const tickCountEl = mountedContainer.querySelector("#focus-tick-count");
-    if (tickCountEl) tickCountEl.textContent = `[TICK: ${timer.elapsedSeconds}s]`;
+    if (tickCountEl) tickCountEl.textContent = `${timer.elapsedSeconds}s elapsed`;
 
     const pctLabelEl = mountedContainer.querySelector("#focus-pct-label");
     if (pctLabelEl) pctLabelEl.textContent = `${accrual.pct}% EXEC`;
 
     const timeSubEl = mountedContainer.querySelector("#focus-time-sub");
-    if (timeSubEl) timeSubEl.textContent = `[${(timer.elapsedSeconds / 60).toFixed(1)} / ${(timer.targetSeconds / 60).toFixed(1)} MIN]`;
+    if (timeSubEl) timeSubEl.textContent = `${(timer.elapsedSeconds / 60).toFixed(1)} / ${(timer.targetSeconds / 60).toFixed(1)} min`;
 
     const asciiMeterEl = mountedContainer.querySelector("#focus-ascii-meter");
     if (asciiMeterEl) asciiMeterEl.textContent = renderBtopAsciiBar(accrual.pct, 30);
@@ -239,7 +239,7 @@ function updateLiveTelemetry() {
     if (pauseLabelEl) pauseLabelEl.textContent = timer.running ? "Pause Session" : "Resume Session";
 
     const headerStateEl = mountedContainer.querySelector("#focus-header-state");
-    if (headerStateEl) headerStateEl.textContent = timer.running ? "RUNNING" : "PAUSED";
+    if (headerStateEl) headerStateEl.textContent = timer.running ? "Running" : "Paused";
 
     const flowStateEl = mountedContainer.querySelector("#focus-flow-state");
     if (flowStateEl) {
@@ -340,19 +340,19 @@ function renderFocusDaemonMode(container) {
         <div class="flex items-center gap-3 flex-wrap">
           <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary-soft text-primary border border-blue-200 font-bold">
             <span class="w-1.5 h-1.5 rounded-full bg-primary ${timer.running ? "animate-ping" : ""}"></span>
-            FOCUS_SESSION://PID.${pid}
+            Focus Session #${pid}
           </span>
-          <span class="text-secondary font-bold truncate max-w-xs md:max-w-md">TARGET: ${escapeHtml(task.title || "Deep Work Session")}</span>
-          <span class="text-outline-variant">::</span>
-          <span class="text-outline">STRICT POMODORO</span>
+          <span class="text-secondary font-bold truncate max-w-xs md:max-w-md">Target: ${escapeHtml(task.title || "Deep Work Session")}</span>
+          <span class="text-outline-variant">·</span>
+          <span class="text-outline">Strict Pomodoro</span>
         </div>
         <div class="flex items-center gap-4 text-xs text-outline">
           <div class="flex items-center gap-1.5">
-            <span>STREAK:</span>
-            <span class="text-orange-600 font-bold flex items-center gap-1">${icons.fire("w-3.5 h-3.5 text-orange-500")} ${streak} DAYS</span>
+            <span>Streak:</span>
+            <span class="text-orange-600 font-bold flex items-center gap-1">${icons.fire("w-3.5 h-3.5 text-orange-500")} ${streak} Days</span>
           </div>
           <div class="hidden sm:inline-block text-outline-variant">
-            MODE: FOCUS ENGINE
+            Mode: Focus Engine
           </div>
         </div>
       </div>
@@ -406,15 +406,15 @@ function renderFocusDaemonMode(container) {
               </div>
               <div class="flex flex-col gap-1 text-xs">
                 <label class="flex items-center gap-2 p-1.5 rounded-lg bg-surface-subtle border border-outline-variant/60 text-outline line-through">
-                  <span class="text-emerald-600 font-bold">[x]</span>
+                  <span class="text-emerald-600 flex items-center justify-center">${icons.check("w-3.5 h-3.5 text-emerald-600")}</span>
                   <span>Initialize engine</span>
                 </label>
                 <label class="flex items-center gap-2 p-1.5 rounded-lg bg-surface-subtle border border-outline-variant/60 text-outline line-through">
-                  <span class="text-emerald-600 font-bold">[x]</span>
+                  <span class="text-emerald-600 flex items-center justify-center">${icons.check("w-3.5 h-3.5 text-emerald-600")}</span>
                   <span>Lock distraction shield</span>
                 </label>
                 <label class="flex items-center gap-2 p-1.5 rounded-lg bg-white border border-outline-variant text-stone-accent">
-                  <span class="text-primary font-bold">[ ]</span>
+                  <span class="w-3.5 h-3.5 rounded border border-outline-variant inline-block"></span>
                   <span>Complete focus block</span>
                 </label>
               </div>
@@ -423,8 +423,8 @@ function renderFocusDaemonMode(container) {
 
           <!-- Quote Card -->
           <div class="bg-surface-subtle p-2.5 rounded-2xl border border-outline-variant text-xs text-outline flex items-start gap-2">
-            <span class="text-primary font-bold">❯</span>
-            <span class="text-secondary italic">"Flow is the state where syntax fades and only state machines exist."</span>
+            <span class="text-primary font-bold text-sm leading-none">“</span>
+            <span class="text-secondary italic">Flow is the state where syntax fades and only state machines exist.</span>
           </div>
         </div>
 
@@ -437,7 +437,7 @@ function renderFocusDaemonMode(container) {
             <!-- Header -->
             <div class="flex items-center justify-between text-xs text-outline pb-1 border-b border-outline-variant/70">
               <div class="flex items-center gap-1.5 text-secondary">
-                <span class="text-primary font-bold tracking-wider">FOCUS_DAEMON // <span id="focus-header-state">${timer.running ? "RUNNING" : "PAUSED"}</span></span>
+                <span class="text-primary font-bold tracking-wider">Focus Mode · <span id="focus-header-state">${timer.running ? "Running" : "Paused"}</span></span>
               </div>
               <div id="focus-flow-state" class="flex items-center gap-1.5 text-xs text-primary">
                 <span class="w-1.5 h-1.5 rounded-full bg-primary ${timer.running ? "animate-pulse" : ""}"></span>
@@ -449,10 +449,10 @@ function renderFocusDaemonMode(container) {
             <div class="flex flex-col items-center justify-center py-2 relative">
               <!-- Status Bead -->
               <div class="flex items-center gap-2 mb-2 px-3 py-1 rounded-full bg-surface-subtle text-xs text-secondary border border-outline-variant">
-                <span class="text-primary font-bold">SYS.CLK</span>
-                <span class="text-outline-variant">::</span>
-                <span class="font-bold text-primary">ACTIVE_FLOW_PULSE</span>
-                <span id="focus-tick-count" class="text-outline">[TICK: ${timer.elapsedSeconds}s]</span>
+                <span class="text-primary font-bold">Session Clock</span>
+                <span class="text-outline-variant">·</span>
+                <span class="font-bold text-primary">Active Flow</span>
+                <span id="focus-tick-count" class="text-outline">${timer.elapsedSeconds}s elapsed</span>
               </div>
 
               <!-- Master Digital Time Display -->
@@ -476,12 +476,12 @@ function renderFocusDaemonMode(container) {
             <div class="flex flex-col gap-1.5 bg-surface-subtle p-3 rounded-2xl border border-outline-variant shadow-inner">
               <div class="flex justify-between items-center text-xs">
                 <span class="text-primary font-bold flex items-center gap-1.5">
-                  <span>[BTOP_RESOURCE_FILL]</span>
-                  <span class="text-outline font-normal">CPU_CLOCK_ALLOC</span>
+                  <span>Focus Progress</span>
+                  <span class="text-outline font-normal">Active Block</span>
                 </span>
                 <div class="flex items-center gap-2">
                   <span id="focus-pct-label" class="text-primary font-bold">${accrual.pct}% EXEC</span>
-                  <span id="focus-time-sub" class="text-outline">[${(timer.elapsedSeconds / 60).toFixed(1)} / ${(timer.targetSeconds / 60).toFixed(1)} MIN]</span>
+                  <span id="focus-time-sub" class="text-outline">${(timer.elapsedSeconds / 60).toFixed(1)} / ${(timer.targetSeconds / 60).toFixed(1)} min</span>
                 </div>
               </div>
               <!-- Modern Progress Bar -->
@@ -546,20 +546,20 @@ function renderFocusDaemonMode(container) {
               <div class="text-outline text-xs uppercase tracking-wider font-bold">EXECUTION_BUS_CONTROLS</div>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <!-- Pause / Resume Button -->
-                <button id="focus-pause-btn" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-white hover:bg-surface-subtle text-stone-accent transition-all rounded-xl border border-outline-variant text-xs">
-                  <span class="font-bold text-primary">[ Space ]</span>
+                <button id="focus-pause-btn" class="flex items-center justify-center gap-2 py-2 px-3 bg-white hover:bg-surface-subtle text-stone-accent transition-all rounded-xl border border-outline-variant text-xs">
+                  <kbd class="px-1.5 py-0.5 rounded bg-surface-subtle border border-outline-variant font-mono text-[10px] text-primary font-bold">Space</kbd>
                   <span id="focus-pause-label" class="font-semibold">${timer.running ? "Pause Session" : "Resume Session"}</span>
                 </button>
 
                 <!-- Complete Now Button -->
-                <button id="focus-complete-btn" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-primary text-white font-bold hover:bg-primary-strong transition-all rounded-xl border border-primary text-xs shadow-md shadow-blue-500/20">
-                  <span class="text-white font-bold">[ Enter ]</span>
+                <button id="focus-complete-btn" class="flex items-center justify-center gap-2 py-2 px-3 bg-primary text-white font-bold hover:bg-primary-strong transition-all rounded-xl border border-primary text-xs shadow-md shadow-blue-500/20">
+                  <kbd class="px-1.5 py-0.5 rounded bg-primary-strong border border-blue-400 font-mono text-[10px] text-white font-bold">Enter</kbd>
                   <span>Mark Complete Now</span>
                 </button>
 
                 <!-- Stop & Bank Button -->
-                <button id="focus-stop-btn" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-white hover:bg-danger-soft text-secondary hover:text-danger transition-all rounded-xl border border-outline-variant text-xs">
-                  <span class="text-danger font-bold">[ Ctrl+C / Esc ]</span>
+                <button id="focus-stop-btn" class="flex items-center justify-center gap-2 py-2 px-3 bg-white hover:bg-danger-soft text-secondary hover:text-danger transition-all rounded-xl border border-outline-variant text-xs">
+                  <kbd class="px-1.5 py-0.5 rounded bg-surface-subtle border border-outline-variant font-mono text-[10px] text-danger font-bold">Ctrl+C / Esc</kbd>
                   <span id="focus-stop-label">Stop & Bank ${accrual.accruedCoins} Coins</span>
                 </button>
               </div>
@@ -567,9 +567,12 @@ function renderFocusDaemonMode(container) {
 
             <!-- Inline Note Prompt -->
             <div class="flex items-center gap-2 bg-surface-subtle px-3 py-2 rounded-xl border border-outline-variant text-xs text-stone-accent">
-              <span class="text-primary font-bold">focus@dtask ~ $</span>
-              <input id="focus-cli-input" type="text" class="bg-transparent border-none outline-none text-stone-accent placeholder:text-outline/60 flex-1 w-full font-mono text-xs" placeholder="type 'note <string>' to log a thought..." />
-              <span class="text-outline text-[11px] hidden sm:inline">[Enter: save]</span>
+              <span class="text-primary font-bold flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">edit_note</span>
+                <span>Note</span>
+              </span>
+              <input id="focus-cli-input" type="text" class="bg-transparent border-none outline-none text-stone-accent placeholder:text-outline/60 flex-1 w-full text-xs" placeholder="Log a quick thought or reflection..." />
+              <span class="text-outline text-[11px] hidden sm:inline"><kbd class="px-1.5 py-0.5 rounded bg-white border border-outline-variant text-[10px]">Enter</kbd> to save</span>
             </div>
           </div>
 
@@ -628,14 +631,14 @@ function renderFocusDaemonMode(container) {
             <!-- Auto Switch Toggle -->
             <div class="flex items-center justify-between bg-surface-subtle p-2 rounded-xl border border-outline-variant text-xs">
               <span class="text-secondary">Auto-trigger on zero:</span>
-              <button id="focus-auto-break-toggle" class="px-2 py-0.5 rounded-lg bg-white border border-outline-variant font-bold text-xs ${autoBreakEnabled ? "text-emerald-600" : "text-outline"}">
-                AUTO: [${autoBreakEnabled ? "ON" : "OFF"}]
+              <button id="focus-auto-break-toggle" class="px-2.5 py-0.5 rounded-lg bg-white border border-outline-variant font-bold text-xs ${autoBreakEnabled ? "text-emerald-600" : "text-outline"}">
+                Auto: ${autoBreakEnabled ? "On" : "Off"}
               </button>
             </div>
 
             <!-- Quick Switch to Relax Timer Button -->
             <button id="focus-switch-relax-btn" class="w-full py-2 px-3 bg-surface-subtle hover:bg-surface-container transition-all flex items-center justify-between text-stone-accent font-bold rounded-xl border border-outline-variant text-xs">
-              <span class="text-primary">[Shift+Tab]</span>
+              <kbd class="px-1.5 py-0.5 rounded bg-white border border-outline-variant font-mono text-[10px] text-primary font-bold">Shift+Tab</kbd>
               <span>Switch to Relax Mode</span>
               <span class="material-symbols-outlined text-sm text-primary">bedtime</span>
             </button>
@@ -650,14 +653,18 @@ function renderFocusDaemonMode(container) {
             <div class="flex flex-col gap-1.5 mt-0.5">
               <button data-audio="binaural" class="audio-track-btn w-full text-left flex items-center justify-between p-2 rounded-lg border ${selectedAudioEngine === "binaural" ? "bg-primary-soft border-blue-200 text-primary" : "bg-white border-outline-variant text-secondary hover:bg-surface-subtle"}">
                 <div class="flex items-center gap-2">
-                  <span class="font-bold ${selectedAudioEngine === "binaural" ? "text-primary" : "text-outline"}">${selectedAudioEngine === "binaural" ? "[*]" : "[ ]"}</span>
+                  <span class="w-3.5 h-3.5 rounded-full border ${selectedAudioEngine === "binaural" ? "border-primary bg-primary" : "border-outline-variant bg-white"} flex items-center justify-center">
+                    ${selectedAudioEngine === "binaural" ? '<span class="w-1.5 h-1.5 rounded-full bg-white"></span>' : ''}
+                  </span>
                   <span>Binaural 432Hz Brown</span>
                 </div>
                 <span class="font-bold text-[10px] ${selectedAudioEngine === "binaural" ? "text-primary" : "text-outline"}">${selectedAudioEngine === "binaural" ? "ACTIVE" : "IDLE"}</span>
               </button>
               <button data-audio="tokyo" class="audio-track-btn w-full text-left flex items-center justify-between p-2 rounded-lg border ${selectedAudioEngine === "tokyo" ? "bg-primary-soft border-blue-200 text-primary" : "bg-white border-outline-variant text-secondary hover:bg-surface-subtle"}">
                 <div class="flex items-center gap-2">
-                  <span class="font-bold ${selectedAudioEngine === "tokyo" ? "text-primary" : "text-outline"}">${selectedAudioEngine === "tokyo" ? "[*]" : "[ ]"}</span>
+                  <span class="w-3.5 h-3.5 rounded-full border ${selectedAudioEngine === "tokyo" ? "border-primary bg-primary" : "border-outline-variant bg-white"} flex items-center justify-center">
+                    ${selectedAudioEngine === "tokyo" ? '<span class="w-1.5 h-1.5 rounded-full bg-white"></span>' : ''}
+                  </span>
                   <span>Tokyo Terminal Rainy Night</span>
                 </div>
                 <span class="font-bold text-[10px] ${selectedAudioEngine === "tokyo" ? "text-primary" : "text-outline"}">${selectedAudioEngine === "tokyo" ? "ACTIVE" : "IDLE"}</span>
@@ -770,7 +777,7 @@ function renderRelaxDaemonMode(container) {
         <!-- Top Header -->
         <div class="flex items-center justify-between text-xs text-outline pb-2 border-b border-outline-variant/70">
           <div class="flex items-center gap-2">
-            <span class="text-primary font-bold tracking-wider">RELAX_DAEMON // COOLDOWN</span>
+            <span class="text-primary font-bold tracking-wider">Relax Session · Cooldown</span>
           </div>
           <span class="text-emerald-600 font-bold tracking-wider uppercase text-[11px]">WARM STONE AMBIENT · REST PROTOCOL ACTIVE</span>
         </div>
@@ -779,7 +786,7 @@ function renderRelaxDaemonMode(container) {
         <div class="flex flex-col items-center justify-center py-4 text-center">
           <div class="flex items-center gap-2 mb-3 px-3 py-1 rounded-full bg-success-soft text-xs text-success border border-emerald-200">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="font-bold">REST_PROTOCOL_ACTIVE // GUILT-FREE RECOVERY</span>
+            <span class="font-bold">Rest Protocol Active · Guilt-Free Recovery</span>
           </div>
 
           <div class="font-sans text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-stone-accent my-2 font-mono">
@@ -795,8 +802,8 @@ function renderRelaxDaemonMode(container) {
         <div class="flex flex-col gap-2 bg-surface-subtle p-4 rounded-2xl border border-outline-variant shadow-inner">
           <div class="flex justify-between items-center text-xs">
             <span class="text-primary font-bold flex items-center gap-1.5">
-              <span>[REST_BUFFER_FILL]</span>
-              <span class="text-outline font-normal">HP_RESTORE_ALLOC</span>
+              <span>Rest Progress</span>
+              <span class="text-outline font-normal">Buffer Allocation</span>
             </span>
             <span class="text-stone-accent font-bold">
               <span id="relax-pct-label">${pct}% RESTORED</span>
@@ -827,15 +834,15 @@ function renderRelaxDaemonMode(container) {
         <!-- Interactive Control Bar -->
         <div class="flex flex-col sm:flex-row gap-3 pt-2 border-t border-outline-variant/70">
           <button id="relax-pause-btn" class="flex-1 py-2.5 px-4 bg-white hover:bg-surface-subtle text-stone-accent border border-outline-variant rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all">
-            <span class="text-primary">[ Space ]</span>
+            <kbd class="px-1.5 py-0.5 rounded bg-surface-subtle border border-outline-variant font-mono text-[10px] text-primary font-bold">Space</kbd>
             <span id="relax-pause-label">${timer.running ? "Pause Cooldown" : "Resume Cooldown"}</span>
           </button>
           <button id="relax-return-btn" class="flex-1 py-2.5 px-4 bg-primary text-white hover:bg-primary-strong rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/20">
-            <span class="text-white font-bold">[ Enter ]</span>
+            <kbd class="px-1.5 py-0.5 rounded bg-primary-strong border border-blue-400 font-mono text-[10px] text-white font-bold">Enter</kbd>
             <span>Return to Work</span>
           </button>
           <button id="relax-dismiss-btn" class="py-2.5 px-4 bg-white hover:bg-danger-soft text-secondary hover:text-danger border border-outline-variant rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all">
-            <span class="text-danger font-bold">[ Esc ]</span>
+            <kbd class="px-1.5 py-0.5 rounded bg-surface-subtle border border-outline-variant font-mono text-[10px] text-danger font-bold">Esc</kbd>
             <span>Dismiss</span>
           </button>
         </div>
@@ -884,7 +891,7 @@ function renderStandbyLauncherMode(container) {
       <div class="w-full mb-4 flex flex-wrap items-center justify-between gap-2 bg-surface rounded-2xl px-4 py-2.5 border border-outline-variant shadow-card text-xs">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-primary pulse-dot"></span>
-          <span class="text-primary font-bold tracking-wider font-mono">FOCUS_DAEMON // STANDBY</span>
+          <span class="text-primary font-bold tracking-wider font-mono">Focus Session · Standby</span>
         </div>
         <span class="text-outline text-xs uppercase font-bold">READY FOR MISSION DISPATCH</span>
       </div>
@@ -928,7 +935,7 @@ function renderStandbyLauncherMode(container) {
         <!-- Left 7 Cols: Open Task Queue Dispatcher -->
         <div class="lg:col-span-7 flex flex-col gap-3">
           <div class="flex items-center justify-between pb-1 border-b border-outline-variant/70 text-xs">
-            <span class="text-primary font-bold uppercase tracking-wider font-mono">QUICK_DISPATCHER (OPEN TASKS)</span>
+            <span class="text-primary font-bold uppercase tracking-wider font-mono">Quick Dispatcher (Open Tasks)</span>
             <span class="text-outline">${openTasks.length} AVAILABLE</span>
           </div>
 
@@ -954,8 +961,9 @@ function renderStandbyLauncherMode(container) {
                       <span class="text-coin-amber">+${t.coins || 10} coins</span>
                     </div>
                   </div>
-                  <button data-task-id="${t.id}" class="launch-task-btn px-3 py-1.5 bg-primary text-white font-bold hover:bg-primary-strong transition-all text-xs whitespace-nowrap rounded-xl shadow-md shadow-blue-500/20">
-                    LAUNCH FOCUS ❯
+                  <button data-task-id="${t.id}" class="launch-task-btn px-3 py-1.5 bg-primary text-white font-bold hover:bg-primary-strong transition-all text-xs whitespace-nowrap rounded-xl shadow-md shadow-blue-500/20 flex items-center gap-1.5">
+                    ${icons.play("w-3.5 h-3.5 text-white")}
+                    <span>Launch Focus</span>
                   </button>
                 </div>
               `).join("")}

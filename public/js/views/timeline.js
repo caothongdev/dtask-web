@@ -394,7 +394,7 @@ export function renderTimelineView(container) {
               <span class="material-symbols-outlined text-[15px] text-emerald-600">memory</span>
               <span>SYNC STATUS</span>
             </div>
-            <span class="text-emerald-600 font-bold">LIVE [SSE]</span>
+            <span class="text-emerald-600 font-bold">Live Sync</span>
           </div>
         </div>
 
@@ -407,7 +407,7 @@ export function renderTimelineView(container) {
         <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-primary pulse-dot"></span>
-            <span class="text-stone-accent font-bold">TIMELINE // SCHEDULE: ${dateFormatted}</span>
+            <span class="text-stone-accent font-bold">Timeline Schedule: ${dateFormatted}</span>
           </div>
           <div class="flex items-center gap-3">
             <button id="toggle-24h-btn" class="px-2.5 py-1 rounded-lg bg-white border border-outline-variant hover:border-outline text-secondary hover:text-stone-accent transition-colors">
@@ -499,8 +499,8 @@ export function renderTimelineView(container) {
           <!-- Idle / Next Up Callout Banner -->
           <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
             <div class="flex items-center gap-3">
-              <span class="px-2 py-0.5 rounded-md bg-surface-subtle border border-outline-variant text-outline font-bold">
-                IDLE // NO ACTIVE TASK
+              <span class="px-2 py-0.5 rounded-md bg-surface-subtle border border-outline-variant text-secondary font-semibold">
+                Idle · No active task
               </span>
               ${
                 nextTask
@@ -699,8 +699,8 @@ export function renderTimelineView(container) {
                             class="empty-slot-btn py-2 px-3 rounded-xl border border-dashed border-outline-variant hover:border-primary hover:bg-primary-soft/40 transition-colors cursor-pointer text-outline hover:text-primary flex items-center justify-between"
                             data-hour-slot="${hourStr}"
                           >
-                            <span>+ [EMPTY // Click to schedule task at ${hourStr}]</span>
-                            <span class="text-[11px] opacity-60">openQuickScheduleModal</span>
+                            <span>+ Click to schedule task at ${hourStr}</span>
+                            <span class="text-[11px] opacity-60">Schedule Slot</span>
                           </div>
                         `
                         }
@@ -721,7 +721,7 @@ export function renderTimelineView(container) {
               <span class="material-symbols-outlined text-sm text-primary">data_array</span>
               <span class="text-primary font-bold">UNPINNED FLEX QUEUE</span>
             </div>
-            <span class="text-outline text-[11px]">${unscheduledTasks.length} READY // CLICK TO SCHEDULE</span>
+            <span class="text-outline text-[11px]">${unscheduledTasks.length} ready to schedule</span>
           </div>
 
           ${
@@ -780,7 +780,7 @@ export function renderTimelineView(container) {
         <!-- Prominent Rescheduling Banner (shown when editing an existing slot) -->
         <div id="schedule-reschedule-banner" class="hidden mb-4 p-2.5 rounded-xl bg-primary-soft border border-blue-300 text-primary flex items-center justify-between">
           <div class="flex flex-col gap-0.5 min-w-0">
-            <span class="text-[10px] text-primary font-bold">// RESCHEDULING TASK:</span>
+            <span class="text-[10px] text-primary font-bold">Rescheduling Task:</span>
             <span id="schedule-reschedule-title" class="font-bold truncate text-stone-accent text-xs"></span>
           </div>
           <span id="schedule-reschedule-cat" class="px-1.5 py-0.5 rounded-md bg-white border border-blue-200 text-[10px] uppercase font-bold text-primary ml-2 shrink-0"></span>

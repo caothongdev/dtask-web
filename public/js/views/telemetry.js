@@ -267,7 +267,7 @@ export function renderTelemetryView(container) {
         <div class="space-y-2">
           <div class="flex items-center justify-between text-xs font-mono">
             <span class="text-outline">TIER PROGRESSION PATHWAY</span>
-            <span class="text-primary font-bold">ACTIVE TIER: [${RPG_TIERS[currentTierIndex].name.toUpperCase()}]</span>
+            <span class="text-primary font-bold">Active Tier: ${RPG_TIERS[currentTierIndex].name.toUpperCase()}</span>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-5 gap-2">
@@ -423,8 +423,8 @@ export function renderTelemetryView(container) {
 
             <!-- Operator Status Footer -->
             <div class="p-3 bg-surface-subtle rounded-xl border border-outline-variant text-[11px] text-secondary flex items-center justify-between">
-              <span>OPERATOR STATUS: [NORMAL]</span>
-              <span class="text-primary font-bold">SYNC: LIVE [SSE]</span>
+              <span>Status: Normal</span>
+              <span class="text-primary font-bold">Sync: Live</span>
             </div>
           </div>
         </section>
