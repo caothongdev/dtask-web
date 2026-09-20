@@ -1,71 +1,99 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>dtask — Neutrals for Balance HUD</title>
-  <meta name="description" content="dtask — minimalist CLI/web task tracker with RPG gamification, timeline slots, and focus engine." />
+  <title>dtask — Gamified Daily Task &amp; Productivity Engine</title>
+  <meta name="description" content="dtask — gamified daily task engine with timeline slots, focus timers, book reader, coin wallet, and RPG progression." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#090a0c" />
+  <meta name="theme-color" content="#f8fafc" />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="dtask — Neutrals for Balance HUD" />
-  <meta property="og:description" content="Obsidian task tracker with RPG gamification, timeline slots, and live focus engines." />
+  <meta property="og:title" content="dtask — Gamified Daily Task & Productivity Engine" />
+  <meta property="og:description" content="Blueprint-crisp task tracker with RPG gamification, timeline slots, and live focus engines." />
   <meta property="og:type" content="website" />
 
-  <!-- Fonts: Space Mono, Geist, JetBrains Mono, Material Symbols Outlined -->
+  <!-- Fonts: Plus Jakarta Sans, Inter, JetBrains Mono, Material Symbols Outlined -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
 
-  <!-- Tailwind CSS CDN & Neutrals for Balance Design Tokens -->
+  <!-- Tailwind CSS CDN & Blueprint Silicon Design Tokens -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            background: '#090a0c',
-            surface: '#121315',
-            'surface-container-lowest': '#0d0e10',
-            'surface-container-low': '#1b1c1e',
-            'surface-container': '#1f2022',
-            'surface-container-high': '#292a2c',
-            'surface-container-highest': '#343537',
-            primary: '#f4f4f0',
-            secondary: '#ccc6ba',
-            'secondary-fixed': '#e8e2d6',
-            'stone-accent': '#d8d2c6',
-            outline: '#8f918d',
-            'outline-variant': '#444844',
+            background: '#f8fafc',
+            surface: '#ffffff',
+            'surface-base': '#fbfaf5',
+            'surface-card': '#ffffff',
+            'surface-subtle': '#f1f5f9',
+            'surface-container-lowest': '#ffffff',
+            'surface-container-low': '#f8fafc',
+            'surface-container': '#f1f5f9',
+            'surface-container-high': '#e2e8f0',
+            'surface-container-highest': '#cbd5e1',
+            primary: '#2563eb',
+            'primary-strong': '#1d4ed8',
+            'on-primary': '#ffffff',
+            'primary-soft': '#eff6ff',
+            secondary: '#475569',
+            'secondary-fixed': '#0369a1',
+            'stone-accent': '#0f172a',
+            'stone-soft': '#334155',
+            outline: '#94a3b8',
+            'outline-strong': '#64748b',
+            'outline-variant': '#e2e8f0',
+            success: '#047857',
+            'success-soft': '#ecfdf5',
+            warning: '#b45309',
+            'warning-soft': '#fef3c7',
+            danger: '#dc2626',
+            'danger-soft': '#fef2f2',
+            'coin-amber': '#d97706',
+            'coin-soft': '#fffbeb',
+            'badge-cyan': '#e0f2fe',
+            'badge-cyan-text': '#0369a1',
+            'badge-emerald': '#ecfdf5',
+            'badge-emerald-text': '#047857',
+            'badge-amber': '#fef3c7',
+            'badge-amber-text': '#b45309',
+            'badge-violet': '#eef2ff',
+            'badge-violet-text': '#4338ca',
           },
           borderRadius: {
-            none: '0px',
-            sm: '0px',
-            DEFAULT: '0px',
-            md: '0px',
-            lg: '0px',
-            xl: '0px',
-            '2xl': '0px',
-            '3xl': '0px',
-            full: '0px',
+            sm: '0.25rem',
+            DEFAULT: '0.5rem',
+            md: '0.75rem',
+            lg: '1rem',
+            xl: '1.5rem',
           },
           fontFamily: {
-            'display-hero': ['Space Mono', 'monospace'],
-            'headline-lg': ['Space Mono', 'monospace'],
-            'headline-md': ['Space Mono', 'monospace'],
-            'headline-sm': ['Space Mono', 'monospace'],
-            'body-lg': ['Geist', 'sans-serif'],
-            'body-md': ['Geist', 'sans-serif'],
-            'body-sm': ['Geist', 'sans-serif'],
-            'code-body': ['JetBrains Mono', 'monospace'],
-            'code-stat': ['JetBrains Mono', 'monospace'],
-            'label-caps': ['JetBrains Mono', 'monospace'],
-            'label-md': ['JetBrains Mono', 'monospace'],
-            'label-sm': ['JetBrains Mono', 'monospace'],
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+            'display-hero': ['"Plus Jakarta Sans"', 'sans-serif'],
+            'headline-lg': ['"Plus Jakarta Sans"', 'sans-serif'],
+            'headline-md': ['"Plus Jakarta Sans"', 'sans-serif'],
+            'headline-sm': ['"Plus Jakarta Sans"', 'sans-serif'],
+            'body-lg': ['Inter', 'sans-serif'],
+            'body-md': ['Inter', 'sans-serif'],
+            'body-sm': ['Inter', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+            'code-body': ['"JetBrains Mono"', 'monospace'],
+            'code-stat': ['"JetBrains Mono"', 'monospace'],
+            'label-caps': ['"JetBrains Mono"', 'monospace'],
+            'label-md': ['"JetBrains Mono"', 'monospace'],
+            'label-sm': ['"JetBrains Mono"', 'monospace'],
+          },
+          boxShadow: {
+            'hard': '3px 3px 0px #0f172a',
+            'hard-sm': '2px 2px 0px #0f172a',
+            'hard-lg': '4px 4px 0px #0f172a',
+            'card': '0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.06)',
+            'card-md': '0 2px 4px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(15, 23, 42, 0.06)',
           },
         },
       },
@@ -73,110 +101,187 @@
   </script>
 
   <style>
-    /* Strict 0px Border Radius & Base Obsidian Canvas */
-    *, *::before, *::after {
-      border-radius: 0px !important;
-    }
     body {
-      background-color: #090a0c;
-      color: #f4f4f0;
-      font-family: 'Geist', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
       margin: 0;
       padding: 0;
       overflow-x: hidden;
     }
-    .font-space { font-family: 'Space Mono', monospace; }
-    .font-geist { font-family: 'Geist', sans-serif; }
+    .font-space { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-geist { font-family: 'Inter', sans-serif; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-    /* Custom terminal scrollbars */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0d0e10;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #292a2c;
-      border: 1px solid #444844;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #444844;
+    /* Blueprint dot-matrix drafting paper backdrop */
+    .blueprint-grid {
+      background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+      background-size: 24px 24px;
     }
 
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    .glass-panel { background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(12px); }
+    .pulse-dot { animation: pulseDot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(1.15); } }
+
+    /* Tactile hard-shadow button interactions */
+    .btn-hard { transition: transform .12s ease, box-shadow .12s ease; }
+    .btn-hard:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0px #0f172a; }
+    .btn-hard:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #0f172a; }
+
     dialog::backdrop {
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(2px);
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(3px);
     }
   </style>
 </head>
-<body class="bg-background text-primary selection:bg-stone-accent selection:text-surface">
-  <!-- Fixed Topbar HUD -->
-  <header class="fixed top-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur border-b border-outline-variant">
-    <!-- Top HUD Row -->
-    <div class="h-12 px-4 md:px-8 flex items-center justify-between border-b border-outline-variant/50">
-      <div class="flex items-center gap-4">
-        <!-- ASCII Logo -->
-        <span class="font-space text-xs md:text-sm font-bold tracking-wider text-primary select-none">+-.[ dtask ].-+</span>
-        <!-- Daemon Badge -->
-        <span id="hud-daemon" class="hidden sm:inline-block text-[11px] font-mono px-2 py-0.5 bg-surface-container border border-outline-variant text-stone-accent tracking-wide">
-          [SYS: DAEMON ACTIVE v2.4.1]
-        </span>
+<body class="bg-background text-stone-accent font-sans antialiased min-h-screen flex flex-col selection:bg-blue-100 selection:text-blue-900">
+
+  <!-- ================= TOP APP HEADER & STATUS BAR ================= -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-outline-variant shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-4">
+
+        <!-- Brand / Identity -->
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="location.hash='tasks'">
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 flex items-center justify-center text-white font-mono font-bold shadow-md shadow-blue-500/20">
+            d:
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-extrabold text-stone-accent tracking-tight text-lg">dtask</span>
+              <span class="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-surface-subtle border border-outline-variant text-stone-soft tracking-wide">BLUEPRINT&nbsp;v3</span>
+            </div>
+            <p class="text-xs text-outline font-medium leading-none">Gamified Engine &amp; State</p>
+          </div>
+        </div>
+
+        <!-- Global Status Bar (Level, XP, Coins, Streak) -->
+        <div class="hidden md:flex items-center gap-5 bg-surface-subtle/80 border border-outline-variant rounded-2xl px-4 py-1.5 shadow-inner">
+          <!-- Level & Rank Badge -->
+          <div class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition" onclick="location.hash='level'">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-primary text-white shadow-sm" id="hud-level">LVL 1</span>
+            <div class="flex flex-col">
+              <span class="text-[11px] font-bold text-stone-soft leading-tight" id="hud-rank-title">Apprentice</span>
+              <!-- XP progress bar mini -->
+              <div class="w-24 bg-surface-container-high rounded-full h-1.5 mt-0.5 overflow-hidden">
+                <div class="bg-primary h-1.5 rounded-full transition-all duration-500" id="hud-xp-bar" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="h-6 w-px bg-outline-variant"></div>
+
+          <!-- XP Text -->
+          <div class="flex items-center gap-1.5 text-xs font-mono">
+            <span class="text-outline font-semibold">XP:</span>
+            <span class="font-bold text-stone-accent" id="hud-xp-text">0/100</span>
+          </div>
+
+          <div class="h-6 w-px bg-outline-variant"></div>
+
+          <!-- Coin Balance (Wallet link) -->
+          <button onclick="location.hash='wallet'" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-coin-soft hover:bg-amber-100/80 border border-amber-200/80 text-coin-amber font-mono font-bold text-xs transition active:scale-95 shadow-sm">
+            <span class="text-base leading-none">🪙</span>
+            <span id="hud-coins">0</span>
+            <span class="text-[10px] uppercase font-medium opacity-75">coins</span>
+          </button>
+
+          <div class="h-6 w-px bg-outline-variant"></div>
+
+          <!-- Streak count -->
+          <div class="flex items-center gap-1 text-xs font-semibold text-stone-soft" title="Consecutive active days">
+            <span class="text-orange-500 text-sm">🔥</span>
+            <span id="hud-streak-count" class="font-bold font-mono">1</span>
+            <span class="text-outline text-[11px]">day</span>
+          </div>
+        </div>
+
+        <!-- Quick Action & Utility -->
+        <div class="flex items-center gap-2">
+          <!-- Standalone Relax Timer Trigger -->
+          <button id="hud-relax-btn" class="px-3 py-1.5 text-xs font-semibold text-stone-soft hover:text-stone-accent bg-white hover:bg-surface-subtle border border-outline-variant rounded-xl flex items-center gap-1.5 shadow-sm transition">
+            <span class="text-sm">⏱️</span>
+            <span class="hidden sm:inline">Timer</span>
+          </button>
+
+          <!-- Add Task Primary Button -->
+          <button id="hud-new-task-btn" class="px-3.5 py-1.5 text-xs font-bold text-white bg-primary hover:bg-primary-strong active:bg-blue-800 rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/25 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+            <span>New Task</span>
+          </button>
+
+          <!-- Account / Settings -->
+          <button id="hud-avatar" class="w-8 h-8 rounded-lg bg-stone-accent hover:bg-stone-soft text-white text-xs font-mono font-bold flex items-center justify-center transition shadow-sm" title="Account / Settings">
+            <span id="hud-avatar-initial">?</span>
+          </button>
+
+          <!-- Keyboard shortcuts -->
+          <button id="hud-shortcuts-btn" class="p-1.5 text-outline hover:text-stone-accent rounded-lg hover:bg-surface-subtle transition" title="Keyboard Shortcuts (?)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+        </div>
+
       </div>
 
-      <!-- Real-time Clock & Telemetry Readout -->
-      <div class="hidden lg:flex items-center gap-3 text-[11px] font-mono text-outline">
-        <span id="hud-utc-clock">UTC 00:00:00</span>
-        <span class="text-outline-variant">|</span>
-        <span id="hud-telemetry">CPU 0.8% · MEM 38MB</span>
+      <!-- Mobile Status Strip -->
+      <div class="flex md:hidden items-center justify-between py-2 border-t border-outline-variant text-xs">
+        <div class="flex items-center gap-2">
+          <span class="font-mono font-bold text-primary" id="mob-lvl">LVL 1</span>
+          <span class="text-outline font-mono" id="mob-xp">0/100 XP</span>
+        </div>
+        <div class="flex items-center gap-3 font-mono">
+          <span class="text-coin-amber font-bold flex items-center gap-1">🪙 <span id="mob-coins">0</span></span>
+          <span class="text-orange-600 font-bold">🔥 <span id="mob-streak">1</span>d</span>
+        </div>
       </div>
 
-      <!-- Status Chips & User Avatar -->
-      <div class="flex items-center gap-2">
-        <span id="hud-timer" class="hidden text-xs font-mono px-2 py-0.5 border border-primary text-primary bg-surface-container-high font-bold animate-pulse">
-          [FOCUS: 00:00]
-        </span>
-        <span id="hud-level" class="text-xs font-mono px-2 py-0.5 border border-outline-variant bg-surface-container text-secondary">
-          [LVL] 1 Apprentice
-        </span>
-        <span id="hud-coins" class="text-xs font-mono px-2 py-0.5 border border-outline-variant bg-surface-container text-secondary-fixed">
-          ⟐ 0 COINS
-        </span>
-        <button id="hud-shortcuts-btn" class="h-7 px-2 bg-surface-container border border-outline-variant hover:border-primary text-secondary hover:text-primary text-xs font-mono flex items-center justify-center transition-colors ml-1" title="Keyboard Shortcuts (?)">
-          [?]
-        </button>
-        <button id="hud-avatar" class="w-7 h-7 bg-surface-container-high border border-outline hover:border-primary text-primary text-xs font-mono flex items-center justify-center transition-colors ml-1" title="Account / Settings">
-          <span id="hud-avatar-initial">?</span>
-        </button>
-      </div>
     </div>
-
-    <!-- 5-Tab Navigation Bar with hotkeys -->
-    <nav id="main-nav" class="flex items-center gap-1 overflow-x-auto px-4 md:px-8 py-1.5 bg-surface-container-lowest text-xs font-mono border-t border-outline-variant/30">
-      <a href="#tasks" data-view="tasks" class="nav-tab px-3 py-1 text-primary bg-surface-container border border-outline hover:border-primary transition-colors font-medium whitespace-nowrap">
-        [1] Dashboard / Tasks
-      </a>
-      <a href="#timeline" data-view="timeline" class="nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap">
-        [2] Daily Timeline
-      </a>
-      <a href="#focus" data-view="focus" class="nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap">
-        [3] Focus Engine (Timer)
-      </a>
-      <a href="#shop" data-view="shop" class="nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap">
-        [4] Rewards Shop & Loot
-      </a>
-      <a href="#stats" data-view="stats" class="nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap">
-        [5] Telemetry & Stats
-      </a>
-    </nav>
   </header>
 
-  <!-- View Root Container -->
-  <main id="view-root" class="pt-24 px-4 md:px-8 pb-16 min-h-screen bg-background">
+  <!-- ================= SECONDARY NAVIGATION / TABS ================= -->
+  <nav class="bg-white border-b border-outline-variant text-xs font-semibold text-secondary sticky top-16 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 sm:space-x-2 overflow-x-auto no-scrollbar py-2">
+      <button onclick="location.hash='tasks'" id="nav-tab-tasks" data-view="tasks" class="nav-btn px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition hover:bg-surface-subtle whitespace-nowrap">
+        <span>📋</span> <span>Dashboard</span>
+      </button>
+      <button onclick="location.hash='timeline'" id="nav-tab-timeline" data-view="timeline" class="nav-btn px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition hover:bg-surface-subtle whitespace-nowrap">
+        <span>🕒</span> <span>Timeline &amp; Schedule</span>
+      </button>
+      <button onclick="location.hash='focus'" id="nav-tab-focus" data-view="focus" class="nav-btn px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition hover:bg-surface-subtle whitespace-nowrap">
+        <span>⏱️</span> <span>Focus Engine</span>
+      </button>
+      <button onclick="location.hash='shop'" id="nav-tab-shop" data-view="shop" class="nav-btn px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition hover:bg-surface-subtle whitespace-nowrap">
+        <span>🏪</span> <span>Rewards Shop</span>
+      </button>
+      <button onclick="location.hash='books'" id="nav-tab-books" data-view="books" class="nav-btn px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition hover:bg-surface-subtle whitespace-nowrap">
+        <span>📖</span> <span>Book Reader</span>
+      </button>
+      <button onclick="location.hash='wallet'" id="nav-tab-wallet" data-view="wallet" class="nav-btn px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition hover:bg-surface-subtle whitespace-nowrap">
+        <span>🪙</span> <span>Wallet &amp; Ledger</span>
+      </button>
+      <button onclick="location.hash='level'" id="nav-tab-level" data-view="level" class="nav-btn px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition hover:bg-surface-subtle whitespace-nowrap">
+        <span>🏆</span> <span>Rank &amp; Tiers</span>
+      </button>
+      <button onclick="location.hash='stats'" id="nav-tab-stats" data-view="stats" class="nav-btn px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition hover:bg-surface-subtle whitespace-nowrap">
+        <span>📊</span> <span>Stats &amp; History</span>
+      </button>
+      <button onclick="location.hash='profile'" id="nav-tab-profile" data-view="profile" class="nav-btn px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition hover:bg-surface-subtle whitespace-nowrap">
+        <span>👤</span> <span>whoami</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ================= ACTIVE VIEW HOST ================= -->
+  <main id="view-root" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 blueprint-grid">
     <!-- Initial Loading / View Mount Surface -->
-    <div id="view-placeholder" class="max-w-4xl mx-auto mt-12 p-8 border border-outline-variant bg-surface text-center">
-      <p class="font-space text-lg text-primary mb-2">+-.[ dtask core online ].-+</p>
+    <div id="view-placeholder" class="max-w-4xl mx-auto mt-12 p-8 bg-surface border border-outline-variant rounded-2xl shadow-card text-center">
+      <p class="font-sans text-lg font-extrabold text-stone-accent mb-2">dtask core online</p>
       <p class="text-sm font-geist text-secondary">Loading workspace components...</p>
     </div>
   </main>
@@ -185,87 +290,87 @@
   <div id="toast" class="fixed bottom-6 right-6 z-50 pointer-events-none flex flex-col gap-2"></div>
 
   <!-- Claim Handle / Login Dialog -->
-  <dialog id="login-dialog" class="bg-surface border border-outline text-primary p-6 max-w-md w-full shadow-2xl backdrop:bg-black/80">
+  <dialog id="login-dialog" class="bg-surface border border-outline-variant text-stone-accent p-6 max-w-md w-full rounded-2xl shadow-2xl backdrop:bg-slate-900/50">
     <form method="dialog" id="login-form">
-      <h2 class="font-space text-lg font-bold mb-2">Claim your dtask handle</h2>
+      <h2 class="font-sans text-lg font-extrabold mb-2">Claim your dtask handle</h2>
       <p class="text-sm font-geist text-secondary mb-4">Pick a username to track your RPG level, tasks, and coins. We auto-generate a secure API key.</p>
-      <input id="login-username" type="text" placeholder="your-handle" autocomplete="off" required minlength="2" maxlength="32" pattern="[a-zA-Z0-9_-]+" class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-sm font-mono text-primary mb-4 focus:outline-none focus:border-primary" />
+      <input id="login-username" type="text" placeholder="your-handle" autocomplete="off" required minlength="2" maxlength="32" pattern="[a-zA-Z0-9_-]+" class="w-full bg-surface-subtle border border-outline-variant px-3 py-2 text-sm font-mono text-stone-accent rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary" />
       <div class="flex justify-end gap-3 font-mono text-xs">
-        <button type="button" id="login-cancel-btn" class="px-4 py-2 border border-outline-variant hover:border-outline text-secondary hover:text-primary">Cancel</button>
-        <button type="submit" value="ok" class="px-4 py-2 bg-primary text-surface font-bold hover:bg-stone-accent">Claim Handle</button>
+        <button type="button" id="login-cancel-btn" class="px-4 py-2 border border-outline-variant hover:border-outline text-secondary hover:text-stone-accent rounded-xl">Cancel</button>
+        <button type="submit" value="ok" class="px-4 py-2 bg-primary text-white font-bold hover:bg-primary-strong rounded-xl shadow-md shadow-blue-500/20">Claim Handle</button>
       </div>
     </form>
   </dialog>
 
   <!-- Settings Dialog -->
-  <dialog id="settings-dialog" class="bg-surface border border-outline text-primary p-6 max-w-md w-full shadow-2xl backdrop:bg-black/80">
+  <dialog id="settings-dialog" class="bg-surface border border-outline-variant text-stone-accent p-6 max-w-md w-full rounded-2xl shadow-2xl backdrop:bg-slate-900/50">
     <form method="dialog" id="settings-form">
-      <h2 class="font-space text-lg font-bold mb-2">Operator Settings</h2>
+      <h2 class="font-sans text-lg font-extrabold mb-2">Operator Settings</h2>
       <div class="space-y-4 mb-6">
         <div>
           <label class="block text-xs font-mono text-secondary mb-1">Handle</label>
-          <input id="settings-username" type="text" minlength="2" maxlength="32" pattern="[a-zA-Z0-9_-]+" class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-sm font-mono text-primary focus:outline-none focus:border-primary" />
+          <input id="settings-username" type="text" minlength="2" maxlength="32" pattern="[a-zA-Z0-9_-]+" class="w-full bg-surface-subtle border border-outline-variant px-3 py-2 text-sm font-mono text-stone-accent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary" />
         </div>
         <div class="flex items-center gap-2">
-          <input type="checkbox" id="settings-public" class="border border-outline bg-surface-container" />
+          <input type="checkbox" id="settings-public" class="rounded border-outline text-primary focus:ring-primary/40" />
           <label for="settings-public" class="text-xs font-mono text-secondary cursor-pointer">Make my profile board public (/u/:handle)</label>
         </div>
         <div>
           <label class="block text-xs font-mono text-secondary mb-1">API Key</label>
-          <input id="settings-key" type="text" readonly class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2 text-xs font-mono text-outline select-all" />
+          <input id="settings-key" type="text" readonly class="w-full bg-surface-subtle border border-outline-variant px-3 py-2 text-xs font-mono text-outline rounded-xl select-all" />
         </div>
       </div>
       <div class="flex justify-between items-center font-mono text-xs">
-        <button type="button" id="settings-logout-btn" class="text-xs text-red-400 hover:underline">Log Out</button>
+        <button type="button" id="settings-logout-btn" class="text-xs text-danger hover:underline">Log Out</button>
         <div class="flex gap-2">
-          <button type="button" id="settings-cancel-btn" class="px-4 py-2 border border-outline-variant hover:border-outline text-secondary hover:text-primary">Cancel</button>
-          <button type="submit" value="ok" class="px-4 py-2 bg-primary text-surface font-bold hover:bg-stone-accent">Save</button>
+          <button type="button" id="settings-cancel-btn" class="px-4 py-2 border border-outline-variant hover:border-outline text-secondary hover:text-stone-accent rounded-xl">Cancel</button>
+          <button type="submit" value="ok" class="px-4 py-2 bg-primary text-white font-bold hover:bg-primary-strong rounded-xl shadow-md shadow-blue-500/20">Save</button>
         </div>
       </div>
     </form>
   </dialog>
 
   <!-- Keyboard Shortcuts Cheat Sheet Dialog -->
-  <dialog id="shortcuts-dialog" class="bg-surface border border-outline text-primary p-6 max-w-lg w-full shadow-2xl backdrop:bg-black/80">
+  <dialog id="shortcuts-dialog" class="bg-surface border border-outline-variant text-stone-accent p-6 max-w-lg w-full rounded-2xl shadow-2xl backdrop:bg-slate-900/50">
     <div class="flex items-center justify-between border-b border-outline-variant pb-3 mb-4">
       <div class="flex items-center gap-2">
-        <span class="font-space text-base font-bold text-primary">KEYBOARD DIRECTIVES</span>
-        <span class="text-[11px] font-mono px-2 py-0.5 bg-surface-container border border-outline-variant text-stone-accent">[HOTKEYS]</span>
+        <span class="font-sans text-base font-extrabold text-stone-accent">KEYBOARD DIRECTIVES</span>
+        <span class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-surface-subtle border border-outline-variant text-stone-soft">[HOTKEYS]</span>
       </div>
-      <button id="shortcuts-close-btn" class="text-outline hover:text-primary font-mono text-sm px-2 py-0.5 border border-transparent hover:border-outline-variant transition-colors" title="Close (Esc)">✕</button>
+      <button id="shortcuts-close-btn" class="text-outline hover:text-stone-accent font-mono text-sm px-2 py-0.5 rounded-lg hover:bg-surface-subtle transition" title="Close (Esc)">✕</button>
     </div>
     <div class="space-y-2 text-xs font-mono max-h-[60vh] overflow-y-auto pr-1">
-      <div class="grid grid-cols-12 items-center py-1.5 border-b border-outline-variant/30">
-        <div class="col-span-3 text-stone-accent font-bold">[1] - [5]</div>
-        <div class="col-span-9 text-secondary">Switch navigation tabs (Tasks, Timeline, Focus, Shop, Stats)</div>
+      <div class="grid grid-cols-12 items-center py-1.5 border-b border-outline-variant/60">
+        <div class="col-span-3 text-primary font-bold">[1] - [9]</div>
+        <div class="col-span-9 text-secondary">Switch navigation tabs (Tasks, Timeline, Focus, Shop, Books, Wallet, Level, Stats, Profile)</div>
       </div>
-      <div class="grid grid-cols-12 items-center py-1.5 border-b border-outline-variant/30">
-        <div class="col-span-3 text-stone-accent font-bold">[A]</div>
-        <div class="col-span-9 text-secondary">Focus Quick Add directive input on Dashboard</div>
+      <div class="grid grid-cols-12 items-center py-1.5 border-b border-outline-variant/60">
+        <div class="col-span-3 text-primary font-bold">[A]</div>
+        <div class="col-span-9 text-secondary">Focus Quick Add input on Dashboard</div>
       </div>
-      <div class="grid grid-cols-12 items-center py-1.5 border-b border-outline-variant/30">
-        <div class="col-span-3 text-stone-accent font-bold">[Space]</div>
+      <div class="grid grid-cols-12 items-center py-1.5 border-b border-outline-variant/60">
+        <div class="col-span-3 text-primary font-bold">[Space]</div>
         <div class="col-span-9 text-secondary">Play / Pause countdown in Focus Engine view</div>
       </div>
-      <div class="grid grid-cols-12 items-center py-1.5 border-b border-outline-variant/30">
-        <div class="col-span-3 text-stone-accent font-bold">[Shift+Tab]</div>
+      <div class="grid grid-cols-12 items-center py-1.5 border-b border-outline-variant/60">
+        <div class="col-span-3 text-primary font-bold">[Shift+Tab]</div>
         <div class="col-span-9 text-secondary">Toggle between Deep Focus and Relax timer modes</div>
       </div>
-      <div class="grid grid-cols-12 items-center py-1.5 border-b border-outline-variant/30">
-        <div class="col-span-3 text-stone-accent font-bold">[Ctrl+C]</div>
+      <div class="grid grid-cols-12 items-center py-1.5 border-b border-outline-variant/60">
+        <div class="col-span-3 text-primary font-bold">[Ctrl+C]</div>
         <div class="col-span-9 text-secondary">Stop active timer and bank elapsed focus minutes</div>
       </div>
-      <div class="grid grid-cols-12 items-center py-1.5 border-b border-outline-variant/30">
-        <div class="col-span-3 text-stone-accent font-bold">[?]</div>
+      <div class="grid grid-cols-12 items-center py-1.5 border-b border-outline-variant/60">
+        <div class="col-span-3 text-primary font-bold">[?]</div>
         <div class="col-span-9 text-secondary">Toggle this keyboard shortcuts cheat sheet</div>
       </div>
       <div class="grid grid-cols-12 items-center py-1.5">
-        <div class="col-span-3 text-stone-accent font-bold">[Esc]</div>
+        <div class="col-span-3 text-primary font-bold">[Esc]</div>
         <div class="col-span-9 text-secondary">Dismiss active modal dialog or clear input focus</div>
       </div>
     </div>
     <div class="mt-6 flex justify-end">
-      <button type="button" id="shortcuts-ok-btn" class="px-4 py-1.5 bg-primary text-surface font-mono text-xs font-bold hover:bg-stone-accent transition-colors">
+      <button type="button" id="shortcuts-ok-btn" class="px-4 py-1.5 bg-primary text-white font-mono text-xs font-bold hover:bg-primary-strong rounded-xl transition shadow-md shadow-blue-500/20">
         Close [Esc]
       </button>
     </div>
@@ -280,10 +385,14 @@
     import { renderTimelineView, cleanupTimelineView } from "/js/views/timeline.js";
     import { renderFocusView, cleanupFocusView } from "/js/views/focus.js";
     import { renderShopView, cleanupShopView } from "/js/views/shop.js";
+    import { renderBooksView } from "/js/views/books.js";
+    import { renderWalletView } from "/js/views/wallet.js";
+    import { renderLevelView } from "/js/views/level.js";
     import { renderTelemetryView, cleanupTelemetryView } from "/js/views/telemetry.js";
+    import { renderProfileView } from "/js/views/profile.js";
     import { initGlobalHotkeys } from "/app.js";
 
-    // 1. UTC Clock
+    // 1. UTC Clock (kept for parity with telemetry timestamps)
     function updateClock() {
       const el = document.getElementById("hud-utc-clock");
       if (el) {
@@ -294,34 +403,37 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // 2. Health & Telemetry
-    async function updateTelemetry() {
-      try {
-        const res = await fetch("/api/health");
-        if (res.ok) {
-          const data = await res.json();
-          const el = document.getElementById("hud-telemetry");
-          if (el && data.uptime_s !== undefined) {
-            el.textContent = `UP ${data.uptime_s}s · v${data.version || "2.4.1"}`;
-          }
-        }
-      } catch {}
-    }
-    updateTelemetry();
-    setInterval(updateTelemetry, 30000);
-
-    // 3. Store HUD Sync
+    // 2. Store HUD Sync
     function syncHud(state) {
       const levelEl = document.getElementById("hud-level");
       if (levelEl) {
         const lvl = state.levelInfo?.level || 1;
-        const rank = state.levelInfo?.rank || "Apprentice";
-        levelEl.textContent = `[LVL] ${lvl} ${rank}`;
+        levelEl.textContent = `LVL ${lvl}`;
+      }
+
+      const rankEl = document.getElementById("hud-rank-title");
+      if (rankEl) {
+        rankEl.textContent = state.levelInfo?.rank || "Apprentice";
+      }
+
+      const xpBarEl = document.getElementById("hud-xp-bar");
+      const xpTextEl = document.getElementById("hud-xp-text");
+      if (xpBarEl && xpTextEl) {
+        const info = state.levelInfo || {};
+        const prog = info.prog_xp ?? 0;
+        const needed = info.needed_xp ?? 100;
+        xpBarEl.style.width = `${Math.min(100, Math.max(0, info.pct ?? 0))}%`;
+        xpTextEl.textContent = `${prog}/${needed}`;
       }
 
       const coinsEl = document.getElementById("hud-coins");
       if (coinsEl) {
-        coinsEl.textContent = `⟐ ${state.user?.coins ?? 0} COINS`;
+        coinsEl.textContent = state.user?.coins ?? 0;
+      }
+
+      const streakEl = document.getElementById("hud-streak-count");
+      if (streakEl) {
+        streakEl.textContent = state.stats?.streak_days ?? state.user?.streak ?? 1;
       }
 
       const avatarInitialEl = document.getElementById("hud-avatar-initial");
@@ -329,6 +441,17 @@
         avatarInitialEl.textContent = state.user?.username ? state.user.username[0].toUpperCase() : "?";
       }
 
+      // Mobile strip
+      const mobLvl = document.getElementById("mob-lvl");
+      if (mobLvl) mobLvl.textContent = `LVL ${state.levelInfo?.level || 1}`;
+      const mobXp = document.getElementById("mob-xp");
+      if (mobXp) mobXp.textContent = `${state.levelInfo?.prog_xp ?? 0}/${state.levelInfo?.needed_xp ?? 100} XP`;
+      const mobCoins = document.getElementById("mob-coins");
+      if (mobCoins) mobCoins.textContent = state.user?.coins ?? 0;
+      const mobStreak = document.getElementById("mob-streak");
+      if (mobStreak) mobStreak.textContent = state.stats?.streak_days ?? state.user?.streak ?? 1;
+
+      // Timer chip (replaces old focus pill; shown inline in status bar area on desktop)
       const timerEl = document.getElementById("hud-timer");
       if (timerEl) {
         if (state.activeTimer && state.activeTimer.running) {
@@ -375,14 +498,30 @@
         if (event === "state_changed" || event === "rewards_loaded" || event === "reward_bought" || event === "reward_create" || event === "transactions_loaded") {
           renderShopView(root);
         }
+      } else if (activeView === "books") {
+        if (event === "state_changed" || event === "tasks_loaded" || event === "task_updated") {
+          renderBooksView(root);
+        }
+      } else if (activeView === "wallet") {
+        if (event === "state_changed" || event === "transactions_loaded" || event === "reward_bought") {
+          renderWalletView(root);
+        }
+      } else if (activeView === "level") {
+        if (event === "state_changed" || event === "stats_loaded") {
+          renderLevelView(root);
+        }
       } else if (activeView === "stats" || activeView === "telemetry") {
         if (event === "state_changed" || event === "stats_loaded" || event === "tasks_loaded" || event === "activity") {
           renderTelemetryView(root);
         }
+      } else if (activeView === "profile") {
+        if (event === "state_changed" || event === "stats_loaded") {
+          renderProfileView(root);
+        }
       }
     });
 
-    // 4. Dialog Controls
+    // 3. Dialog Controls
     const avatarBtn = document.getElementById("hud-avatar");
     const loginDialog = document.getElementById("login-dialog");
     const settingsDialog = document.getElementById("settings-dialog");
@@ -411,6 +550,22 @@
         else shortcutsDialog?.showModal();
       });
     }
+
+    // Relax Timer quick trigger: 25m focus-style cooldown via relax daemon
+    document.getElementById("hud-relax-btn")?.addEventListener("click", () => {
+      store.startRelaxTimer(25, "Focus / Relax Session");
+      location.hash = "focus";
+    });
+
+    // New Task quick trigger: jump to dashboard and focus quick-add input
+    document.getElementById("hud-new-task-btn")?.addEventListener("click", () => {
+      if ((location.hash.replace("#", "") || "tasks") !== "tasks") {
+        location.hash = "tasks";
+      }
+      setTimeout(() => {
+        document.getElementById("quick-add-title")?.focus();
+      }, 80);
+    });
 
     document.getElementById("login-cancel-btn")?.addEventListener("click", () => loginDialog?.close());
     document.getElementById("settings-cancel-btn")?.addEventListener("click", () => settingsDialog?.close());
@@ -459,17 +614,22 @@
       store.showToast("Logged out", "info");
     });
 
-    // 5. Navigation Tab Highlighting & SPA View Router
+    // 4. Navigation Tab Highlighting & SPA View Router
+    const VIEW_CLEANUPS = {
+      timeline: cleanupTimelineView,
+      focus: cleanupFocusView,
+      shop: cleanupShopView,
+      stats: cleanupTelemetryView,
+      telemetry: cleanupTelemetryView,
+    };
+
     function renderCurrentView() {
       const view = getActiveView();
       store.state.currentView = view;
       const root = document.getElementById("view-root");
       if (!root) return;
 
-      cleanupTimelineView?.();
-      cleanupFocusView?.();
-      cleanupShopView?.();
-      cleanupTelemetryView?.();
+      Object.values(VIEW_CLEANUPS).forEach((fn) => fn?.());
 
       if (view === "tasks") {
         renderTasksView(root);
@@ -479,12 +639,20 @@
         renderFocusView(root);
       } else if (view === "shop") {
         renderShopView(root);
+      } else if (view === "books") {
+        renderBooksView(root);
+      } else if (view === "wallet") {
+        renderWalletView(root);
+      } else if (view === "level") {
+        renderLevelView(root);
       } else if (view === "stats" || view === "telemetry") {
         renderTelemetryView(root);
+      } else if (view === "profile") {
+        renderProfileView(root);
       } else {
         root.innerHTML = `
-          <div class="max-w-4xl mx-auto mt-12 p-8 border border-outline-variant bg-surface text-center font-mono">
-            <p class="font-space text-lg text-primary mb-2">+-.[ dtask // [${view.toUpperCase()}] ].-+</p>
+          <div class="max-w-4xl mx-auto mt-12 p-8 bg-surface border border-outline-variant rounded-2xl shadow-card text-center font-mono">
+            <p class="font-sans text-lg font-extrabold text-stone-accent mb-2">dtask // ${view.toUpperCase()}</p>
             <p class="text-sm text-secondary">View module ready for activation.</p>
           </div>
         `;
@@ -494,13 +662,15 @@
     function syncNavTabs() {
       const hash = getActiveView();
       const normalizedView = (hash === "telemetry") ? "stats" : hash;
-      const tabs = document.querySelectorAll(".nav-tab");
+      const tabs = document.querySelectorAll(".nav-btn");
       tabs.forEach((tab) => {
         const view = tab.getAttribute("data-view");
         if (view === normalizedView) {
-          tab.className = "nav-tab px-3 py-1 text-primary bg-surface-container border border-outline hover:border-primary transition-colors font-medium whitespace-nowrap";
+          tab.classList.add("bg-primary-soft", "text-primary");
+          tab.classList.remove("text-secondary", "hover:bg-surface-subtle");
         } else {
-          tab.className = "nav-tab px-3 py-1 text-secondary border border-transparent hover:border-outline-variant hover:text-primary transition-colors whitespace-nowrap";
+          tab.classList.remove("bg-primary-soft", "text-primary");
+          tab.classList.add("text-secondary", "hover:bg-surface-subtle");
         }
       });
       renderCurrentView();
@@ -509,10 +679,10 @@
     window.addEventListener("hashchange", syncNavTabs);
     syncNavTabs();
 
-    // Global hotkeys (1-5, A, ?, Esc)
+    // Global hotkeys (1-9, A, ?, Esc)
     initGlobalHotkeys();
 
-    // 6. Initial Load
+    // 5. Initial Load
     if (api.getToken() || api.username) {
       store.loadAll();
     } else {

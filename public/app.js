@@ -6,7 +6,11 @@ export const VIEW_HOTKEYS = {
   "2": "timeline",
   "3": "focus",
   "4": "shop",
-  "5": "stats",
+  "5": "books",
+  "6": "wallet",
+  "7": "level",
+  "8": "stats",
+  "9": "profile",
 };
 
 export const HOTKEY_DESCRIPTIONS = [
@@ -14,8 +18,12 @@ export const HOTKEY_DESCRIPTIONS = [
   { key: "2", label: "Daily Timeline", description: "Switch to 24h schedule view" },
   { key: "3", label: "Focus Engine", description: "Switch to live focus & relax timer" },
   { key: "4", label: "Rewards Shop", description: "Switch to rewards shop & purchases" },
-  { key: "5", label: "Telemetry & Stats", description: "Switch to RPG telemetry & quotas" },
-  { key: "A", label: "Quick Add Directive", description: "Focus directive input on Dashboard" },
+  { key: "5", label: "Book Reader", description: "Switch to in-app book reader library" },
+  { key: "6", label: "Wallet & Ledger", description: "Switch to coin wallet & transaction ledger" },
+  { key: "7", label: "Rank & Tiers", description: "Switch to level & tier progression" },
+  { key: "8", label: "Telemetry & Stats", description: "Switch to RPG telemetry & quotas" },
+  { key: "9", label: "Profile (whoami)", description: "Switch to operator profile summary" },
+  { key: "A", label: "Quick Add Directive", description: "Focus quick-add input on Dashboard" },
   { key: "?", label: "Keyboard Shortcuts", description: "Toggle this shortcuts cheat sheet" },
   { key: "Esc", label: "Dismiss / Unfocus", description: "Close any open dialog or blur inputs" },
   { key: "Space", label: "Timer Play / Pause", description: "Toggle countdown in Focus Engine" },
@@ -76,7 +84,7 @@ export function handleGlobalKeydown(e, options = {}) {
   // Do not intercept browser-native shortcuts (e.g. Ctrl+1..5, Cmd+A, Alt+Key)
   if (e.ctrlKey || e.metaKey || e.altKey) return false;
 
-  // View switching: keys 1 through 5
+  // View switching: keys 1 through 9
   if (VIEW_HOTKEYS[e.key]) {
     e.preventDefault?.();
     const targetView = VIEW_HOTKEYS[e.key];

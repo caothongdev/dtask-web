@@ -1,11 +1,11 @@
 {
   "name": "dtask",
   "short_name": "dtask",
-  "description": "Minimalist monochrome task tracker. CLI + web.",
+  "description": "Gamified daily task & productivity engine. CLI + web.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a1c1c",
-  "theme_color": "#1a1c1c",
+  "background_color": "#f8fafc",
+  "theme_color": "#f8fafc",
   "icons": [
     {
       "src": "/favicon.svg",

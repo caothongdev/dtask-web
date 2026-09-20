@@ -1,6 +1,6 @@
 // public/js/views/focus.js
-// Live Focus Engine terminal HUD with btop ASCII fill meters, digital clock,
-// XP & coin accrual cards, execution controls, and dual-mode Relax Daemon.
+// Live Focus Engine with digital clock, XP & coin accrual cards, execution controls,
+// and dual-mode Relax Daemon. Blueprint Silicon light theme.
 // Modes: FOCUS_DAEMON // RUNNING | RELAX_DAEMON // COOLDOWN | FOCUS_DAEMON // STANDBY
 // Hotkeys: [Space] Pause / Resume | [Enter] Mark Complete Now | [Ctrl+C / Esc] Stop & Bank
 
@@ -241,7 +241,7 @@ function updateLiveTelemetry() {
     const flowStateEl = mountedContainer.querySelector("#focus-flow-state");
     if (flowStateEl) {
       flowStateEl.innerHTML = `
-        <span class="w-1.5 h-1.5 bg-stone-accent ${timer.running ? "animate-pulse" : ""}"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-primary ${timer.running ? "animate-pulse" : ""}"></span>
         ${timer.running ? "FLOW_ACTIVE (100% INTENSITY)" : "FLOW_PAUSED (HOLD)"}
       `;
     }
@@ -325,177 +325,152 @@ function renderFocusDaemonMode(container) {
   const timer = store.state.activeTimer;
   const task = timer?.task || {};
   const accrual = calculateAccruals(timer.elapsedSeconds, timer.targetSeconds, task);
-  const streak = store.state.stats?.current_streak ?? 1;
-  const pid = task.id || 4092;
+  const streak = store.state.stats?.current_streak ?? store.state.stats?.streak_days ?? 1;
+  const pid = task.id || 0;
 
   container.innerHTML = `
-    <div data-focus-rendered="focus" class="flex flex-col w-full text-primary select-none pb-12 font-mono">
-      <!-- Top Telemetry Diagnostics Ribbon -->
-      <div class="w-full mb-3 flex flex-wrap items-center justify-between gap-2 bg-surface-container-low px-4 py-2 border border-outline-variant/40 shadow-sm text-xs">
+    <div data-focus-rendered="focus" class="flex flex-col w-full text-stone-accent select-none pb-12 font-mono">
+      <!-- Top Session Ribbon -->
+      <div class="w-full mb-3 flex flex-wrap items-center justify-between gap-2 bg-surface rounded-2xl px-4 py-2 border border-outline-variant shadow-card text-xs">
         <div class="flex items-center gap-3 flex-wrap">
-          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-surface-container text-primary border border-outline-variant font-bold">
-            <span class="w-1.5 h-1.5 bg-stone-accent ${timer.running ? "animate-ping" : ""}"></span>
+          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary-soft text-primary border border-blue-200 font-bold">
+            <span class="w-1.5 h-1.5 rounded-full bg-primary ${timer.running ? "animate-ping" : ""}"></span>
             FOCUS_SESSION://PID.${pid}
           </span>
-          <span class="text-secondary font-bold truncate max-w-xs md:max-w-md">TARGET: ${escapeHtml(task.title || "DAEMON_CORE_V2")}</span>
+          <span class="text-secondary font-bold truncate max-w-xs md:max-w-md">TARGET: ${escapeHtml(task.title || "Deep Work Session")}</span>
           <span class="text-outline-variant">::</span>
-          <span class="text-outline">THREAD_PRIORITY: REALTIME_0</span>
+          <span class="text-outline">STRICT POMODORO</span>
         </div>
         <div class="flex items-center gap-4 text-xs text-outline">
           <div class="flex items-center gap-1.5">
-            <span>AUDIO_SYNTH:</span>
-            <span class="text-stone-accent font-bold">432Hz_WARM_TAPE</span>
-          </div>
-          <div class="flex items-center gap-1.5">
             <span>STREAK:</span>
-            <span class="text-stone-accent font-bold">^${streak} DAYS (1.25x GAIN)</span>
+            <span class="text-orange-600 font-bold">🔥 ${streak} DAYS</span>
           </div>
           <div class="hidden sm:inline-block text-outline-variant">
-            TERM_LAYOUT: BTOP_3WAY
+            MODE: FOCUS ENGINE
           </div>
         </div>
       </div>
 
-      <!-- Main 3-Column Viewport Workspace (3 / 6 / 3) -->
+      <!-- Main 3-Column Workspace (3 / 6 / 3) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 w-full items-start">
-        
-        <!-- LEFT PANE: Session Context & Objectives (3/12) -->
+
+        <!-- LEFT PANE: Session Context (3/12) -->
         <div class="lg:col-span-3 flex flex-col gap-3">
-          <!-- Thread Context Card -->
-          <div class="bg-surface-container-low p-3 border border-outline-variant/40 flex flex-col gap-2 shadow-sm">
-            <div class="flex items-center justify-between pb-1 border-b border-outline-variant/40">
-              <span class="text-stone-accent text-xs font-bold tracking-wider">// THREAD_CONTEXT</span>
-              <span class="text-outline text-xs">P${pid}#92</span>
+          <!-- Session Context Card -->
+          <div class="bg-surface rounded-2xl p-3 border border-outline-variant shadow-card flex flex-col gap-2">
+            <div class="flex items-center justify-between pb-1 border-b border-outline-variant/70">
+              <span class="text-primary text-xs font-bold tracking-wider">SESSION CONTEXT</span>
+              <span class="text-outline text-xs">#${pid}</span>
             </div>
-            <div class="bg-surface-container-lowest p-2 border border-outline-variant/30 flex flex-col gap-1 text-xs">
+            <div class="bg-surface-subtle p-2 rounded-xl border border-outline-variant flex flex-col gap-1 text-xs">
               <div class="flex justify-between items-center">
-                <span class="text-outline uppercase">EXEC_MODE</span>
-                <span class="px-1.5 py-0.2 bg-surface-container-high text-stone-accent font-bold border border-outline-variant">STRICT_POMO</span>
+                <span class="text-outline uppercase">MODE</span>
+                <span class="px-1.5 py-0.5 rounded-md bg-white text-primary font-bold border border-blue-200">POMODORO</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-outline uppercase">WINDOW_BLOCK</span>
-                <span class="text-primary font-bold">${Math.round(timer.targetSeconds / 60)} MIN TOTAL</span>
+                <span class="text-outline uppercase">BLOCK</span>
+                <span class="text-stone-accent font-bold">${Math.round(timer.targetSeconds / 60)} MIN TOTAL</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-outline uppercase">HARD_ISOLATE</span>
-                <span class="text-secondary font-bold">NET_LOCKED</span>
+                <span class="text-outline uppercase">SHIELD</span>
+                <span class="text-emerald-600 font-bold">ON</span>
               </div>
             </div>
 
             <!-- Linked Task Buffer -->
             <div class="mt-1">
-              <div class="text-[11px] text-outline uppercase tracking-wider mb-1">LINKED_TASK_BUFFER</div>
-              <div class="bg-surface-container p-2.5 border border-outline-variant/50 flex flex-col gap-1">
-                <div class="flex items-center gap-1.5 text-primary text-sm font-bold leading-tight font-space">
-                  <span class="material-symbols-outlined text-sm text-stone-accent">terminal</span>
+              <div class="text-[11px] text-outline uppercase tracking-wider mb-1">LINKED TASK</div>
+              <div class="bg-surface-subtle p-2.5 rounded-xl border border-outline-variant flex flex-col gap-1">
+                <div class="flex items-center gap-1.5 text-stone-accent text-sm font-bold leading-tight font-sans">
+                  <span class="material-symbols-outlined text-sm text-primary">terminal</span>
                   <span class="line-clamp-2">${escapeHtml(task.title || "Deep Work Session")}</span>
                 </div>
                 <div class="flex items-center gap-2 mt-1 text-[11px]">
-                  <span class="px-1.5 py-0.5 bg-surface-container-high text-stone-accent border border-outline-variant font-bold">#${(task.category || "code").toUpperCase()}</span>
-                  <span class="text-outline">DIFF: HIGH (+${accrual.targetXp} XP)</span>
+                  <span class="px-1.5 py-0.5 rounded-md bg-white text-stone-soft border border-outline-variant font-bold uppercase">#${(task.category || "code")}</span>
+                  <span class="text-primary font-bold">+${accrual.targetXp} XP</span>
                 </div>
               </div>
             </div>
 
-            <!-- Task Objectives Checklist -->
+            <!-- Session Checklist -->
             <div class="mt-1">
               <div class="flex items-center justify-between mb-1 text-[11px]">
-                <span class="text-outline uppercase tracking-wider">EXEC_CHECKLIST [2/3]</span>
-                <span class="text-stone-accent font-bold">66%</span>
+                <span class="text-outline uppercase tracking-wider">SESSION CHECKLIST</span>
+                <span class="text-primary font-bold">66%</span>
               </div>
               <div class="flex flex-col gap-1 text-xs">
-                <label class="flex items-center gap-2 p-1.5 bg-surface-container-lowest border border-outline-variant/30 text-outline line-through">
-                  <span class="text-stone-accent font-bold">[x]</span>
-                  <span>Initialize terminal HUD</span>
+                <label class="flex items-center gap-2 p-1.5 rounded-lg bg-surface-subtle border border-outline-variant/60 text-outline line-through">
+                  <span class="text-emerald-600 font-bold">[x]</span>
+                  <span>Initialize engine</span>
                 </label>
-                <label class="flex items-center gap-2 p-1.5 bg-surface-container-lowest border border-outline-variant/30 text-outline line-through">
-                  <span class="text-stone-accent font-bold">[x]</span>
+                <label class="flex items-center gap-2 p-1.5 rounded-lg bg-surface-subtle border border-outline-variant/60 text-outline line-through">
+                  <span class="text-emerald-600 font-bold">[x]</span>
                   <span>Lock distraction shield</span>
                 </label>
-                <label class="flex items-center gap-2 p-1.5 bg-surface-container border border-outline-variant/40 text-primary">
-                  <span class="text-stone-accent font-bold">[ ]</span>
+                <label class="flex items-center gap-2 p-1.5 rounded-lg bg-white border border-outline-variant text-stone-accent">
+                  <span class="text-primary font-bold">[ ]</span>
                   <span>Complete focus block</span>
                 </label>
               </div>
             </div>
           </div>
 
-          <!-- Prior Session History Log -->
-          <div class="bg-surface-container-low p-3 border border-outline-variant/40 flex flex-col gap-2 shadow-sm text-xs">
-            <div class="flex items-center justify-between pb-1 border-b border-outline-variant/40">
-              <span class="text-outline uppercase tracking-wider">// PRIOR_SESSION_LOGS</span>
-              <span class="text-secondary">ARCHIVED</span>
-            </div>
-            <div class="bg-surface-container p-2 border border-outline-variant/30 flex flex-col gap-1">
-              <div class="flex justify-between items-center text-primary font-semibold">
-                <span>T#02: Refactor State Store</span>
-                <span class="text-stone-accent font-bold">+35 XP</span>
-              </div>
-              <div class="flex justify-between items-center text-outline text-[11px]">
-                <span>55 MIN / 1 PAUSE</span>
-                <span class="text-secondary font-bold">⟐ +18 COINS</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Ambient Terminal Hook -->
-          <div class="bg-surface-container-lowest p-2.5 border border-outline-variant/40 text-xs text-outline flex items-start gap-2">
-            <span class="text-stone-accent font-bold">❯</span>
+          <!-- Quote Card -->
+          <div class="bg-surface-subtle p-2.5 rounded-2xl border border-outline-variant text-xs text-outline flex items-start gap-2">
+            <span class="text-primary font-bold">❯</span>
             <span class="text-secondary italic">"Flow is the state where syntax fades and only state machines exist."</span>
           </div>
         </div>
 
-        <!-- CENTER MAIN PANE: Focus Engine Terminal (6/12) -->
+        <!-- CENTER MAIN PANE: Focus Engine (6/12) -->
         <div class="lg:col-span-6 flex flex-col gap-3">
-          <div class="bg-surface-container-low p-5 border border-outline-variant relative overflow-hidden flex flex-col gap-4 shadow-xl">
-            <!-- Ambient Neutral Glow Backdrop -->
-            <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-stone-accent/5 blur-3xl pointer-events-none"></div>
+          <div class="bg-surface rounded-3xl p-5 border border-outline-variant shadow-card-md relative overflow-hidden flex flex-col gap-4">
+            <!-- Ambient Blue Glow Backdrop -->
+            <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-primary/5 blur-3xl pointer-events-none"></div>
 
-            <!-- Terminal Header Syntax Top Line -->
-            <div class="flex items-center justify-between text-xs text-outline pb-1 border-b border-outline-variant/40">
+            <!-- Header -->
+            <div class="flex items-center justify-between text-xs text-outline pb-1 border-b border-outline-variant/70">
               <div class="flex items-center gap-1.5 text-secondary">
-                <span class="text-outline font-bold">┌─[</span>
-                <span class="text-stone-accent font-bold tracking-wider">FOCUS_DAEMON // <span id="focus-header-state">${timer.running ? "RUNNING" : "PAUSED"}</span></span>
-                <span class="text-outline font-bold">]</span>
-                <span class="text-outline-variant">─────────────────────────</span>
+                <span class="text-primary font-bold tracking-wider">FOCUS_DAEMON // <span id="focus-header-state">${timer.running ? "RUNNING" : "PAUSED"}</span></span>
               </div>
-              <div id="focus-flow-state" class="flex items-center gap-1.5 text-xs text-stone-accent">
-                <span class="w-1.5 h-1.5 bg-stone-accent ${timer.running ? "animate-pulse" : ""}"></span>
+              <div id="focus-flow-state" class="flex items-center gap-1.5 text-xs text-primary">
+                <span class="w-1.5 h-1.5 rounded-full bg-primary ${timer.running ? "animate-pulse" : ""}"></span>
                 <span>${timer.running ? "FLOW_ACTIVE (100% INTENSITY)" : "FLOW_PAUSED (HOLD)"}</span>
               </div>
             </div>
 
-            <!-- Digital Clock Display & Flow State Diagnostics -->
+            <!-- Digital Clock Display -->
             <div class="flex flex-col items-center justify-center py-2 relative">
-              <!-- Pulsing Status Bead -->
-              <div class="flex items-center gap-2 mb-2 px-3 py-1 bg-surface-container text-xs text-secondary border border-outline-variant">
-                <span class="text-stone-accent font-bold">SYS.CLK</span>
+              <!-- Status Bead -->
+              <div class="flex items-center gap-2 mb-2 px-3 py-1 rounded-full bg-surface-subtle text-xs text-secondary border border-outline-variant">
+                <span class="text-primary font-bold">SYS.CLK</span>
                 <span class="text-outline-variant">::</span>
-                <span class="font-bold text-primary animate-pulse">ACTIVE_FLOW_PULSE</span>
+                <span class="font-bold text-primary">ACTIVE_FLOW_PULSE</span>
                 <span id="focus-tick-count" class="text-outline">[TICK: ${timer.elapsedSeconds}s]</span>
               </div>
 
               <!-- Master Digital Time Display -->
-              <div class="font-space text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-primary flex items-baseline justify-center gap-3 py-2">
-                <span id="focus-elapsed" class="text-stone-accent drop-shadow-[0_0_16px_rgba(216,210,198,0.2)]">${formatTime(timer.elapsedSeconds)}</span>
+              <div class="font-sans text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-stone-accent flex items-baseline justify-center gap-3 py-2 font-mono">
+                <span id="focus-elapsed" class="text-primary">${formatTime(timer.elapsedSeconds)}</span>
                 <span class="text-outline-variant text-3xl font-light">/</span>
                 <span id="focus-target" class="text-outline text-3xl font-normal">${formatTime(timer.targetSeconds)}</span>
               </div>
 
               <!-- Pace and Remaining Sub-HUD -->
               <div class="mt-1 flex items-center gap-3 text-xs text-secondary flex-wrap justify-center">
-                <span id="focus-remaining" class="text-stone-accent font-bold">⏳ ${formatTime(Math.max(0, timer.targetSeconds - timer.elapsedSeconds))} REMAINING</span>
+                <span id="focus-remaining" class="text-primary font-bold">⏳ ${formatTime(Math.max(0, timer.targetSeconds - timer.elapsedSeconds))} REMAINING</span>
                 <span class="text-outline-variant">|</span>
-                <span>PACE: <span class="text-primary font-semibold">1.0x NOMINAL</span></span>
+                <span>PACE: <span class="text-stone-accent font-semibold">1.0x NOMINAL</span></span>
                 <span class="text-outline-variant">|</span>
                 <span class="text-secondary font-semibold">DISTRACTION_SHIELD: ON</span>
               </div>
             </div>
 
-            <!-- Signature BTOP Gradient ASCII Progress Bar -->
-            <div class="flex flex-col gap-1.5 bg-surface-container-lowest p-3 border border-outline-variant/40 shadow-inner">
+            <!-- Progress Meter -->
+            <div class="flex flex-col gap-1.5 bg-surface-subtle p-3 rounded-2xl border border-outline-variant shadow-inner">
               <div class="flex justify-between items-center text-xs">
-                <span class="text-stone-accent font-bold flex items-center gap-1.5">
+                <span class="text-primary font-bold flex items-center gap-1.5">
                   <span>[BTOP_RESOURCE_FILL]</span>
                   <span class="text-outline font-normal">CPU_CLOCK_ALLOC</span>
                 </span>
@@ -505,106 +480,106 @@ function renderFocusDaemonMode(container) {
                 </div>
               </div>
               <!-- ASCII Bar -->
-              <div id="focus-ascii-meter" class="font-mono text-stone-accent tracking-widest text-base sm:text-lg leading-none py-1 select-none overflow-x-auto whitespace-pre">${renderBtopAsciiBar(accrual.pct, 30)}</div>
+              <div id="focus-ascii-meter" class="font-mono text-primary tracking-widest text-base sm:text-lg leading-none py-1 select-none overflow-x-auto whitespace-pre">${renderBtopAsciiBar(accrual.pct, 30)}</div>
               <div class="flex justify-between items-center text-[11px] text-outline pt-1">
                 <span>00:00:00 (BOOT)</span>
-                <span id="focus-current-sub" class="text-stone-accent font-bold">CURRENT: ${formatTime(timer.elapsedSeconds)}</span>
+                <span id="focus-current-sub" class="text-primary font-bold">CURRENT: ${formatTime(timer.elapsedSeconds)}</span>
                 <span>SESSION_MAX: ${formatTime(timer.targetSeconds)}</span>
               </div>
             </div>
 
-            <!-- Real-Time XP Accrual & Coin Ledger HUD Cards -->
+            <!-- Real-Time XP Accrual & Coin Ledger Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <!-- XP Card -->
-              <div class="bg-surface-container p-3 border border-outline-variant/50 flex flex-col justify-between gap-2">
+              <div class="bg-surface-subtle p-3 rounded-2xl border border-outline-variant flex flex-col justify-between gap-2">
                 <div class="flex items-center justify-between text-xs">
                   <span class="text-outline uppercase tracking-wider font-bold">XP_REWARD_PIPELINE</span>
-                  <span class="material-symbols-outlined text-base text-stone-accent">bolt</span>
+                  <span class="material-symbols-outlined text-base text-primary">bolt</span>
                 </div>
                 <div>
                   <div class="flex items-baseline gap-2">
-                    <span class="font-space text-xl font-bold text-stone-accent">+${accrual.targetXp} XP</span>
+                    <span class="font-sans text-xl font-extrabold text-primary font-mono">+${accrual.targetXp} XP</span>
                     <span class="text-xs text-outline">EST. COMPLETION</span>
                   </div>
-                  <div class="w-full bg-surface-container-lowest h-1.5 overflow-hidden mt-1.5 border border-outline-variant/30">
-                    <div id="focus-xp-bar" class="bg-stone-accent h-full transition-all duration-300" style="width: ${Math.min(100, accrual.pct)}%"></div>
+                  <div class="w-full bg-white h-1.5 rounded-full overflow-hidden mt-1.5 border border-outline-variant/60">
+                    <div id="focus-xp-bar" class="bg-primary h-full rounded-full transition-all duration-300" style="width: ${Math.min(100, accrual.pct)}%"></div>
                   </div>
                 </div>
                 <div class="flex items-center justify-between text-xs text-outline">
                   <span>RATE: ${accrual.xpRatePerMin.toFixed(2)} XP/MIN</span>
-                  <span id="focus-xp-accrued" class="text-stone-accent font-bold">+${accrual.accruedXp} ACCRUED</span>
+                  <span id="focus-xp-accrued" class="text-primary font-bold">+${accrual.accruedXp} ACCRUED</span>
                 </div>
               </div>
 
               <!-- Coin Ledger Card -->
-              <div class="bg-surface-container p-3 border border-outline-variant/50 flex flex-col justify-between gap-2">
+              <div class="bg-coin-soft p-3 rounded-2xl border border-amber-200 flex flex-col justify-between gap-2">
                 <div class="flex items-center justify-between text-xs">
-                  <span class="text-outline uppercase tracking-wider font-bold">COIN_LEDGER_ACTIVE</span>
-                  <span class="text-stone-accent font-bold">⟐ ACCRUAL</span>
+                  <span class="text-coin-amber uppercase tracking-wider font-bold">COIN_LEDGER_ACTIVE</span>
+                  <span class="text-coin-amber font-bold">🪙 ACCRUAL</span>
                 </div>
                 <div>
                   <div class="flex items-baseline gap-2">
-                    <span id="focus-coins-accrued" class="font-space text-xl font-bold text-secondary">+${accrual.accruedCoins} BANKED</span>
+                    <span id="focus-coins-accrued" class="font-sans text-xl font-extrabold text-coin-amber font-mono">+${accrual.accruedCoins} BANKED</span>
                     <span class="text-xs text-outline">/ ${accrual.targetCoins} TARGET</span>
                   </div>
-                  <div class="w-full bg-surface-container-lowest h-1.5 overflow-hidden mt-1.5 border border-outline-variant/30">
-                    <div id="focus-coin-bar" class="bg-secondary h-full transition-all duration-300" style="width: ${Math.min(100, accrual.pct)}%"></div>
+                  <div class="w-full bg-white h-1.5 rounded-full overflow-hidden mt-1.5 border border-amber-200">
+                    <div id="focus-coin-bar" class="bg-amber-500 h-full rounded-full transition-all duration-300" style="width: ${Math.min(100, accrual.pct)}%"></div>
                   </div>
                 </div>
                 <div class="flex items-center justify-between text-xs text-outline">
                   <span>BASE: ${accrual.coinRatePerMin.toFixed(2)} C/MIN</span>
-                  <span class="text-stone-accent font-bold">MULT: 1.25x</span>
+                  <span class="text-coin-amber font-bold">MULT: 1.25x</span>
                 </div>
               </div>
             </div>
 
-            <!-- Terminal Interactive Command Key Controls Bar -->
-            <div class="flex flex-col gap-2 pt-2 border-t border-outline-variant/50">
+            <!-- Controls Bar -->
+            <div class="flex flex-col gap-2 pt-2 border-t border-outline-variant/70">
               <div class="text-outline text-xs uppercase tracking-wider font-bold">EXECUTION_BUS_CONTROLS</div>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <!-- Pause / Resume Button -->
-                <button id="focus-pause-btn" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-surface-container hover:bg-surface-container-high active:bg-primary active:text-surface text-primary transition-all border border-outline-variant text-xs">
-                  <span class="font-bold text-stone-accent">[ Space ]</span>
+                <button id="focus-pause-btn" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-white hover:bg-surface-subtle text-stone-accent transition-all rounded-xl border border-outline-variant text-xs">
+                  <span class="font-bold text-primary">[ Space ]</span>
                   <span id="focus-pause-label" class="font-semibold">${timer.running ? "Pause Session" : "Resume Session"}</span>
                 </button>
 
                 <!-- Complete Now Button -->
-                <button id="focus-complete-btn" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-primary text-surface font-bold hover:bg-stone-accent active:scale-[0.99] transition-all border border-secondary-fixed text-xs">
-                  <span class="text-surface font-bold">[ Enter ]</span>
+                <button id="focus-complete-btn" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-primary text-white font-bold hover:bg-primary-strong transition-all rounded-xl border border-primary text-xs shadow-md shadow-blue-500/20">
+                  <span class="text-white font-bold">[ Enter ]</span>
                   <span>Mark Complete Now</span>
                 </button>
 
                 <!-- Stop & Bank Button -->
-                <button id="focus-stop-btn" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-surface-container hover:bg-surface-container-high text-secondary hover:text-red-400 transition-all border border-outline-variant text-xs">
-                  <span class="text-red-400 font-bold">[ Ctrl+C / Esc ]</span>
+                <button id="focus-stop-btn" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-white hover:bg-danger-soft text-secondary hover:text-danger transition-all rounded-xl border border-outline-variant text-xs">
+                  <span class="text-danger font-bold">[ Ctrl+C / Esc ]</span>
                   <span id="focus-stop-label">Stop & Bank ${accrual.accruedCoins} Coins</span>
                 </button>
               </div>
             </div>
 
-            <!-- Inline Mini CLI Prompt -->
-            <div class="flex items-center gap-2 bg-surface-container-lowest px-3 py-2 border border-outline-variant/40 text-xs text-primary">
-              <span class="text-stone-accent font-bold">focus@dtask:~$</span>
-              <input id="focus-cli-input" type="text" class="bg-transparent border-none outline-none text-primary placeholder:text-outline/60 flex-1 w-full font-mono text-xs" placeholder="type 'note <string>' or 'split <title>' to modify thread..." />
-              <span class="text-outline text-[11px] hidden sm:inline">[Tab: auto-complete]</span>
+            <!-- Inline Note Prompt -->
+            <div class="flex items-center gap-2 bg-surface-subtle px-3 py-2 rounded-xl border border-outline-variant text-xs text-stone-accent">
+              <span class="text-primary font-bold">focus@dtask ~ $</span>
+              <input id="focus-cli-input" type="text" class="bg-transparent border-none outline-none text-stone-accent placeholder:text-outline/60 flex-1 w-full font-mono text-xs" placeholder="type 'note <string>' to log a thought..." />
+              <span class="text-outline text-[11px] hidden sm:inline">[Enter: save]</span>
             </div>
           </div>
 
-          <!-- Flow Heartbeat Mini Sparkline Graph Panel -->
-          <div class="bg-surface-container-low p-3 border border-outline-variant/40 flex items-center justify-between text-xs shadow-sm">
+          <!-- Flow Heartbeat Sparkline Panel -->
+          <div class="bg-surface rounded-2xl p-3 border border-outline-variant shadow-card flex items-center justify-between text-xs">
             <div class="flex flex-col">
               <span class="text-outline uppercase text-[11px]">FLOW_HEARTBEAT_METRICS</span>
-              <span class="text-stone-accent font-semibold">KEYSTROKES: 78 WPM AVG</span>
+              <span class="text-primary font-semibold">KEYSTROKES: 78 WPM AVG</span>
             </div>
             <!-- Inline SVG Sparkline -->
             <div class="w-40 h-6 flex items-center">
               <svg class="w-full h-full" fill="none" viewBox="0 0 100 24">
-                <path class="text-stone-accent" d="M0 12 L10 12 L15 3 L20 20 L25 12 L40 12 L45 5 L50 18 L55 12 L70 12 L75 8 L80 16 L85 12 L100 12" stroke="currentColor" stroke-width="1.8"></path>
+                <path class="text-primary" d="M0 12 L10 12 L15 3 L20 20 L25 12 L40 12 L45 5 L50 18 L55 12 L70 12 L75 8 L80 16 L85 12 L100 12" stroke="currentColor" stroke-width="1.8"></path>
               </svg>
             </div>
             <div class="text-right">
               <span class="text-outline text-[11px]">DRIFT_DETECTOR</span>
-              <div class="text-secondary font-bold">0.02% (LOCKED)</div>
+              <div class="text-emerald-600 font-bold">0.02% (LOCKED)</div>
             </div>
           </div>
         </div>
@@ -612,80 +587,80 @@ function renderFocusDaemonMode(container) {
         <!-- RIGHT PANE: Break Rewards & Telemetry (3/12) -->
         <div class="lg:col-span-3 flex flex-col gap-3">
           <!-- Guilt-Free Break Reward Switcher -->
-          <div class="bg-surface-container-low p-3 border border-outline-variant/40 flex flex-col gap-2 shadow-sm text-xs">
-            <div class="flex items-center justify-between pb-1 border-b border-outline-variant/40">
-              <div class="flex items-center gap-1.5 font-bold text-primary">
-                <span class="material-symbols-outlined text-sm text-stone-accent">coffee</span>
+          <div class="bg-surface rounded-2xl p-3 border border-outline-variant shadow-card flex flex-col gap-2 text-xs">
+            <div class="flex items-center justify-between pb-1 border-b border-outline-variant/70">
+              <div class="flex items-center gap-1.5 font-bold text-stone-accent">
+                <span class="material-symbols-outlined text-sm text-primary">coffee</span>
                 <span>Guilt-Free Break Ready</span>
               </div>
-              <span class="px-1.5 py-0.2 bg-surface-container-high text-stone-accent font-bold border border-outline-variant">READY</span>
+              <span class="px-1.5 py-0.5 rounded-md bg-success-soft text-success font-bold border border-emerald-200">READY</span>
             </div>
             <div class="text-outline text-[11px]">
               Guilt-free relaxation slots staged for immediate handover when timer ticks zero:
             </div>
 
             <!-- Staged Break Card -->
-            <div class="bg-surface-container p-2.5 border border-outline-variant/50 flex flex-col gap-1.5 hover:bg-surface-container-high transition-colors">
+            <div class="bg-surface-subtle p-2.5 rounded-xl border border-outline-variant flex flex-col gap-1.5 hover:bg-surface-container transition-colors">
               <div class="flex items-start justify-between">
                 <div>
-                  <span class="text-[10px] text-stone-accent uppercase font-bold">STAGED REWARD #1</span>
-                  <div class="font-bold text-primary text-xs">Pour-Over Coffee Ritual</div>
+                  <span class="text-[10px] text-primary uppercase font-bold">STAGED REWARD #1</span>
+                  <div class="font-bold text-stone-accent text-xs">Pour-Over Coffee Ritual</div>
                 </div>
-                <span class="px-1.5 py-0.5 bg-surface-container-lowest text-stone-accent font-bold border border-outline-variant text-[10px]">0 COINS</span>
+                <span class="px-1.5 py-0.5 rounded-md bg-coin-soft text-coin-amber font-bold border border-amber-200 text-[10px]">0 COINS</span>
               </div>
               <p class="text-secondary text-[11px]">
                 15m single-origin brew reset. Zero guilt penalty. HP restorative loop active.
               </p>
               <div class="flex items-center justify-between text-[11px] pt-1">
-                <span class="text-stone-accent font-semibold">+5 HP REGAINED</span>
+                <span class="text-emerald-600 font-semibold">+5 HP REGAINED</span>
                 <span class="text-outline">15 MIN</span>
               </div>
             </div>
 
-            <!-- Auto Switch CLI Toggle -->
-            <div class="flex items-center justify-between bg-surface-container-lowest p-2 border border-outline-variant/30 text-xs">
+            <!-- Auto Switch Toggle -->
+            <div class="flex items-center justify-between bg-surface-subtle p-2 rounded-xl border border-outline-variant text-xs">
               <span class="text-secondary">Auto-trigger on zero:</span>
-              <button id="focus-auto-break-toggle" class="px-2 py-0.5 bg-surface-container-high border border-outline-variant font-bold text-xs ${autoBreakEnabled ? "text-stone-accent" : "text-outline"}">
+              <button id="focus-auto-break-toggle" class="px-2 py-0.5 rounded-lg bg-white border border-outline-variant font-bold text-xs ${autoBreakEnabled ? "text-emerald-600" : "text-outline"}">
                 AUTO: [${autoBreakEnabled ? "ON" : "OFF"}]
               </button>
             </div>
 
             <!-- Quick Switch to Relax Timer Button -->
-            <button id="focus-switch-relax-btn" class="w-full py-2 px-3 bg-surface-container-high hover:bg-surface-container-highest active:bg-stone-accent active:text-surface transition-all flex items-center justify-between text-primary font-bold border border-outline-variant text-xs">
-              <span class="text-stone-accent">[Shift+Tab]</span>
+            <button id="focus-switch-relax-btn" class="w-full py-2 px-3 bg-surface-subtle hover:bg-surface-container transition-all flex items-center justify-between text-stone-accent font-bold rounded-xl border border-outline-variant text-xs">
+              <span class="text-primary">[Shift+Tab]</span>
               <span>Switch to Relax Mode</span>
-              <span class="material-symbols-outlined text-sm text-stone-accent">bedtime</span>
+              <span class="material-symbols-outlined text-sm text-primary">bedtime</span>
             </button>
           </div>
 
-          <!-- Audio Engine (Lo-Fi) -->
-          <div class="bg-surface-container-low p-3 border border-outline-variant/40 flex flex-col gap-2 shadow-sm text-xs">
-            <div class="flex items-center justify-between pb-1 border-b border-outline-variant/40">
-              <span class="text-outline uppercase tracking-wider font-bold">// AUDIO_ENGINE (LO-FI)</span>
-              <span class="material-symbols-outlined text-sm text-stone-accent animate-pulse">equalizer</span>
+          <!-- Audio Engine -->
+          <div class="bg-surface rounded-2xl p-3 border border-outline-variant shadow-card flex flex-col gap-2 text-xs">
+            <div class="flex items-center justify-between pb-1 border-b border-outline-variant/70">
+              <span class="text-outline uppercase tracking-wider font-bold">AUDIO_ENGINE</span>
+              <span class="material-symbols-outlined text-sm text-primary animate-pulse">equalizer</span>
             </div>
             <div class="flex flex-col gap-1.5 mt-0.5">
-              <button data-audio="binaural" class="audio-track-btn w-full text-left flex items-center justify-between p-2 border ${selectedAudioEngine === "binaural" ? "bg-surface-container border-outline text-primary" : "bg-surface-container-lowest border-outline-variant/30 text-secondary hover:bg-surface-container"}">
+              <button data-audio="binaural" class="audio-track-btn w-full text-left flex items-center justify-between p-2 rounded-lg border ${selectedAudioEngine === "binaural" ? "bg-primary-soft border-blue-200 text-primary" : "bg-white border-outline-variant text-secondary hover:bg-surface-subtle"}">
                 <div class="flex items-center gap-2">
-                  <span class="font-bold ${selectedAudioEngine === "binaural" ? "text-stone-accent" : "text-outline"}">${selectedAudioEngine === "binaural" ? "[*]" : "[ ]"}</span>
+                  <span class="font-bold ${selectedAudioEngine === "binaural" ? "text-primary" : "text-outline"}">${selectedAudioEngine === "binaural" ? "[*]" : "[ ]"}</span>
                   <span>Binaural 432Hz Brown</span>
                 </div>
-                <span class="font-bold text-[10px] ${selectedAudioEngine === "binaural" ? "text-stone-accent" : "text-outline"}">${selectedAudioEngine === "binaural" ? "ACTIVE" : "IDLE"}</span>
+                <span class="font-bold text-[10px] ${selectedAudioEngine === "binaural" ? "text-primary" : "text-outline"}">${selectedAudioEngine === "binaural" ? "ACTIVE" : "IDLE"}</span>
               </button>
-              <button data-audio="tokyo" class="audio-track-btn w-full text-left flex items-center justify-between p-2 border ${selectedAudioEngine === "tokyo" ? "bg-surface-container border-outline text-primary" : "bg-surface-container-lowest border-outline-variant/30 text-secondary hover:bg-surface-container"}">
+              <button data-audio="tokyo" class="audio-track-btn w-full text-left flex items-center justify-between p-2 rounded-lg border ${selectedAudioEngine === "tokyo" ? "bg-primary-soft border-blue-200 text-primary" : "bg-white border-outline-variant text-secondary hover:bg-surface-subtle"}">
                 <div class="flex items-center gap-2">
-                  <span class="font-bold ${selectedAudioEngine === "tokyo" ? "text-stone-accent" : "text-outline"}">${selectedAudioEngine === "tokyo" ? "[*]" : "[ ]"}</span>
+                  <span class="font-bold ${selectedAudioEngine === "tokyo" ? "text-primary" : "text-outline"}">${selectedAudioEngine === "tokyo" ? "[*]" : "[ ]"}</span>
                   <span>Tokyo Terminal Rainy Night</span>
                 </div>
-                <span class="font-bold text-[10px] ${selectedAudioEngine === "tokyo" ? "text-stone-accent" : "text-outline"}">${selectedAudioEngine === "tokyo" ? "ACTIVE" : "IDLE"}</span>
+                <span class="font-bold text-[10px] ${selectedAudioEngine === "tokyo" ? "text-primary" : "text-outline"}">${selectedAudioEngine === "tokyo" ? "ACTIVE" : "IDLE"}</span>
               </button>
             </div>
           </div>
 
-          <!-- ASCII Footer Telemetry Status -->
+          <!-- Footer Telemetry Status -->
           <div class="flex items-center justify-between text-outline text-[11px] px-1 select-none">
-            <span>└─[ STATUS: FOCUS_LOCKED ]</span>
-            <span>STOKED_STREAK: ☕ ${streak} ─┘</span>
+            <span>STATUS: FOCUS_LOCKED</span>
+            <span>STREAK: ☕ ${streak}</span>
           </div>
         </div>
 
@@ -729,7 +704,7 @@ function renderFocusDaemonMode(container) {
     autoBreakToggle.onclick = () => {
       autoBreakEnabled = !autoBreakEnabled;
       autoBreakToggle.textContent = `AUTO: [${autoBreakEnabled ? "ON" : "OFF"}]`;
-      autoBreakToggle.className = `px-2 py-0.5 bg-surface-container-high border border-outline-variant font-bold text-xs ${autoBreakEnabled ? "text-stone-accent" : "text-outline"}`;
+      autoBreakToggle.className = `px-2 py-0.5 rounded-lg bg-white border border-outline-variant font-bold text-xs ${autoBreakEnabled ? "text-emerald-600" : "text-outline"}`;
       store.showToast(`Auto-break handover ${autoBreakEnabled ? "enabled" : "disabled"}`, "info");
     };
   }
@@ -753,7 +728,7 @@ function renderFocusDaemonMode(container) {
     };
   });
 
-  // Mini CLI Prompt
+  // Mini note prompt
   const cliInput = container.querySelector("#focus-cli-input");
   if (cliInput) {
     cliInput.onkeydown = (e) => {
@@ -777,81 +752,78 @@ function renderRelaxDaemonMode(container) {
   const breakName = timer.name || "Guilt-Free Break";
 
   container.innerHTML = `
-    <div data-focus-rendered="relax" class="flex flex-col w-full text-primary select-none pb-12 font-mono max-w-4xl mx-auto">
-      <!-- Ambient Stone Glow Backdrop -->
-      <div class="relative bg-surface-container-low p-6 md:p-8 border border-outline-variant/60 shadow-2xl overflow-hidden flex flex-col gap-6">
-        <!-- Ambient Warm Stone Radial Glow -->
-        <div class="absolute -top-32 -right-32 w-96 h-96 bg-stone-accent/10 blur-3xl pointer-events-none rounded-full"></div>
-        <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-secondary-fixed/5 blur-3xl pointer-events-none rounded-full"></div>
+    <div data-focus-rendered="relax" class="flex flex-col w-full text-stone-accent select-none pb-12 font-sans max-w-4xl mx-auto">
+      <!-- Relax Cooldown Card -->
+      <div class="relative bg-surface rounded-3xl p-6 md:p-8 border border-outline-variant shadow-card-md overflow-hidden flex flex-col gap-6">
+        <!-- Ambient Blue Glow -->
+        <div class="absolute -top-32 -right-32 w-96 h-96 bg-primary/5 blur-3xl pointer-events-none rounded-full"></div>
+        <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-emerald-500/5 blur-3xl pointer-events-none rounded-full"></div>
 
-        <!-- Top Header Syntax Line -->
-        <div class="flex items-center justify-between text-xs text-outline pb-2 border-b border-outline-variant/40">
+        <!-- Top Header -->
+        <div class="flex items-center justify-between text-xs text-outline pb-2 border-b border-outline-variant/70">
           <div class="flex items-center gap-2">
-            <span class="text-outline font-bold">┌─[</span>
-            <span class="text-stone-accent font-bold tracking-wider">RELAX_DAEMON // COOLDOWN</span>
-            <span class="text-outline font-bold">]</span>
-            <span class="text-outline-variant hidden sm:inline">─────────────────────────</span>
+            <span class="text-primary font-bold tracking-wider">RELAX_DAEMON // COOLDOWN</span>
           </div>
-          <span class="text-stone-accent font-bold tracking-wider uppercase text-[11px]">// WARM STONE AMBIENT GLOW</span>
+          <span class="text-emerald-600 font-bold tracking-wider uppercase text-[11px]">WARM STONE AMBIENT · REST PROTOCOL ACTIVE</span>
         </div>
 
-        <!-- Cooldown Status Bead -->
+        <!-- Cooldown Status -->
         <div class="flex flex-col items-center justify-center py-4 text-center">
-          <div class="flex items-center gap-2 mb-3 px-3 py-1 bg-surface-container text-xs text-stone-accent border border-outline-variant">
-            <span class="w-2 h-2 bg-stone-accent rounded-full animate-pulse"></span>
+          <div class="flex items-center gap-2 mb-3 px-3 py-1 rounded-full bg-success-soft text-xs text-success border border-emerald-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span class="font-bold">REST_PROTOCOL_ACTIVE // GUILT-FREE RECOVERY</span>
           </div>
 
-          <div class="font-space text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-primary my-2 drop-shadow-[0_0_20px_rgba(216,210,198,0.25)]">
-            <span id="relax-countdown" class="text-stone-accent">${formatTime(rem)}</span>
+          <div class="font-sans text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-stone-accent my-2 font-mono">
+            <span id="relax-countdown" class="text-primary">${formatTime(rem)}</span>
           </div>
 
-          <p class="text-sm text-secondary mt-1 font-geist">
-            Buffer: <span class="text-primary font-bold font-mono">${escapeHtml(breakName)}</span>
+          <p class="text-sm text-secondary mt-1">
+            Buffer: <span class="text-stone-accent font-bold font-mono">${escapeHtml(breakName)}</span>
           </p>
         </div>
 
-        <!-- Segmented ASCII Meter -->
-        <div class="flex flex-col gap-2 bg-surface-container-lowest p-4 border border-outline-variant/40 shadow-inner">
+        <!-- Progress Meter -->
+        <div class="flex flex-col gap-2 bg-surface-subtle p-4 rounded-2xl border border-outline-variant shadow-inner">
           <div class="flex justify-between items-center text-xs">
-            <span class="text-stone-accent font-bold flex items-center gap-1.5">
+            <span class="text-primary font-bold flex items-center gap-1.5">
               <span>[REST_BUFFER_FILL]</span>
               <span class="text-outline font-normal">HP_RESTORE_ALLOC</span>
             </span>
-            <span class="text-primary font-bold">
+            <span class="text-stone-accent font-bold">
               <span id="relax-pct-label">${pct}% RESTORED</span>
               <span id="relax-elapsed-sub" class="text-outline font-normal ml-2">${formatTime(timer.elapsedSeconds)} / ${formatTime(timer.totalSeconds)}</span>
             </span>
           </div>
-          <div id="relax-ascii-meter" class="font-mono text-stone-accent tracking-widest text-base sm:text-xl leading-none py-1 select-none overflow-x-auto whitespace-pre">${renderBtopAsciiBar(pct, 30)}</div>
+          <div id="relax-ascii-meter" class="font-mono text-primary tracking-widest text-base sm:text-xl leading-none py-1 select-none overflow-x-auto whitespace-pre">${renderBtopAsciiBar(pct, 30)}</div>
         </div>
 
         <!-- Telemetry Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div class="bg-surface-container p-3 border border-outline-variant/40 flex flex-col gap-1">
+          <div class="bg-surface-subtle p-3 rounded-xl border border-outline-variant flex flex-col gap-1">
             <span class="text-outline uppercase text-[11px] font-bold">SANITY_RESTORATION</span>
-            <span class="text-stone-accent font-bold text-sm">+15 SANITY RESTORED</span>
+            <span class="text-emerald-600 font-bold text-sm">+15 SANITY RESTORED</span>
             <span class="text-secondary text-[11px]">Zero guilt penalty. Cooldown pool active.</span>
           </div>
-          <div class="bg-surface-container p-3 border border-outline-variant/40 flex flex-col gap-1">
+          <div class="bg-surface-subtle p-3 rounded-xl border border-outline-variant flex flex-col gap-1">
             <span class="text-outline uppercase text-[11px] font-bold">LEISURE_COOLDOWN</span>
-            <span class="text-secondary font-bold text-sm">DAEMON REST CYCLE</span>
+            <span class="text-secondary font-bold text-sm">REST CYCLE ACTIVE</span>
             <span class="text-outline text-[11px]">Sound chime rings automatically at zero.</span>
           </div>
         </div>
 
         <!-- Interactive Control Bar -->
-        <div class="flex flex-col sm:flex-row gap-3 pt-2 border-t border-outline-variant/40">
-          <button id="relax-pause-btn" class="flex-1 py-2.5 px-4 bg-surface-container hover:bg-surface-container-high active:bg-stone-accent active:text-surface text-primary border border-outline-variant font-bold text-xs flex items-center justify-center gap-2 transition-all">
-            <span class="text-stone-accent">[ Space ]</span>
+        <div class="flex flex-col sm:flex-row gap-3 pt-2 border-t border-outline-variant/70">
+          <button id="relax-pause-btn" class="flex-1 py-2.5 px-4 bg-white hover:bg-surface-subtle text-stone-accent border border-outline-variant rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all">
+            <span class="text-primary">[ Space ]</span>
             <span id="relax-pause-label">${timer.running ? "Pause Cooldown" : "Resume Cooldown"}</span>
           </button>
-          <button id="relax-return-btn" class="flex-1 py-2.5 px-4 bg-primary text-surface hover:bg-stone-accent active:scale-[0.99] font-bold text-xs flex items-center justify-center gap-2 transition-all border border-secondary-fixed">
-            <span class="text-surface font-bold">[ Enter ]</span>
+          <button id="relax-return-btn" class="flex-1 py-2.5 px-4 bg-primary text-white hover:bg-primary-strong rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/20">
+            <span class="text-white font-bold">[ Enter ]</span>
             <span>Return to Work</span>
           </button>
-          <button id="relax-dismiss-btn" class="py-2.5 px-4 bg-surface-container hover:bg-surface-container-high text-secondary hover:text-red-400 border border-outline-variant font-bold text-xs flex items-center justify-center gap-2 transition-all">
-            <span class="text-red-400 font-bold">[ Esc ]</span>
+          <button id="relax-dismiss-btn" class="py-2.5 px-4 bg-white hover:bg-danger-soft text-secondary hover:text-danger border border-outline-variant rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all">
+            <span class="text-danger font-bold">[ Esc ]</span>
             <span>Dismiss</span>
           </button>
         </div>
@@ -895,84 +867,82 @@ function renderStandbyLauncherMode(container) {
   const openTasks = (store.state.tasks || []).filter((t) => !t.archived && t.status !== "done");
 
   container.innerHTML = `
-    <div data-focus-rendered="standby" class="flex flex-col w-full text-primary select-none pb-12 font-mono max-w-5xl mx-auto">
+    <div data-focus-rendered="standby" class="flex flex-col w-full text-stone-accent select-none pb-12 font-sans max-w-5xl mx-auto">
       <!-- Standby Header Banner -->
-      <div class="w-full mb-4 flex flex-wrap items-center justify-between gap-2 bg-surface-container-low px-4 py-2.5 border border-outline-variant/40 shadow-sm text-xs">
+      <div class="w-full mb-4 flex flex-wrap items-center justify-between gap-2 bg-surface rounded-2xl px-4 py-2.5 border border-outline-variant shadow-card text-xs">
         <div class="flex items-center gap-2">
-          <span class="text-outline font-bold">┌─[</span>
-          <span class="text-stone-accent font-bold tracking-wider">FOCUS_DAEMON // STANDBY</span>
-          <span class="text-outline font-bold">]</span>
-          <span class="text-outline-variant hidden sm:inline">─────────────────────────</span>
+          <span class="w-2.5 h-2.5 rounded-full bg-primary pulse-dot"></span>
+          <span class="text-primary font-bold tracking-wider font-mono">FOCUS_DAEMON // STANDBY</span>
         </div>
         <span class="text-outline text-xs uppercase font-bold">READY FOR MISSION DISPATCH</span>
       </div>
 
       <!-- Quick Pomodoro Presets Banner -->
       <div class="mb-6">
-        <div class="text-xs text-outline uppercase font-bold mb-2 tracking-wider">// RAPID_DISPATCH_PRESETS</div>
+        <div class="text-xs text-outline uppercase font-bold mb-2 tracking-wider font-mono">RAPID DISPATCH PRESETS</div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <button data-mins="25" class="quick-preset-btn p-4 bg-surface-container border border-outline-variant/60 hover:border-stone-accent hover:bg-surface-container-high transition-all text-left flex flex-col gap-1 shadow-sm group">
+          <button data-mins="25" class="quick-preset-btn p-4 bg-surface rounded-2xl border border-outline-variant hover:border-primary hover:bg-primary-soft transition-all text-left flex flex-col gap-1 shadow-card group">
             <div class="flex items-center justify-between">
-              <span class="font-space text-lg font-bold text-stone-accent group-hover:translate-x-0.5 transition-transform">[ 25m ]</span>
+              <span class="font-sans text-lg font-extrabold text-primary group-hover:translate-x-0.5 transition-transform font-mono">25m</span>
               <span class="text-xs text-outline">CLASSIC</span>
             </div>
-            <div class="text-xs text-primary font-bold font-geist">Short Sprint (Pomodoro)</div>
-            <div class="text-[11px] text-outline">Target: 25 mins · +25 XP · +12 ⟐</div>
+            <div class="text-xs text-stone-accent font-bold">Short Sprint (Pomodoro)</div>
+            <div class="text-[11px] text-outline">Target: 25 mins · +25 XP · +12 🪙</div>
           </button>
 
-          <button data-mins="45" class="quick-preset-btn p-4 bg-surface-container border border-outline-variant/60 hover:border-stone-accent hover:bg-surface-container-high transition-all text-left flex flex-col gap-1 shadow-sm group">
+          <button data-mins="45" class="quick-preset-btn p-4 bg-surface rounded-2xl border border-outline-variant hover:border-primary hover:bg-primary-soft transition-all text-left flex flex-col gap-1 shadow-card group">
             <div class="flex items-center justify-between">
-              <span class="font-space text-lg font-bold text-primary group-hover:translate-x-0.5 transition-transform">[ 45m ]</span>
-              <span class="text-xs text-stone-accent font-bold">STANDARD</span>
+              <span class="font-sans text-lg font-extrabold text-stone-accent group-hover:translate-x-0.5 transition-transform font-mono">45m</span>
+              <span class="text-xs text-primary font-bold">STANDARD</span>
             </div>
-            <div class="text-xs text-primary font-bold font-geist">Deep Work Block</div>
-            <div class="text-[11px] text-outline">Target: 45 mins · +45 XP · +22 ⟐</div>
+            <div class="text-xs text-stone-accent font-bold">Deep Work Block</div>
+            <div class="text-[11px] text-outline">Target: 45 mins · +45 XP · +22 🪙</div>
           </button>
 
-          <button data-mins="60" class="quick-preset-btn p-4 bg-surface-container border border-outline-variant/60 hover:border-stone-accent hover:bg-surface-container-high transition-all text-left flex flex-col gap-1 shadow-sm group">
+          <button data-mins="60" class="quick-preset-btn p-4 bg-surface rounded-2xl border border-outline-variant hover:border-primary hover:bg-primary-soft transition-all text-left flex flex-col gap-1 shadow-card group">
             <div class="flex items-center justify-between">
-              <span class="font-space text-lg font-bold text-secondary-fixed group-hover:translate-x-0.5 transition-transform">[ 60m ]</span>
+              <span class="font-sans text-lg font-extrabold text-secondary group-hover:translate-x-0.5 transition-transform font-mono">60m</span>
               <span class="text-xs text-outline">HEAVY</span>
             </div>
-            <div class="text-xs text-primary font-bold font-geist">Architecture & Flow</div>
-            <div class="text-[11px] text-outline">Target: 60 mins · +60 XP · +30 ⟐</div>
+            <div class="text-xs text-stone-accent font-bold">Architecture &amp; Flow</div>
+            <div class="text-[11px] text-outline">Target: 60 mins · +60 XP · +30 🪙</div>
           </button>
         </div>
       </div>
 
       <!-- Main 2-Column Split: Open Tasks Quick Dispatcher vs Custom Launcher -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
+
         <!-- Left 7 Cols: Open Task Queue Dispatcher -->
         <div class="lg:col-span-7 flex flex-col gap-3">
-          <div class="flex items-center justify-between pb-1 border-b border-outline-variant/40 text-xs">
-            <span class="text-stone-accent font-bold uppercase tracking-wider">// QUICK_DISPATCHER (OPEN TASKS)</span>
+          <div class="flex items-center justify-between pb-1 border-b border-outline-variant/70 text-xs">
+            <span class="text-primary font-bold uppercase tracking-wider font-mono">QUICK_DISPATCHER (OPEN TASKS)</span>
             <span class="text-outline">${openTasks.length} AVAILABLE</span>
           </div>
 
           ${openTasks.length === 0 ? `
-            <div class="p-8 bg-surface-container-lowest border border-outline-variant/30 text-center text-secondary text-xs">
+            <div class="p-8 bg-surface rounded-2xl border-2 border-dashed border-outline-variant text-center text-secondary text-xs">
               <span class="material-symbols-outlined text-2xl text-outline mb-1">done_all</span>
               <p>No open tasks in queue. Create one on the right or pick a rapid preset above.</p>
             </div>
           ` : `
             <div class="flex flex-col gap-2 max-h-[420px] overflow-y-auto pr-1">
               ${openTasks.map((t) => `
-                <div class="bg-surface-container-low p-3 border border-outline-variant/40 hover:border-outline transition-all flex items-center justify-between gap-3 text-xs">
+                <div class="bg-surface rounded-xl p-3 border border-outline-variant hover:border-primary transition-all flex items-center justify-between gap-3 text-xs shadow-sm">
                   <div class="flex flex-col gap-0.5 flex-1 min-w-0">
                     <div class="flex items-center gap-2">
-                      <span class="px-1.5 py-0.2 bg-surface-container-high text-stone-accent text-[10px] font-bold border border-outline-variant">#${(t.category || "code").toUpperCase()}</span>
-                      <span class="font-bold text-primary truncate font-geist text-sm">${escapeHtml(t.title)}</span>
+                      <span class="px-1.5 py-0.5 rounded-md bg-surface-subtle text-stone-soft text-[10px] font-bold border border-outline-variant uppercase">#${(t.category || "code")}</span>
+                      <span class="font-bold text-stone-accent truncate text-sm">${escapeHtml(t.title)}</span>
                     </div>
                     <div class="text-[11px] text-outline flex items-center gap-2 mt-0.5">
                       <span>Target: ${t.mins || 25}m</span>
                       <span>·</span>
-                      <span class="text-secondary">+${t.xp || 10} XP</span>
+                      <span class="text-primary">+${t.xp || 10} XP</span>
                       <span>·</span>
-                      <span class="text-stone-accent">+${t.coins || 10} ⟐</span>
+                      <span class="text-coin-amber">+${t.coins || 10} 🪙</span>
                     </div>
                   </div>
-                  <button data-task-id="${t.id}" class="launch-task-btn px-3 py-1.5 bg-primary text-surface font-bold hover:bg-stone-accent transition-all text-xs whitespace-nowrap">
+                  <button data-task-id="${t.id}" class="launch-task-btn px-3 py-1.5 bg-primary text-white font-bold hover:bg-primary-strong transition-all text-xs whitespace-nowrap rounded-xl shadow-md shadow-blue-500/20">
                     LAUNCH FOCUS ❯
                   </button>
                 </div>
@@ -984,18 +954,18 @@ function renderStandbyLauncherMode(container) {
         <!-- Right 5 Cols: Custom Task Focus Launcher & Quick Relax Trigger -->
         <div class="lg:col-span-5 flex flex-col gap-4">
           <!-- Custom Launcher Box -->
-          <form id="custom-launch-form" class="bg-surface-container-low p-4 border border-outline-variant/50 flex flex-col gap-3 text-xs shadow-sm">
-            <div class="pb-1 border-b border-outline-variant/40 text-stone-accent font-bold uppercase tracking-wider">
-              // AD-HOC FOCUS LAUNCHER
+          <form id="custom-launch-form" class="bg-surface rounded-2xl p-4 border border-outline-variant flex flex-col gap-3 text-xs shadow-card">
+            <div class="pb-1 border-b border-outline-variant/70 text-primary font-bold uppercase tracking-wider font-mono">
+              AD-HOC FOCUS LAUNCHER
             </div>
             <div>
-              <label class="block text-outline text-[11px] uppercase mb-1">Focus Mission Title</label>
-              <input id="custom-title-input" type="text" placeholder="e.g. Implement parser optimization" required class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2 text-xs font-mono text-primary focus:outline-none focus:border-stone-accent" />
+              <label class="block text-secondary text-[11px] uppercase mb-1">Focus Mission Title</label>
+              <input id="custom-title-input" type="text" placeholder="e.g. Implement parser optimization" required class="w-full bg-surface-subtle border border-outline-variant px-3 py-2 text-xs font-mono text-stone-accent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
             </div>
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-outline text-[11px] uppercase mb-1">Category</label>
-                <select id="custom-cat-select" class="w-full bg-surface-container-lowest border border-outline-variant px-2 py-1.5 text-xs font-mono text-primary focus:outline-none">
+                <label class="block text-secondary text-[11px] uppercase mb-1">Category</label>
+                <select id="custom-cat-select" class="w-full bg-surface-subtle border border-outline-variant px-2 py-1.5 text-xs font-mono text-stone-accent rounded-xl focus:outline-none">
                   <option value="code">code</option>
                   <option value="learn">learn</option>
                   <option value="health">health</option>
@@ -1004,8 +974,8 @@ function renderStandbyLauncherMode(container) {
                 </select>
               </div>
               <div>
-                <label class="block text-outline text-[11px] uppercase mb-1">Duration</label>
-                <select id="custom-mins-select" class="w-full bg-surface-container-lowest border border-outline-variant px-2 py-1.5 text-xs font-mono text-primary focus:outline-none">
+                <label class="block text-secondary text-[11px] uppercase mb-1">Duration</label>
+                <select id="custom-mins-select" class="w-full bg-surface-subtle border border-outline-variant px-2 py-1.5 text-xs font-mono text-stone-accent rounded-xl focus:outline-none">
                   <option value="15">15 mins</option>
                   <option value="25" selected>25 mins</option>
                   <option value="45">45 mins</option>
@@ -1014,24 +984,24 @@ function renderStandbyLauncherMode(container) {
                 </select>
               </div>
             </div>
-            <button type="submit" class="mt-1 w-full py-2.5 bg-primary text-surface font-bold hover:bg-stone-accent active:scale-[0.99] transition-all text-xs flex items-center justify-center gap-1.5">
+            <button type="submit" class="mt-1 w-full py-2.5 bg-primary text-white font-bold hover:bg-primary-strong transition-all text-xs flex items-center justify-center gap-1.5 rounded-xl shadow-md shadow-blue-500/20">
               <span>Launch Focus Session ⚡</span>
             </button>
           </form>
 
           <!-- Direct Relax Cooldown Trigger -->
-          <div class="bg-surface-container-low p-4 border border-outline-variant/50 flex flex-col gap-2 text-xs shadow-sm">
-            <div class="pb-1 border-b border-outline-variant/40 text-secondary font-bold uppercase tracking-wider">
-              // INSTANT COOLDOWN
+          <div class="bg-surface rounded-2xl p-4 border border-outline-variant flex flex-col gap-2 text-xs shadow-card">
+            <div class="pb-1 border-b border-outline-variant/70 text-secondary font-bold uppercase tracking-wider font-mono">
+              INSTANT COOLDOWN
             </div>
             <p class="text-outline text-[11px]">
               Need a reset before your next sprint? Launch a guilt-free Relax Daemon break.
             </p>
             <div class="flex gap-2 mt-1">
-              <button id="quick-relax-5m-btn" class="flex-1 py-2 bg-surface-container hover:bg-surface-container-high border border-outline-variant text-stone-accent font-bold text-xs transition-all">
+              <button id="quick-relax-5m-btn" class="flex-1 py-2 bg-white hover:bg-surface-subtle border border-outline-variant text-stone-accent font-bold text-xs transition-all rounded-xl">
                 ☕ 5m Coffee Break
               </button>
-              <button id="quick-relax-15m-btn" class="flex-1 py-2 bg-surface-container hover:bg-surface-container-high border border-outline-variant text-secondary font-bold text-xs transition-all">
+              <button id="quick-relax-15m-btn" class="flex-1 py-2 bg-white hover:bg-surface-subtle border border-outline-variant text-stone-accent font-bold text-xs transition-all rounded-xl">
                 🌿 15m Reset
               </button>
             </div>

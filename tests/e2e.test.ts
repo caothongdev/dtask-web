@@ -112,15 +112,19 @@ test("Full user lifecycle: register -> create tasks (time, book, slot) -> comple
   expect(pubHtml).toContain("#090a0c");
 });
 
-test("Global hotkey router handles navigation 1-5, quick add A, ? shortcuts modal, and input protection", async () => {
+test("Global hotkey router handles navigation 1-9, quick add A, ? shortcuts modal, and input protection", async () => {
   const { handleGlobalKeydown, VIEW_HOTKEYS } = await import("../public/app.js");
   expect(VIEW_HOTKEYS["1"]).toBe("tasks");
   expect(VIEW_HOTKEYS["2"]).toBe("timeline");
   expect(VIEW_HOTKEYS["3"]).toBe("focus");
   expect(VIEW_HOTKEYS["4"]).toBe("shop");
-  expect(VIEW_HOTKEYS["5"]).toBe("stats");
+  expect(VIEW_HOTKEYS["5"]).toBe("books");
+  expect(VIEW_HOTKEYS["6"]).toBe("wallet");
+  expect(VIEW_HOTKEYS["7"]).toBe("level");
+  expect(VIEW_HOTKEYS["8"]).toBe("stats");
+  expect(VIEW_HOTKEYS["9"]).toBe("profile");
 
-  // 1. Keys 1-5 navigate when no input is focused
+  // 1. Keys navigate when no input is focused
   let navigatedTo = "";
   const mockOptions = {
     onNavigate: (view: string) => { navigatedTo = view; },
@@ -133,6 +137,10 @@ test("Global hotkey router handles navigation 1-5, quick add A, ? shortcuts moda
   const event3 = { key: "3", target: { tagName: "DIV" }, preventDefault: () => {} };
   expect(handleGlobalKeydown(event3, mockOptions)).toBe(true);
   expect(navigatedTo).toBe("focus");
+
+  const event9 = { key: "9", target: { tagName: "DIV" }, preventDefault: () => {} };
+  expect(handleGlobalKeydown(event9, mockOptions)).toBe(true);
+  expect(navigatedTo).toBe("profile");
 
   // 2. Protected input fields ignore hotkeys
   navigatedTo = "";

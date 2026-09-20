@@ -1,5 +1,6 @@
 // public/js/views/tasks.js
 // Dashboard / Tasks view with Quick Add command bar, mode cards, filters, and telemetry sidebar
+// Blueprint Silicon light theme: white cards, blueprint cobalt accents, rounded-2xl shells.
 
 import { api } from "../api.js";
 import { sound } from "../audio.js";
@@ -16,10 +17,16 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
-function renderAsciiBar(pct, blocks = 10) {
-  const filled = Math.max(0, Math.min(blocks, Math.round((pct / 100) * blocks)));
-  const empty = Math.max(0, blocks - filled);
-  return "█".repeat(filled) + "░".repeat(empty);
+function renderProgressPill(pct) {
+  const safe = Math.max(0, Math.min(100, pct || 0));
+  return `
+    <div class="flex items-center gap-1.5">
+      <div class="w-14 bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+        <div class="bg-primary h-1.5 rounded-full transition-all duration-300" style="width: ${safe}%"></div>
+      </div>
+      <span class="text-[10px] font-mono text-outline">${safe}%</span>
+    </div>
+  `;
 }
 
 export function parseFlags(input) {
@@ -41,7 +48,7 @@ export function parseFlags(input) {
     title = title.replace(minsMatch[0], "");
   }
 
-  const bookMatch = title.match(/--book\s+(?:"([^"]+)"|'([^']+)'|(\S+))(?:\s+(\d+))?/);
+  const bookMatch = title.match(/--book\s+(?:\"([^\"]+)\"|'([^']+)'|(\S+))(?:\s+(\d+))?/);
   if (bookMatch) {
     book_title = bookMatch[1] || bookMatch[2] || bookMatch[3];
     if (bookMatch[4]) {
@@ -99,10 +106,11 @@ export function renderTasksView(container) {
       <section class="lg:col-span-8 xl:col-span-9 flex flex-col gap-6">
 
         <!-- 1. Quick Add Command Bar -->
-        <div class="bg-surface-container-low border border-outline-variant p-4 md:p-6 shadow-md">
-          <div class="flex items-center justify-between pb-3 mb-4 border-b border-outline-variant/60 font-mono text-xs">
+        <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 md:p-6">
+          <div class="flex items-center justify-between pb-3 mb-4 border-b border-outline-variant/70 font-mono text-xs">
             <div class="flex items-center gap-2 text-stone-accent font-bold">
-              <span>┌─[ + COMMAND // QUICK TASK CAPTURE ]</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-primary pulse-dot"></span>
+              <span>QUICK TASK CAPTURE</span>
             </div>
             <span class="text-outline text-[11px] hidden sm:inline-block">FLAGS: --at HH:MM · --mins N · --book "Title" P</span>
           </div>
@@ -113,29 +121,29 @@ export function renderTasksView(container) {
               <input
                 id="quick-add-title"
                 type="text"
-                placeholder="[+ NEW TASK] Enter title... (flags: --at 14:00 --mins 25 --book 'Title' 100)"
+                placeholder="Enter task... (flags: --at 14:00 --mins 25 --book 'Title' 100)"
                 autocomplete="off"
                 required
-                class="w-full bg-surface-container-lowest border border-outline px-3 py-2.5 text-sm font-mono text-primary placeholder-outline focus:outline-none focus:border-stone-accent"
+                class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2.5 text-sm font-mono text-stone-accent placeholder-outline rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
             </div>
 
             <!-- Row 2: Category Pills -->
             <div class="flex flex-wrap items-center gap-1.5 font-mono text-xs">
-              <span class="text-outline text-[11px] mr-1 uppercase">// CATEGORY:</span>
+              <span class="text-outline text-[11px] mr-1 uppercase">Category:</span>
               ${categories
                 .map(
                   (cat) => `
                 <button
                   type="button"
                   data-category="${cat}"
-                  class="cat-pill px-2.5 py-1 uppercase tracking-wide border ${
+                  class="cat-pill px-2.5 py-1 uppercase tracking-wide rounded-lg border ${
                     selectedCategory === cat
-                      ? "bg-primary text-surface border-primary font-bold"
-                      : "bg-surface-container border-outline-variant text-secondary hover:border-outline hover:text-primary"
+                      ? "bg-primary text-white border-primary font-bold"
+                      : "bg-white border-outline-variant text-secondary hover:border-outline hover:text-stone-accent"
                   } transition-colors"
                 >
-                  [${cat}]
+                  ${cat}
                 </button>
               `
                 )
@@ -143,30 +151,30 @@ export function renderTasksView(container) {
             </div>
 
             <!-- Row 3: Mode Toggles & Inputs -->
-            <div class="flex flex-wrap items-center gap-3 pt-2 border-t border-outline-variant/40 font-mono text-xs text-secondary">
+            <div class="flex flex-wrap items-center gap-3 pt-2 border-t border-outline-variant/60 font-mono text-xs text-secondary">
               <!-- At Time -->
-              <div class="flex items-center gap-1.5 bg-surface-container-lowest px-2 py-1 border border-outline-variant">
-                <span class="text-outline text-[11px]">// AT:</span>
+              <div class="flex items-center gap-1.5 bg-surface-subtle px-2 py-1 rounded-lg border border-outline-variant">
+                <span class="text-outline text-[11px]">AT:</span>
                 <input
                   id="quick-add-at"
                   type="text"
                   placeholder="HH:MM"
                   pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]"
                   maxlength="5"
-                  class="w-16 bg-transparent text-primary focus:outline-none font-bold placeholder-outline/60"
+                  class="w-16 bg-transparent text-stone-accent focus:outline-none font-bold placeholder-outline/60"
                 />
               </div>
 
               <!-- Target Duration (Mins) -->
-              <div class="flex items-center gap-1.5 bg-surface-container-lowest px-2 py-1 border border-outline-variant">
-                <span class="text-outline text-[11px]">// MINS:</span>
+              <div class="flex items-center gap-1.5 bg-surface-subtle px-2 py-1 rounded-lg border border-outline-variant">
+                <span class="text-outline text-[11px]">MINS:</span>
                 <input
                   id="quick-add-mins"
                   type="number"
                   min="0"
                   max="600"
                   placeholder="25"
-                  class="w-14 bg-transparent text-primary focus:outline-none font-bold placeholder-outline/60"
+                  class="w-14 bg-transparent text-stone-accent focus:outline-none font-bold placeholder-outline/60"
                 />
               </div>
 
@@ -174,11 +182,11 @@ export function renderTasksView(container) {
               <button
                 type="button"
                 id="quick-add-toggle-book"
-                class="px-2.5 py-1 border ${
-                  showBookInputs ? "bg-surface-container-high border-stone-accent text-primary font-bold" : "bg-surface-container border-outline-variant text-secondary"
+                class="px-2.5 py-1 rounded-lg border ${
+                  showBookInputs ? "bg-primary-soft border-primary text-primary font-bold" : "bg-white border-outline-variant text-secondary"
                 } hover:border-outline transition-colors"
               >
-                [--book mode]
+                --book mode
               </button>
 
               <!-- Submit Button -->
@@ -186,32 +194,32 @@ export function renderTasksView(container) {
                 <button
                   type="submit"
                   id="quick-add-btn"
-                  class="quick-add px-4 py-1.5 bg-primary text-surface font-mono text-xs font-bold hover:bg-stone-accent transition-colors flex items-center gap-1.5"
+                  class="quick-add px-4 py-1.5 bg-primary text-white font-mono text-xs font-bold hover:bg-primary-strong transition-colors rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/20"
                 >
-                  <span>[+ ADD TASK]</span>
+                  <span>+ Add Task</span>
                 </button>
               </div>
             </div>
 
             <!-- Row 4: Book Mode Extended Inputs (shown if book mode active) -->
-            <div id="quick-add-book-fields" class="${showBookInputs ? "flex" : "hidden"} flex-wrap items-center gap-3 p-2 bg-surface-container-lowest border border-outline-variant/60 font-mono text-xs">
+            <div id="quick-add-book-fields" class="${showBookInputs ? "flex" : "hidden"} flex-wrap items-center gap-3 p-2 bg-surface-subtle rounded-xl border border-outline-variant/70 font-mono text-xs">
               <div class="flex items-center gap-1.5 flex-1 min-w-[160px]">
-                <span class="text-outline text-[11px]">// BOOK TITLE:</span>
+                <span class="text-outline text-[11px]">BOOK TITLE:</span>
                 <input
                   id="quick-add-book-title"
                   type="text"
                   placeholder="Book title..."
-                  class="flex-1 bg-transparent text-primary focus:outline-none font-bold"
+                  class="flex-1 bg-transparent text-stone-accent focus:outline-none font-bold"
                 />
               </div>
               <div class="flex items-center gap-1.5">
-                <span class="text-outline text-[11px]">// TOTAL PAGES:</span>
+                <span class="text-outline text-[11px]">TOTAL PAGES:</span>
                 <input
                   id="quick-add-pages"
                   type="number"
                   min="1"
                   placeholder="250"
-                  class="w-16 bg-transparent text-primary focus:outline-none font-bold"
+                  class="w-16 bg-transparent text-stone-accent focus:outline-none font-bold"
                 />
               </div>
             </div>
@@ -219,19 +227,19 @@ export function renderTasksView(container) {
         </div>
 
         <!-- 2. Filter Row -->
-        <div class="filter-row flex flex-wrap items-center justify-between gap-3 bg-surface-container-low border border-outline-variant p-3 font-mono text-xs">
+        <div class="filter-row flex flex-wrap items-center justify-between gap-3 bg-surface rounded-2xl border border-outline-variant shadow-card p-3 font-mono text-xs">
           <!-- Status Chips -->
           <div class="flex items-center gap-1">
-            <span class="text-outline text-[11px] uppercase mr-1">// STATUS:</span>
+            <span class="text-outline text-[11px] uppercase mr-1">// Status:</span>
             ${["all", "open", "done"]
               .map(
                 (st) => `
               <button
                 data-filter-status="${st}"
-                class="filter-status-chip px-2.5 py-0.5 uppercase tracking-wide border ${
+                class="filter-status-chip px-2.5 py-0.5 uppercase tracking-wide rounded-lg border ${
                   filterStatus === st
-                    ? "bg-primary text-surface border-primary font-bold"
-                    : "bg-surface-container border-outline-variant text-secondary hover:text-primary"
+                    ? "bg-primary text-white border-primary font-bold"
+                    : "bg-white border-outline-variant text-secondary hover:text-stone-accent"
                 } transition-colors"
               >
                 ${st}
@@ -243,13 +251,13 @@ export function renderTasksView(container) {
 
           <!-- Category Chips -->
           <div class="flex flex-wrap items-center gap-1">
-            <span class="text-outline text-[11px] uppercase mr-1">// CAT:</span>
+            <span class="text-outline text-[11px] uppercase mr-1">// Cat:</span>
             <button
               data-filter-category="all"
-              class="filter-cat-chip px-2 py-0.5 uppercase border ${
+              class="filter-cat-chip px-2 py-0.5 uppercase rounded-lg border ${
                 filterCategory === "all"
-                  ? "bg-stone-accent text-surface border-stone-accent font-bold"
-                  : "bg-surface-container border-outline-variant text-secondary hover:text-primary"
+                  ? "bg-stone-accent text-white border-stone-accent font-bold"
+                  : "bg-white border-outline-variant text-secondary hover:text-stone-accent"
               } transition-colors"
             >
               all
@@ -259,10 +267,10 @@ export function renderTasksView(container) {
                 (cat) => `
               <button
                 data-filter-category="${cat}"
-                class="filter-cat-chip px-2 py-0.5 uppercase border ${
+                class="filter-cat-chip px-2 py-0.5 uppercase rounded-lg border ${
                   filterCategory === cat
-                    ? "bg-stone-accent text-surface border-stone-accent font-bold"
-                    : "bg-surface-container border-outline-variant text-secondary hover:text-primary"
+                    ? "bg-stone-accent text-white border-stone-accent font-bold"
+                    : "bg-white border-outline-variant text-secondary hover:text-stone-accent"
                 } transition-colors"
               >
                 ${cat}
@@ -273,16 +281,16 @@ export function renderTasksView(container) {
           </div>
 
           <!-- Search Filter -->
-          <div class="flex items-center gap-1 bg-surface-container-lowest px-2 py-1 border border-outline-variant w-full sm:w-48">
+          <div class="flex items-center gap-1 bg-surface-subtle px-2 py-1 rounded-lg border border-outline-variant w-full sm:w-48">
             <span class="material-symbols-outlined text-sm text-outline">search</span>
             <input
               id="tasks-search"
               type="text"
               placeholder="filter..."
               value="${escapeHtml(searchQuery)}"
-              class="w-full bg-transparent text-primary text-xs focus:outline-none placeholder-outline"
+              class="w-full bg-transparent text-stone-accent text-xs focus:outline-none placeholder-outline"
             />
-            <button id="tasks-search-clear" class="${searchQuery ? "" : "hidden"} text-outline hover:text-primary text-xs">✕</button>
+            <button id="tasks-search-clear" class="${searchQuery ? "" : "hidden"} text-outline hover:text-stone-accent text-xs">✕</button>
           </div>
         </div>
 
@@ -295,83 +303,83 @@ export function renderTasksView(container) {
       <aside class="lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
 
         <!-- Telemetry & Daily Quota Card -->
-        <div class="bg-surface-container-low border border-outline-variant p-4 md:p-5 shadow-md flex flex-col gap-4 font-mono text-xs">
-          <div class="flex items-center justify-between pb-2 border-b border-outline-variant/60">
-            <span class="text-stone-accent font-bold tracking-wider">┌─[ TELEMETRY &amp; STATS ]</span>
-            <span class="text-outline text-[11px]">[HUD v2.4]</span>
+        <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 md:p-5 flex flex-col gap-4 font-mono text-xs">
+          <div class="flex items-center justify-between pb-2 border-b border-outline-variant/70">
+            <span class="text-stone-accent font-bold tracking-wider">TELEMETRY &amp; STATS</span>
+            <span class="text-outline text-[11px]">HUD v3</span>
           </div>
 
           <!-- Stats Grid -->
           <div class="grid grid-cols-2 gap-3">
-            <div class="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col">
-              <span class="text-outline text-[11px] uppercase tracking-wider">// COMPLETED</span>
-              <span id="stat-completed" class="text-base font-bold text-primary mt-1 font-space">${doneTasks} / ${totalTasks}</span>
+            <div class="bg-surface-subtle p-3 rounded-xl border border-outline-variant flex flex-col">
+              <span class="text-outline text-[11px] uppercase tracking-wider">Completed</span>
+              <span id="stat-completed" class="text-base font-bold text-stone-accent mt-1 font-sans">${doneTasks} / ${totalTasks}</span>
               <span id="stat-eff" class="text-[10px] text-outline mt-0.5">${efficiency}% efficiency</span>
             </div>
 
-            <div class="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col">
-              <span class="text-outline text-[11px] uppercase tracking-wider">// STREAK</span>
-              <span id="stat-streak" class="text-base font-bold text-stone-accent mt-1 font-space">${streakDays} DAYS</span>
+            <div class="bg-surface-subtle p-3 rounded-xl border border-outline-variant flex flex-col">
+              <span class="text-outline text-[11px] uppercase tracking-wider">Streak</span>
+              <span id="stat-streak" class="text-base font-bold text-orange-600 mt-1 font-sans">${streakDays} DAYS</span>
               <span class="text-[10px] text-outline mt-0.5">active cadence</span>
             </div>
 
-            <div class="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col">
-              <span class="text-outline text-[11px] uppercase tracking-wider">// TOTAL XP</span>
-              <span id="stat-xp" class="text-base font-bold text-primary mt-1 font-space">${totalXp}</span>
+            <div class="bg-surface-subtle p-3 rounded-xl border border-outline-variant flex flex-col">
+              <span class="text-outline text-[11px] uppercase tracking-wider">Total XP</span>
+              <span id="stat-xp" class="text-base font-bold text-primary mt-1 font-sans">${totalXp}</span>
               <span id="stat-rank" class="text-[10px] text-secondary mt-0.5">${levelInfo.rank || "Apprentice"}</span>
             </div>
 
-            <div class="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col">
-              <span class="text-outline text-[11px] uppercase tracking-wider">// COINS</span>
-              <span id="stat-coins" class="text-base font-bold text-secondary-fixed mt-1 font-space">⟐ ${user.coins ?? 0}</span>
+            <div class="bg-coin-soft p-3 rounded-xl border border-amber-200/80 flex flex-col">
+              <span class="text-coin-amber text-[11px] uppercase tracking-wider">Coins</span>
+              <span id="stat-coins" class="text-base font-bold text-coin-amber mt-1 font-sans">🪙 ${user.coins ?? 0}</span>
               <span class="text-[10px] text-outline mt-0.5">wallet balance</span>
             </div>
           </div>
 
-          <!-- Segmented XP Level Progress -->
-          <div class="bg-surface-container-lowest p-3 border border-outline-variant flex flex-col gap-1.5">
+          <!-- XP Level Progress -->
+          <div class="bg-surface-subtle p-3 rounded-xl border border-outline-variant flex flex-col gap-1.5">
             <div class="flex justify-between items-center text-[11px]">
               <span id="stat-lvl-rank" class="text-secondary font-bold">[LVL ${levelInfo.level}] ${levelInfo.rank}</span>
               <span id="stat-lvl-prog" class="text-outline">${levelInfo.prog_xp || 0} / ${levelInfo.needed_xp || 100} XP (${levelInfo.pct || 0}%)</span>
             </div>
-            <div class="w-full bg-surface-container h-2 border border-outline-variant overflow-hidden">
-              <div id="stat-lvl-bar" class="bg-stone-accent h-full transition-all duration-300" style="width: ${levelInfo.pct || 0}%"></div>
+            <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+              <div id="stat-lvl-bar" class="bg-primary h-full rounded-full transition-all duration-300" style="width: ${levelInfo.pct || 0}%"></div>
             </div>
           </div>
         </div>
 
         <!-- Quick Focus Logger -->
-        <div class="bg-surface-container-low border border-outline-variant p-4 md:p-5 shadow-md flex flex-col gap-3 font-mono text-xs">
-          <div class="flex items-center justify-between pb-2 border-b border-outline-variant/60">
-            <span class="text-stone-accent font-bold tracking-wider">┌─[ QUICK FOCUS LOG ]</span>
-            <span class="text-outline text-[11px]">+0.5 ⟐/min</span>
+        <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 md:p-5 flex flex-col gap-3 font-mono text-xs">
+          <div class="flex items-center justify-between pb-2 border-b border-outline-variant/70">
+            <span class="text-stone-accent font-bold tracking-wider">QUICK FOCUS LOG</span>
+            <span class="text-outline text-[11px]">+0.5 🪙/min</span>
           </div>
           <p class="text-secondary text-[11px] leading-relaxed">
             Record completed offline work block without running live timer:
           </p>
           <div class="grid grid-cols-2 gap-2 mt-1">
-            <button data-quick-focus="15" class="quick-focus-btn px-3 py-2 bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-outline text-primary font-bold text-center transition-colors">
+            <button data-quick-focus="15" class="quick-focus-btn px-3 py-2 bg-white hover:bg-primary-soft border border-outline-variant hover:border-primary text-stone-accent font-bold text-center rounded-xl transition-colors">
               +15 MINS
             </button>
-            <button data-quick-focus="25" class="quick-focus-btn px-3 py-2 bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-outline text-primary font-bold text-center transition-colors">
+            <button data-quick-focus="25" class="quick-focus-btn px-3 py-2 bg-white hover:bg-primary-soft border border-outline-variant hover:border-primary text-stone-accent font-bold text-center rounded-xl transition-colors">
               +25 MINS
             </button>
-            <button data-quick-focus="45" class="quick-focus-btn px-3 py-2 bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-outline text-primary font-bold text-center transition-colors">
+            <button data-quick-focus="45" class="quick-focus-btn px-3 py-2 bg-white hover:bg-primary-soft border border-outline-variant hover:border-primary text-stone-accent font-bold text-center rounded-xl transition-colors">
               +45 MINS
             </button>
-            <button data-quick-focus="60" class="quick-focus-btn px-3 py-2 bg-surface-container hover:bg-surface-container-high border border-outline-variant hover:border-outline text-primary font-bold text-center transition-colors">
+            <button data-quick-focus="60" class="quick-focus-btn px-3 py-2 bg-white hover:bg-primary-soft border border-outline-variant hover:border-primary text-stone-accent font-bold text-center rounded-xl transition-colors">
               +60 MINS
             </button>
           </div>
         </div>
 
         <!-- Hotkey Reference Card -->
-        <div class="bg-surface-container-low border border-outline-variant p-4 font-mono text-[11px] text-outline flex flex-col gap-2">
-          <span class="text-secondary font-bold uppercase tracking-wider">// HOTKEYS &amp; SYSTEM HINTS</span>
-          <div class="flex justify-between"><span>[1] - [5]</span><span class="text-primary">Switch Navigation Views</span></div>
-          <div class="flex justify-between"><span>[A]</span><span class="text-primary">Focus Quick Add Title</span></div>
-          <div class="flex justify-between"><span>[Space]</span><span class="text-primary">Pause / Resume Focus</span></div>
-          <div class="flex justify-between"><span>[Esc]</span><span class="text-primary">Close Modals / Cancel</span></div>
+        <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 font-mono text-[11px] text-outline flex flex-col gap-2">
+          <span class="text-secondary font-bold uppercase tracking-wider">HOTKEYS &amp; HINTS</span>
+          <div class="flex justify-between"><span>[1]-[9]</span><span class="text-stone-accent font-semibold">Switch views</span></div>
+          <div class="flex justify-between"><span>[A]</span><span class="text-stone-accent font-semibold">Quick add task</span></div>
+          <div class="flex justify-between"><span>[Space]</span><span class="text-stone-accent font-semibold">Pause / resume focus</span></div>
+          <div class="flex justify-between"><span>[Esc]</span><span class="text-stone-accent font-semibold">Close modals</span></div>
         </div>
 
       </aside>
@@ -411,9 +419,10 @@ function updateTasksListOnly(container) {
 
   if (filteredTasks.length === 0) {
     listContainer.innerHTML = `
-      <div class="p-8 border border-outline-variant bg-surface-container-low text-center font-mono text-secondary">
-        <p class="text-sm font-space text-primary mb-1">┌─[ NO TASKS FOUND ]────────────────────────┐</p>
-        <p class="text-xs text-outline">No tasks match current filter parameters. Press <kbd class="px-1.5 py-0.5 bg-surface-container border border-outline-variant text-primary font-bold">A</kbd> or use command bar above.</p>
+      <div class="p-10 bg-surface border-2 border-dashed border-outline-variant rounded-3xl text-center max-w-lg mx-auto font-sans">
+        <div class="w-14 h-14 mx-auto mb-3 bg-primary-soft text-primary rounded-2xl flex items-center justify-center text-2xl">✨</div>
+        <p class="text-base font-bold text-stone-accent mb-1">No tasks found</p>
+        <p class="text-xs text-outline">Nothing matches the current filters. Press <kbd class="px-1.5 py-0.5 bg-surface-subtle border border-outline-variant rounded font-mono text-stone-accent font-bold">A</kbd> or add one above.</p>
       </div>
     `;
   } else {
@@ -436,7 +445,7 @@ function updateTasksListOnly(container) {
   if (streakEl) streakEl.textContent = `${streakDays} DAYS`;
   if (xpEl) xpEl.textContent = String(totalXp);
   if (rankEl) rankEl.textContent = levelInfo.rank || "Apprentice";
-  if (coinsEl) coinsEl.textContent = `⟐ ${user.coins ?? 0}`;
+  if (coinsEl) coinsEl.textContent = `🪙 ${user.coins ?? 0}`;
   if (lvlRankEl) lvlRankEl.textContent = `[LVL ${levelInfo.level}] ${levelInfo.rank}`;
   if (lvlProgEl) lvlProgEl.textContent = `${levelInfo.prog_xp || 0} / ${levelInfo.needed_xp || 100} XP (${levelInfo.pct || 0}%)`;
   if (lvlBarEl) lvlBarEl.style.width = `${levelInfo.pct || 0}%`;
@@ -463,19 +472,19 @@ function renderTaskGroups(tasks) {
       const totalCount = items.length;
 
       return `
-      <div class="task-category-group flex flex-col gap-3">
+      <div class="task-category-group bg-surface rounded-2xl border border-outline-variant shadow-card overflow-hidden">
         <!-- Category Section Header -->
-        <div class="flex items-center justify-between text-xs font-mono text-outline border-b border-outline-variant/60 pb-1 pt-2">
-          <span class="text-stone-accent font-bold tracking-wider font-space text-sm">
-            ┌─[ ${category.toUpperCase()} ]─────────────────────────────────────────
-          </span>
-          <span class="text-secondary font-code-stat shrink-0 ml-2">
-            ${doneCount}/${totalCount} DONE
-          </span>
+        <div class="px-5 py-3.5 bg-surface-subtle/70 border-b border-outline-variant flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+            <h3 class="font-bold text-stone-accent text-sm tracking-tight font-sans">${escapeHtml(category.toUpperCase())}</h3>
+            <span class="text-[11px] font-mono text-outline">(${doneCount}/${totalCount} done)</span>
+          </div>
+          <span class="text-[11px] font-mono text-outline hidden sm:inline">category group</span>
         </div>
 
         <!-- Cards List -->
-        <div class="flex flex-col gap-2">
+        <div class="divide-y divide-outline-variant/60">
           ${items.map((task) => renderTaskCard(task)).join("")}
         </div>
       </div>
@@ -490,17 +499,23 @@ function renderTaskCard(task) {
   const isBook = Number(task.pages) > 0 || !!task.book_title;
 
   // Mode badge
-  let modeBadge = `<span class="px-1.5 py-0.2 text-[10px] font-mono border border-outline-variant bg-surface-container text-outline">[✓ CHECK]</span>`;
+  let modeBadge = `<span class="px-1.5 py-0.5 text-[10px] font-mono rounded-md border border-outline-variant bg-surface-subtle text-outline">✓ CHECK</span>`;
   if (isTime) {
-    modeBadge = `<span class="px-1.5 py-0.2 text-[10px] font-mono border border-outline text-secondary bg-surface-container font-bold">[⏱ TIME ${task.mins}m]</span>`;
+    modeBadge = `<span class="px-1.5 py-0.5 text-[10px] font-mono rounded-md border border-blue-200 bg-primary-soft text-primary font-bold">⏱ TIME ${task.mins}m</span>`;
   } else if (isBook) {
-    modeBadge = `<span class="px-1.5 py-0.2 text-[10px] font-mono border border-outline text-stone-accent bg-surface-container font-bold">[📖 BOOK]</span>`;
+    modeBadge = `<span class="px-1.5 py-0.5 text-[10px] font-mono rounded-md border border-violet-200 bg-badge-violet text-badge-violet-text font-bold">📖 BOOK</span>`;
   }
 
   // Scheduled slot badge
   const atBadge = task.at
-    ? `<span class="px-1.5 py-0.2 text-[10px] font-mono border border-outline-variant bg-surface-container-lowest text-stone-accent">@ ${escapeHtml(task.at)}</span>`
+    ? `<span class="px-1.5 py-0.5 text-[10px] font-mono rounded-md border border-outline-variant bg-surface-subtle text-stone-soft">@ ${escapeHtml(task.at)}</span>`
     : "";
+
+  // XP & Coin award badges
+  const awardBadges = `
+    <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-primary-soft text-primary border border-blue-100">+${task.xp || 10} XP</span>
+    <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-coin-soft text-coin-amber border border-amber-100">+${task.coins || 10} 🪙</span>
+  `;
 
   // Progress metrics & visual bar
   let progressSection = "";
@@ -508,22 +523,20 @@ function renderTaskCard(task) {
     const spentMins = Math.floor((task.time_spent || 0) / 60);
     const targetMins = task.mins || 25;
     const pct = isDone ? 100 : Math.min(100, Math.round((spentMins / targetMins) * 100));
-    const bar = renderAsciiBar(pct, 10);
     progressSection = `
       <div class="flex items-center gap-2 text-[11px] font-mono text-outline shrink-0 mt-1 sm:mt-0">
-        <span class="text-primary font-mono select-none">${bar}</span>
-        <span class="text-secondary">${spentMins}m / ${targetMins}m (${pct}%)</span>
+        ${renderProgressPill(pct)}
+        <span class="text-secondary">${spentMins}m / ${targetMins}m</span>
       </div>
     `;
   } else if (isBook) {
     const curPage = task.page || 0;
     const totPages = task.pages || 0;
     const pct = isDone ? 100 : totPages > 0 ? Math.min(100, Math.round((curPage / totPages) * 100)) : 0;
-    const bar = renderAsciiBar(pct, 10);
     progressSection = `
       <div class="flex items-center gap-2 text-[11px] font-mono text-outline shrink-0 mt-1 sm:mt-0">
-        <span class="text-primary font-mono select-none">${bar}</span>
-        <span class="text-secondary">p${curPage}/${totPages} (${pct}%)</span>
+        ${renderProgressPill(pct)}
+        <span class="text-secondary">p${curPage}/${totPages}</span>
       </div>
     `;
   }
@@ -535,9 +548,9 @@ function renderTaskCard(task) {
       <button
         data-action="focus"
         data-task-id="${task.id}"
-        class="task-focus-btn px-2.5 py-1 bg-surface-container-high hover:bg-stone-accent hover:text-surface border border-outline text-primary font-mono text-xs font-bold transition-colors whitespace-nowrap"
+        class="task-focus-btn px-2.5 py-1 bg-primary hover:bg-primary-strong text-white font-mono text-xs font-bold transition-colors rounded-xl whitespace-nowrap shadow-sm shadow-blue-500/20"
       >
-        [▶ START FOCUS]
+        ▶ START FOCUS
       </button>
     `;
   } else if (isBook) {
@@ -546,7 +559,7 @@ function renderTaskCard(task) {
         <button
           data-action="page-prev"
           data-task-id="${task.id}"
-          class="task-page-prev-btn px-1.5 py-1 bg-surface-container hover:bg-surface-container-high border border-outline-variant text-secondary hover:text-primary font-mono text-xs transition-colors"
+          class="task-page-prev-btn px-1.5 py-1 bg-white hover:bg-surface-subtle border border-outline-variant text-secondary hover:text-stone-accent font-mono text-xs rounded-lg transition-colors"
           title="Step -1 Page"
         >
           -1
@@ -554,7 +567,7 @@ function renderTaskCard(task) {
         <button
           data-action="page-next"
           data-task-id="${task.id}"
-          class="task-page-next-btn px-1.5 py-1 bg-surface-container hover:bg-surface-container-high border border-outline-variant text-secondary hover:text-primary font-mono text-xs transition-colors"
+          class="task-page-next-btn px-1.5 py-1 bg-white hover:bg-surface-subtle border border-outline-variant text-secondary hover:text-stone-accent font-mono text-xs rounded-lg transition-colors"
           title="Step +1 Page"
         >
           +1
@@ -562,9 +575,9 @@ function renderTaskCard(task) {
         <button
           data-action="read"
           data-task-id="${task.id}"
-          class="task-read-btn px-2.5 py-1 bg-surface-container-high hover:bg-stone-accent hover:text-surface border border-outline text-primary font-mono text-xs font-bold transition-colors whitespace-nowrap"
+          class="task-read-btn px-2.5 py-1 bg-primary-soft hover:bg-blue-100 text-primary border border-blue-200 font-mono text-xs font-bold rounded-xl transition-colors whitespace-nowrap"
         >
-          [📖 READ]
+          📖 READ
         </button>
       </div>
     `;
@@ -572,23 +585,25 @@ function renderTaskCard(task) {
 
   return `
     <div
-      class="task-card p-3 md:p-4 bg-surface-container-low border ${
-        isDone ? "border-outline-variant/30 opacity-70" : "border-outline-variant hover:border-outline"
-      } transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm"
+      class="task-card p-4 hover:bg-surface-subtle/50 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+        isDone ? "bg-surface-subtle/40 opacity-75" : "bg-surface"
+      }"
       data-task-id="${task.id}"
     >
       <!-- Left: Checkbox, Badges, Title -->
       <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-        <!-- Industrial Square Checkbox -->
+        <!-- Reversible Done Toggle Checkbox -->
         <button
           data-action="toggle-done"
           data-task-id="${task.id}"
-          class="task-checkbox-btn shrink-0 w-5 h-5 mt-0.5 sm:mt-0 border ${
-            isDone ? "border-primary bg-stone-accent text-surface" : "border-outline bg-surface-container-lowest hover:border-primary"
-          } flex items-center justify-center font-mono font-bold text-xs transition-colors"
+          class="task-checkbox-btn shrink-0 w-6 h-6 rounded-lg border flex items-center justify-center transition ${
+            isDone
+              ? "bg-emerald-500 border-emerald-600 text-white shadow-sm"
+              : "border-slate-300 hover:border-primary bg-white text-transparent"
+          }"
           title="${isDone ? "Mark Open" : "Mark Done"}"
         >
-          ${isDone ? "✓" : ""}
+          ${isDone ? `<svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>` : ""}
         </button>
 
         <div class="flex flex-col gap-1 min-w-0 flex-1">
@@ -602,11 +617,14 @@ function renderTaskCard(task) {
                 : ""
             }
           </div>
-          <span class="task-title font-geist text-sm ${
-            isDone ? "line-through text-outline" : "text-primary font-medium"
-          } truncate">
-            ${escapeHtml(task.title)}
-          </span>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="task-title font-geist text-sm ${
+              isDone ? "line-through text-outline" : "text-stone-accent font-semibold"
+            }">
+              ${escapeHtml(task.title)}
+            </span>
+            ${awardBadges}
+          </div>
         </div>
       </div>
 
@@ -619,21 +637,17 @@ function renderTaskCard(task) {
         <button
           data-action="edit"
           data-task-id="${task.id}"
-          class="task-edit-btn px-2 py-1 border border-outline-variant/50 hover:border-primary text-outline hover:text-primary font-mono text-xs transition-colors"
+          class="task-edit-btn px-2 py-1 border border-outline-variant hover:border-primary text-outline hover:text-primary font-mono text-xs rounded-lg transition-colors"
           title="Edit Task"
-        >
-          [EDIT]
-        </button>
+        >EDIT</button>
 
         <!-- Delete Button -->
         <button
           data-action="delete"
           data-task-id="${task.id}"
-          class="task-del-btn px-2 py-1 border border-outline-variant/50 hover:border-red-400 text-outline hover:text-red-400 font-mono text-xs transition-colors"
+          class="task-del-btn px-2 py-1 border border-outline-variant hover:border-danger hover:bg-danger-soft text-outline hover:text-danger font-mono text-xs rounded-lg transition-colors"
           title="Delete Task"
-        >
-          [DEL]
-        </button>
+        >DEL</button>
       </div>
     </div>
   `;
@@ -644,50 +658,50 @@ export function openEditTaskModal(task, onUpdate) {
 
   const overlay = document.createElement("div");
   overlay.id = "edit-task-modal-overlay";
-  overlay.className = "fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-container-lowest/90 backdrop-blur-sm";
+  overlay.className = "fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm";
 
   const modal = document.createElement("div");
-  modal.className = "w-full max-w-lg bg-surface border border-outline p-6 shadow-2xl font-mono text-xs text-primary flex flex-col gap-4";
+  modal.className = "w-full max-w-lg bg-surface rounded-3xl border border-outline-variant p-6 shadow-2xl font-mono text-xs text-stone-accent flex flex-col gap-4";
 
   modal.innerHTML = `
-    <div class="flex items-center justify-between pb-2 border-b border-outline-variant">
-      <span class="text-stone-accent font-bold text-sm font-space">┌─[ EDIT TASK #${task.id} ]</span>
-      <button id="edit-modal-close" class="text-secondary hover:text-primary font-bold">✕</button>
+    <div class="flex items-center justify-between pb-3 border-b border-outline-variant">
+      <span class="text-stone-accent font-bold text-sm font-sans">Edit Task #${task.id}</span>
+      <button id="edit-modal-close" class="text-outline hover:text-stone-accent font-bold text-lg leading-none">✕</button>
     </div>
     <form id="edit-task-form" class="flex flex-col gap-3">
       <div>
-        <label class="block text-outline text-[11px] mb-1">// TITLE:</label>
-        <input id="edit-task-title" type="text" value="${escapeHtml(task.title)}" required class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-primary focus:outline-none focus:border-stone-accent" />
+        <label class="block text-secondary font-semibold mb-1">Task Title</label>
+        <input id="edit-task-title" type="text" value="${escapeHtml(task.title)}" required class="w-full bg-surface-subtle border border-outline-variant px-3 py-2 text-stone-accent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="block text-outline text-[11px] mb-1">// CATEGORY:</label>
-          <select id="edit-task-category" class="w-full bg-surface-container-lowest border border-outline px-2 py-2 text-primary focus:outline-none">
+          <label class="block text-secondary font-semibold mb-1">Category</label>
+          <select id="edit-task-category" class="w-full bg-surface-subtle border border-outline-variant px-2 py-2 text-stone-accent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30">
             ${["code", "learn", "health", "read", "build"].map(c => `<option value="${c}" ${task.category === c ? "selected" : ""}>${c.toUpperCase()}</option>`).join("")}
           </select>
         </div>
         <div>
-          <label class="block text-outline text-[11px] mb-1">// AT (HH:MM):</label>
-          <input id="edit-task-at" type="text" placeholder="09:00" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" maxlength="5" value="${escapeHtml(task.at || "")}" class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-primary focus:outline-none focus:border-stone-accent" />
+          <label class="block text-secondary font-semibold mb-1">At (HH:MM)</label>
+          <input id="edit-task-at" type="text" placeholder="09:00" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" maxlength="5" value="${escapeHtml(task.at || "")}" class="w-full bg-surface-subtle border border-outline-variant px-3 py-2 text-stone-accent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
         </div>
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="block text-outline text-[11px] mb-1">// TARGET MINS:</label>
-          <input id="edit-task-mins" type="number" min="0" max="600" value="${task.mins || 0}" class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-primary focus:outline-none focus:border-stone-accent" />
+          <label class="block text-secondary font-semibold mb-1">Target Mins</label>
+          <input id="edit-task-mins" type="number" min="0" max="600" value="${task.mins || 0}" class="w-full bg-surface-subtle border border-outline-variant px-3 py-2 text-stone-accent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
         </div>
         <div>
-          <label class="block text-outline text-[11px] mb-1">// TOTAL PAGES:</label>
-          <input id="edit-task-pages" type="number" min="0" value="${task.pages || 0}" class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-primary focus:outline-none focus:border-stone-accent" />
+          <label class="block text-secondary font-semibold mb-1">Total Pages</label>
+          <input id="edit-task-pages" type="number" min="0" value="${task.pages || 0}" class="w-full bg-surface-subtle border border-outline-variant px-3 py-2 text-stone-accent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
         </div>
       </div>
       <div>
-        <label class="block text-outline text-[11px] mb-1">// BOOK TITLE:</label>
-        <input id="edit-task-book-title" type="text" value="${escapeHtml(task.book_title || "")}" placeholder="Optional book title..." class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-primary focus:outline-none focus:border-stone-accent" />
+        <label class="block text-secondary font-semibold mb-1">Book Title</label>
+        <input id="edit-task-book-title" type="text" value="${escapeHtml(task.book_title || "")}" placeholder="Optional book title..." class="w-full bg-surface-subtle border border-outline-variant px-3 py-2 text-stone-accent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
       </div>
       <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant">
-        <button type="button" id="edit-modal-cancel" class="px-4 py-1.5 border border-outline-variant hover:border-outline text-secondary hover:text-primary">Cancel</button>
-        <button type="submit" class="px-4 py-1.5 bg-primary text-surface font-bold hover:bg-stone-accent">[SAVE CHANGES]</button>
+        <button type="button" id="edit-modal-cancel" class="px-4 py-2 border border-outline-variant hover:border-outline text-secondary hover:text-stone-accent rounded-xl">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-primary text-white font-bold hover:bg-primary-strong rounded-xl shadow-md shadow-blue-500/20">Save Changes</button>
       </div>
     </form>
   `;
@@ -738,9 +752,9 @@ function bindViewEvents(container) {
       selectedCategory = btn.getAttribute("data-category") || "code";
       container.querySelectorAll(".cat-pill").forEach((b) => {
         if (b.getAttribute("data-category") === selectedCategory) {
-          b.className = "cat-pill px-2.5 py-1 uppercase tracking-wide border bg-primary text-surface border-primary font-bold transition-colors";
+          b.className = "cat-pill px-2.5 py-1 uppercase tracking-wide rounded-lg border bg-primary text-white border-primary font-bold transition-colors";
         } else {
-          b.className = "cat-pill px-2.5 py-1 uppercase tracking-wide border bg-surface-container border-outline-variant text-secondary hover:border-outline hover:text-primary transition-colors";
+          b.className = "cat-pill px-2.5 py-1 uppercase tracking-wide rounded-lg border bg-white border-outline-variant text-secondary hover:border-outline hover:text-stone-accent transition-colors";
         }
       });
     });
@@ -754,11 +768,11 @@ function bindViewEvents(container) {
     if (showBookInputs) {
       bookFields?.classList.remove("hidden");
       bookFields?.classList.add("flex");
-      bookToggleBtn.className = "px-2.5 py-1 border bg-surface-container-high border-stone-accent text-primary font-bold hover:border-outline transition-colors";
+      bookToggleBtn.className = "px-2.5 py-1 rounded-lg border bg-primary-soft border-primary text-primary font-bold hover:border-outline transition-colors";
     } else {
       bookFields?.classList.add("hidden");
       bookFields?.classList.remove("flex");
-      bookToggleBtn.className = "px-2.5 py-1 border bg-surface-container border-outline-variant text-secondary hover:border-outline transition-colors";
+      bookToggleBtn.className = "px-2.5 py-1 rounded-lg border bg-white border-outline-variant text-secondary hover:border-outline transition-colors";
     }
   });
 
@@ -840,9 +854,9 @@ function bindViewEvents(container) {
       container.querySelectorAll(".filter-status-chip").forEach((b) => {
         const st = b.getAttribute("data-filter-status");
         if (st === filterStatus) {
-          b.className = "filter-status-chip px-2.5 py-0.5 uppercase tracking-wide border bg-primary text-surface border-primary font-bold transition-colors";
+          b.className = "filter-status-chip px-2.5 py-0.5 uppercase tracking-wide rounded-lg border bg-primary text-white border-primary font-bold transition-colors";
         } else {
-          b.className = "filter-status-chip px-2.5 py-0.5 uppercase tracking-wide border bg-surface-container border-outline-variant text-secondary hover:text-primary transition-colors";
+          b.className = "filter-status-chip px-2.5 py-0.5 uppercase tracking-wide rounded-lg border bg-white border-outline-variant text-secondary hover:text-stone-accent transition-colors";
         }
       });
       updateTasksListOnly(container);
@@ -856,9 +870,9 @@ function bindViewEvents(container) {
       container.querySelectorAll(".filter-cat-chip").forEach((b) => {
         const cat = b.getAttribute("data-filter-category");
         if (cat === filterCategory) {
-          b.className = "filter-cat-chip px-2 py-0.5 uppercase border bg-stone-accent text-surface border-stone-accent font-bold transition-colors";
+          b.className = "filter-cat-chip px-2 py-0.5 uppercase rounded-lg border bg-stone-accent text-white border-stone-accent font-bold transition-colors";
         } else {
-          b.className = "filter-cat-chip px-2 py-0.5 uppercase border bg-surface-container border-outline-variant text-secondary hover:text-primary transition-colors";
+          b.className = "filter-cat-chip px-2 py-0.5 uppercase rounded-lg border bg-white border-outline-variant text-secondary hover:text-stone-accent transition-colors";
         }
       });
       updateTasksListOnly(container);
@@ -944,7 +958,7 @@ function bindViewEvents(container) {
           if (task.pages > 0 && newPage >= task.pages && task.status !== "done") {
             await api.markDone(task.id);
             sound.playComplete();
-            store.showToast(`Completed book: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} ⟐)`, "success");
+            store.showToast(`Completed book: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} 🪙)`, "success");
             await store.refreshUserAndStats();
           }
           await store.refreshTasks();
@@ -965,7 +979,7 @@ function bindViewEvents(container) {
         await api.logFocus(mins);
         sound.playComplete();
         const coinsEarned = Math.floor(mins / 2);
-        store.showToast(`Logged ${mins}m focus session (+${mins} XP, +${coinsEarned} ⟐)`, "success");
+        store.showToast(`Logged ${mins}m focus session (+${mins} XP, +${coinsEarned} 🪙)`, "success");
         await store.refreshUserAndStats();
         updateTasksListOnly(container);
       } catch (err) {

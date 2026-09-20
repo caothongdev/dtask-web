@@ -86,12 +86,12 @@ test("Timeline view script includes 24h timeline grid, NOW marker, and interacti
   expect(content).toContain("CORE DEEP FOCUS");
 
   // Active Slot & NOW Marker
-  expect(content).toContain("NOW EXEC");
+  expect(content).toContain("● NOW");
   expect(content).toContain("► NOW");
 
   // Quick Schedule Modal & Unscheduled Drawer
   expect(content).toContain("openQuickScheduleModal");
-  expect(content).toContain("UNPINNED DAEMON POOL");
+  expect(content).toContain("UNPINNED FLEX QUEUE");
   expect(content).toContain("START FOCUS");
 });
 

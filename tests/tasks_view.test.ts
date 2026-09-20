@@ -56,10 +56,12 @@ test("Tasks view implements required command bar, filters, mode cards, and telem
   expect(content).toContain("openReaderModal");
   expect(content).toContain("task-checkbox-btn");
   expect(content).toContain("toggleTaskDone");
-  expect(content).toContain("[DEL]");
+  expect(content).toContain("task-del-btn");
+  expect(content).toContain(">DEL<");
 
   // Task Edit action & in-place list update
-  expect(content).toContain("[EDIT]");
+  expect(content).toContain("task-edit-btn");
+  expect(content).toContain(">EDIT<");
   expect(content).toContain("openEditTaskModal");
   expect(content).toContain("updateTasksListOnly");
 

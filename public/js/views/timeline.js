@@ -1,5 +1,6 @@
 // public/js/views/timeline.js
-// Daily Timeline view with 24h grid, mini ASCII calendar matrix, allocation gauges, and real-time NOW marker
+// Daily Timeline view with 24h grid, mini calendar matrix, allocation gauges, and real-time NOW marker
+// Blueprint Silicon light theme: white cards, cobalt accents, rounded shells, soft shadows.
 
 import { api } from "../api.js";
 import { sound } from "../audio.js";
@@ -186,12 +187,6 @@ export function renderTimelineView(container) {
   const dayName = dayOfWeekNames[viewingDate.getDay()];
   const monthNamesShort = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
   const dateFormatted = `${dayName} ${String(day).padStart(2, "0")} ${monthNamesShort[month]}`;
-  const epochSecs = Math.floor(viewingDate.getTime() / 1000);
-
-  // Week number
-  const startOfYear = new Date(year, 0, 1);
-  const pastDays = Math.floor((viewingDate.getTime() - startOfYear.getTime()) / 86400000);
-  const weekNum = Math.ceil((pastDays + startOfYear.getDay() + 1) / 7);
 
   const calMatrix = generateCalendarMatrix(year, month, currentDateOffset === 0 ? day : day);
   const tasks = store.state.tasks || [];
@@ -248,55 +243,55 @@ export function renderTimelineView(container) {
       <aside class="col-span-12 lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
 
         <!-- 1. Mini Calendar Matrix Panel -->
-        <div class="bg-surface-container-low border border-outline-variant p-4 shadow-md flex flex-col gap-4">
+        <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 flex flex-col gap-4">
           <div class="flex items-center justify-between font-mono text-xs">
-            <span class="text-stone-accent font-bold flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[15px]">calendar_month</span>
-              // CALENDAR.MATRIX
+            <span class="text-primary font-bold flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px]">calendar_month</span>
+              CALENDAR
             </span>
-            <span class="px-2 py-0.5 bg-surface-container text-outline text-[11px] border border-outline-variant">
-              WK ${weekNum} // D${pastDays + 1}
+            <span class="px-2 py-0.5 rounded-md bg-surface-subtle text-outline text-[11px] border border-outline-variant">
+              WK ${Math.ceil((((viewingDate.getTime() - new Date(year, 0, 1).getTime()) / 86400000) + new Date(year, 0, 1).getDay() + 1) / 7)}
             </span>
           </div>
 
-          <div class="flex items-baseline justify-between border-b border-outline-variant/60 pb-3">
+          <div class="flex items-baseline justify-between border-b border-outline-variant/70 pb-3">
             <div>
-              <div class="font-space text-base md:text-lg text-primary font-bold tracking-tight">
+              <div class="font-sans text-base md:text-lg text-stone-accent font-extrabold tracking-tight">
                 ${dateFormatted}
               </div>
               <div class="font-mono text-[11px] text-outline">
-                EPOCH: ${epochSecs} // ${currentDateOffset === 0 ? "LIVE_TODAY" : currentDateOffset < 0 ? "PAST_OFFSET" : "FUTURE_OFFSET"}
+                ${currentDateOffset === 0 ? "LIVE · TODAY" : currentDateOffset < 0 ? "PAST DATE" : "FUTURE DATE"}
               </div>
             </div>
 
             <div class="flex items-center gap-1 font-mono text-xs text-secondary">
-              <button id="cal-prev-btn" class="px-2 py-0.5 bg-surface-container hover:bg-surface-container-high hover:text-primary transition-colors border border-outline-variant" title="Previous Day">◀</button>
-              <button id="cal-today-btn" class="px-2 py-0.5 bg-surface-container-high text-primary font-bold border border-outline hover:border-primary transition-colors">
+              <button id="cal-prev-btn" class="px-2 py-0.5 rounded-lg bg-white hover:bg-surface-subtle hover:text-stone-accent transition-colors border border-outline-variant" title="Previous Day">◀</button>
+              <button id="cal-today-btn" class="px-2 py-0.5 rounded-lg bg-primary text-white font-bold border border-primary hover:bg-primary-strong transition-colors">
                 ${currentDateOffset === 0 ? "TODAY" : "◀ TODAY ▶"}
               </button>
-              <button id="cal-next-btn" class="px-2 py-0.5 bg-surface-container hover:bg-surface-container-high hover:text-primary transition-colors border border-outline-variant" title="Next Day">▶</button>
+              <button id="cal-next-btn" class="px-2 py-0.5 rounded-lg bg-white hover:bg-surface-subtle hover:text-stone-accent transition-colors border border-outline-variant" title="Next Day">▶</button>
             </div>
           </div>
 
-          <!-- ASCII Calendar Grid -->
-          <div class="bg-surface-container-lowest p-3 border border-outline-variant font-mono text-xs select-none">
-            <div class="grid grid-cols-7 gap-1 text-center font-bold text-outline text-[11px] pb-2 border-b border-outline-variant/40 mb-1.5">
+          <!-- Calendar Grid -->
+          <div class="bg-surface-container-lowest p-3 rounded-xl border border-outline-variant font-mono text-xs select-none">
+            <div class="grid grid-cols-7 gap-1 text-center font-bold text-outline text-[11px] pb-2 border-b border-outline-variant/60 mb-1.5">
               <span>SU</span><span>MO</span><span>TU</span><span>WE</span><span>TH</span><span>FR</span><span>SA</span>
             </div>
             <div class="grid grid-cols-7 gap-1 text-center text-xs">
               ${calMatrix.days
                 .map((d) => {
-                  let classes = "py-1 transition-colors ";
+                  let classes = "py-1 rounded-md transition-colors ";
                   if (!d.isCurrentMonth) {
                     classes += "text-outline-variant opacity-40 ";
                   } else if (d.isSelected && currentDateOffset === 0) {
-                    classes += "bg-primary text-surface font-bold shadow-sm ";
+                    classes += "bg-primary text-white font-bold shadow-sm ";
                   } else if (d.isSelected) {
-                    classes += "bg-surface-container-highest text-stone-accent font-bold border border-stone-accent ";
+                    classes += "bg-surface-container-high text-stone-accent font-bold border border-outline ";
                   } else if (d.isToday) {
-                    classes += "text-stone-accent border border-outline-variant ";
+                    classes += "text-primary border border-blue-200 bg-primary-soft ";
                   } else {
-                    classes += "text-secondary hover:text-primary hover:bg-surface-container ";
+                    classes += "text-secondary hover:text-stone-accent hover:bg-surface-subtle ";
                   }
                   return `<span class="${classes}">${String(d.day).padStart(2, "0")}</span>`;
                 })
@@ -306,22 +301,22 @@ export function renderTimelineView(container) {
         </div>
 
         <!-- 2. Category Counters & Quick Filter -->
-        <div class="bg-surface-container-low border border-outline-variant p-4 shadow-md flex flex-col gap-3 font-mono text-xs">
-          <div class="flex items-center justify-between pb-2 border-b border-outline-variant/60">
-            <span class="text-stone-accent font-bold">// CATEGORY ALLOCATIONS</span>
-            <span class="text-outline text-[11px]">${selectedCategoryFilter === "all" ? "ALL ACTIVE" : `[${selectedCategoryFilter.toUpperCase()}]`}</span>
+        <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 flex flex-col gap-3 font-mono text-xs">
+          <div class="flex items-center justify-between pb-2 border-b border-outline-variant/70">
+            <span class="text-primary font-bold">CATEGORY ALLOCATIONS</span>
+            <span class="text-outline text-[11px]">${selectedCategoryFilter === "all" ? "ALL ACTIVE" : selectedCategoryFilter.toUpperCase()}</span>
           </div>
 
           <div class="flex flex-col gap-1.5">
             <button
               data-cat-filter="all"
-              class="cat-filter-btn flex items-center justify-between px-3 py-1.5 border transition-all text-left ${
+              class="cat-filter-btn flex items-center justify-between px-3 py-1.5 rounded-lg border transition-all text-left ${
                 selectedCategoryFilter === "all"
-                  ? "bg-primary text-surface border-primary font-bold"
-                  : "bg-surface-container border-outline-variant text-secondary hover:border-outline hover:text-primary"
+                  ? "bg-primary text-white border-primary font-bold"
+                  : "bg-white border-outline-variant text-secondary hover:border-outline hover:text-stone-accent"
               }"
             >
-              <span class="flex items-center gap-2 font-bold">[All Categories]</span>
+              <span class="flex items-center gap-2 font-bold">All Categories</span>
               <span class="text-[11px]">${scheduledTasks.length} slots</span>
             </button>
 
@@ -332,15 +327,15 @@ export function renderTimelineView(container) {
                 return `
                   <button
                     data-cat-filter="${cat}"
-                    class="cat-filter-btn flex items-center justify-between px-3 py-1.5 border transition-all text-left ${
+                    class="cat-filter-btn flex items-center justify-between px-3 py-1.5 rounded-lg border transition-all text-left ${
                       isSel
-                        ? "bg-primary text-surface border-primary font-bold"
-                        : "bg-surface-container border-outline-variant text-secondary hover:border-outline hover:text-primary"
+                        ? "bg-primary text-white border-primary font-bold"
+                        : "bg-white border-outline-variant text-secondary hover:border-outline hover:text-stone-accent"
                     }"
                   >
                     <span class="flex items-center gap-2">
-                      <span class="w-2 h-2 bg-stone-accent"></span>
-                      <span>[${cat.charAt(0).toUpperCase() + cat.slice(1)}]</span>
+                      <span class="w-2 h-2 rounded-full bg-primary"></span>
+                      <span>${cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
                     </span>
                     <span class="text-[11px] font-mono">${count} slot${count === 1 ? "" : "s"}</span>
                   </button>
@@ -351,19 +346,19 @@ export function renderTimelineView(container) {
         </div>
 
         <!-- 3. Daily Quotas / Allocation Meters -->
-        <div class="bg-surface-container-low border border-outline-variant p-4 shadow-md flex flex-col gap-4 font-mono text-xs">
-          <div class="flex items-center justify-between pb-2 border-b border-outline-variant/60">
-            <span class="text-stone-accent font-bold">// DAILY ALLOCATIONS</span>
-            <span class="text-primary font-bold">${allocations.totalHours.toFixed(1)}h / ${allocations.targetHours.toFixed(1)}h</span>
+        <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 flex flex-col gap-4 font-mono text-xs">
+          <div class="flex items-center justify-between pb-2 border-b border-outline-variant/70">
+            <span class="text-primary font-bold">DAILY ALLOCATIONS</span>
+            <span class="text-stone-accent font-bold">${allocations.totalHours.toFixed(1)}h / ${allocations.targetHours.toFixed(1)}h</span>
           </div>
 
           <!-- Deep Focus Gauge -->
           <div class="flex flex-col gap-1.5">
             <div class="flex justify-between text-xs">
-              <span class="text-primary font-bold">CORE DEEP FOCUS</span>
-              <span class="text-stone-accent font-bold">${allocations.totalHours.toFixed(1)}h [${allocations.pct}%]</span>
+              <span class="text-stone-accent font-bold">CORE DEEP FOCUS</span>
+              <span class="text-primary font-bold">${allocations.totalHours.toFixed(1)}h [${allocations.pct}%]</span>
             </div>
-            <div class="w-full bg-surface-container-lowest border border-outline-variant p-1 font-mono text-xs text-stone-accent overflow-x-hidden select-none">
+            <div class="w-full bg-surface-subtle rounded-xl border border-outline-variant px-2 py-1.5 font-mono text-xs text-primary overflow-x-hidden select-none">
               ${renderAsciiBar(allocations.pct, 18)}
             </div>
             <div class="flex justify-between text-[11px] text-outline">
@@ -373,28 +368,28 @@ export function renderTimelineView(container) {
           </div>
 
           <!-- Habit / Done Meter -->
-          <div class="flex flex-col gap-1.5 pt-2 border-t border-outline-variant/40">
+          <div class="flex flex-col gap-1.5 pt-2 border-t border-outline-variant/70">
             <div class="flex justify-between text-xs">
               <span class="text-secondary">SLOTS COMPLETED</span>
               <span class="text-primary font-bold">
                 ${scheduledTasks.filter((t) => t.status === "done").length} / ${scheduledTasks.length}
               </span>
             </div>
-            <div class="w-full bg-surface-container-lowest border border-outline-variant h-2 flex overflow-hidden">
+            <div class="w-full bg-surface-container-high rounded-full h-2 overflow-hidden">
               <div
-                class="bg-stone-accent h-full transition-all duration-300"
+                class="bg-emerald-500 h-full rounded-full transition-all duration-300"
                 style="width: ${scheduledTasks.length > 0 ? Math.round((scheduledTasks.filter((t) => t.status === "done").length / scheduledTasks.length) * 100) : 0}%"
               ></div>
             </div>
           </div>
 
-          <!-- Daemon Status Box -->
-          <div class="bg-surface-container p-2.5 flex items-center justify-between border border-outline-variant/50 text-[11px]">
+          <!-- Sync Status Box -->
+          <div class="bg-surface-subtle p-2.5 rounded-xl flex items-center justify-between border border-outline-variant text-[11px]">
             <div class="flex items-center gap-2 text-secondary">
-              <span class="material-symbols-outlined text-[15px] text-stone-accent">memory</span>
-              <span>DAEMON LOAD</span>
+              <span class="material-symbols-outlined text-[15px] text-emerald-600">memory</span>
+              <span>SYNC STATUS</span>
             </div>
-            <span class="text-primary font-bold">NORMAL [0.42]</span>
+            <span class="text-emerald-600 font-bold">LIVE [SSE]</span>
           </div>
         </div>
 
@@ -404,16 +399,17 @@ export function renderTimelineView(container) {
       <main class="col-span-12 lg:col-span-8 xl:col-span-9 flex flex-col gap-6">
 
         <!-- 1. Top Action & Controls Bar -->
-        <div class="bg-surface-container-low border border-outline-variant p-4 shadow-md flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+        <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
           <div class="flex items-center gap-2">
-            <span class="text-stone-accent font-bold">┌── [ TIMELINE // SCHEDULE: ${dateFormatted} ]</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-primary pulse-dot"></span>
+            <span class="text-stone-accent font-bold">TIMELINE // SCHEDULE: ${dateFormatted}</span>
           </div>
           <div class="flex items-center gap-3">
-            <button id="toggle-24h-btn" class="px-2.5 py-1 bg-surface-container border border-outline-variant hover:border-outline text-secondary hover:text-primary transition-colors">
-              [VIEW: ${showFull24h ? "FULL 24H (00-24)" : "DAYTIME (06-24)"}]
+            <button id="toggle-24h-btn" class="px-2.5 py-1 rounded-lg bg-white border border-outline-variant hover:border-outline text-secondary hover:text-stone-accent transition-colors">
+              VIEW: ${showFull24h ? "FULL 24H (00-24)" : "DAYTIME (06-24)"}
             </button>
-            <button id="timeline-new-slot-btn" class="px-3 py-1 bg-primary text-surface font-bold hover:bg-stone-accent transition-colors flex items-center gap-1.5">
-              <span>[+ SCHEDULE NEW]</span>
+            <button id="timeline-new-slot-btn" class="px-3 py-1 rounded-xl bg-primary text-white font-bold hover:bg-primary-strong transition-colors flex items-center gap-1.5 shadow-md shadow-blue-500/20">
+              <span>+ Schedule Item</span>
             </button>
           </div>
         </div>
@@ -422,47 +418,47 @@ export function renderTimelineView(container) {
         ${
           activeTask
             ? `
-          <div class="bg-surface-container-high border-2 border-stone-accent p-5 shadow-xl relative overflow-hidden flex flex-col gap-4 font-mono">
+          <div class="bg-surface rounded-2xl border-2 border-primary p-5 shadow-card-md relative overflow-hidden flex flex-col gap-4">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-2">
-                  <span class="px-2 py-0.5 bg-primary text-surface font-bold text-xs animate-pulse">
-                    ● NOW EXEC
+                  <span class="px-2 py-0.5 rounded-md bg-primary text-white font-bold text-xs animate-pulse font-mono">
+                    ● NOW
                   </span>
-                  <span class="text-outline text-xs">PID ${activeTask.id} // ACTIVE_SLOT</span>
-                  <span class="px-2 py-0.5 bg-surface-container border border-outline-variant text-primary text-xs uppercase font-bold">
-                    [${activeTask.category || "code"}]
+                  <span class="text-outline text-xs font-mono">#${activeTask.id}</span>
+                  <span class="px-2 py-0.5 rounded-md bg-surface-subtle border border-outline-variant text-stone-soft text-xs uppercase font-bold font-mono">
+                    ${activeTask.category || "code"}
                   </span>
                 </div>
-                <h2 class="font-space text-lg md:text-xl text-primary font-bold mt-1">
+                <h2 class="font-sans text-lg md:text-xl text-stone-accent font-extrabold mt-1">
                   ${escapeHtml(activeTask.title)}
                 </h2>
-                <div class="flex items-center gap-3 text-xs text-secondary mt-0.5">
-                  <span>SLOT: ${activeTask.at} (${activeTask.duration}m)</span>
+                <div class="flex items-center gap-3 text-xs font-mono mt-0.5">
+                  <span class="text-secondary">SLOT: ${activeTask.at} (${activeTask.duration}m)</span>
                   <span>•</span>
-                  <span class="text-stone-accent font-bold">+${activeTask.xp || 10} XP</span>
+                  <span class="text-primary font-bold">+${activeTask.xp || 10} XP</span>
                   <span>•</span>
-                  <span class="text-secondary-fixed">⟐ ${activeTask.coins || 10} COINS</span>
+                  <span class="text-coin-amber font-bold">🪙 ${activeTask.coins || 10}</span>
                 </div>
               </div>
 
               <!-- Big Countdown Readout -->
               <div class="text-right flex flex-col items-end">
-                <div id="live-active-countdown" class="font-space text-2xl md:text-3xl font-bold text-primary tracking-tight">
+                <div id="live-active-countdown" class="font-sans text-2xl md:text-3xl font-extrabold text-primary tracking-tight font-mono">
                   ${activeTask.remaining_mins}m 00s
                 </div>
-                <div class="text-[11px] text-outline tracking-wider">REMAINING // ${activeTask.duration}m TARGET</div>
+                <div class="text-[11px] text-outline tracking-wider font-mono">REMAINING // ${activeTask.duration}m TARGET</div>
               </div>
             </div>
 
             <!-- Segmented Progress Bar -->
-            <div class="flex flex-col gap-1.5 bg-surface-container-lowest p-3 border border-outline-variant">
-              <div class="flex items-center justify-between text-xs text-secondary font-bold">
+            <div class="flex flex-col gap-1.5 bg-surface-subtle p-3 rounded-xl border border-outline-variant">
+              <div class="flex items-center justify-between text-xs text-secondary font-bold font-mono">
                 <span>PROG [ ${activeTask.elapsed_mins}m / ${activeTask.duration}m ]</span>
-                <span class="text-stone-accent">${activeTask.pct}%</span>
+                <span class="text-primary">${activeTask.pct}%</span>
               </div>
-              <div class="font-mono text-sm text-stone-accent tracking-tighter leading-none select-none overflow-x-hidden">
-                ${renderAsciiBar(activeTask.pct, 30)}
+              <div class="w-full bg-surface-container-high rounded-full h-2 overflow-hidden">
+                <div class="bg-primary h-full rounded-full transition-all duration-300" style="width: ${activeTask.pct}%"></div>
               </div>
             </div>
 
@@ -472,39 +468,39 @@ export function renderTimelineView(container) {
                 <button
                   data-action="focus"
                   data-task-id="${activeTask.id}"
-                  class="timeline-action-btn px-4 py-1.5 bg-primary text-surface font-bold hover:bg-stone-accent transition-colors text-xs flex items-center gap-1.5"
+                  class="timeline-action-btn px-4 py-1.5 rounded-xl bg-primary text-white font-bold hover:bg-primary-strong transition-colors text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20"
                 >
                   <span class="material-symbols-outlined text-sm">play_arrow</span>
-                  <span>[▶ START FOCUS]</span>
+                  <span>▶ START FOCUS</span>
                 </button>
                 <button
                   data-action="toggle-done"
                   data-task-id="${activeTask.id}"
-                  class="timeline-action-btn px-3 py-1.5 bg-surface-container border border-outline hover:border-primary text-secondary hover:text-primary transition-colors text-xs flex items-center gap-1.5"
+                  class="timeline-action-btn px-3 py-1.5 rounded-xl bg-white border border-outline-variant hover:border-primary text-secondary hover:text-primary transition-colors text-xs flex items-center gap-1.5 font-semibold"
                 >
                   <span class="material-symbols-outlined text-sm">check_circle</span>
-                  <span>[Resolve / Done]</span>
+                  <span>Mark Done</span>
                 </button>
               </div>
 
-              <div class="text-[11px] text-outline">
-                STATUS: AUTO-SYNC WITH SERVER DAEMON
+              <div class="text-[11px] text-outline font-mono">
+                AUTO-SYNC WITH SERVER
               </div>
             </div>
           </div>
         `
             : `
           <!-- Idle / Next Up Callout Banner -->
-          <div class="bg-surface-container-low border border-outline-variant p-4 shadow-md flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+          <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
             <div class="flex items-center gap-3">
-              <span class="px-2 py-0.5 bg-surface-container border border-outline-variant text-outline font-bold">
-                [IDLE // NO ACTIVE TASK]
+              <span class="px-2 py-0.5 rounded-md bg-surface-subtle border border-outline-variant text-outline font-bold">
+                IDLE // NO ACTIVE TASK
               </span>
               ${
                 nextTask
                   ? `
                 <span class="text-secondary">
-                  NEXT UP: <strong class="text-primary">${escapeHtml(nextTask.title)}</strong> at <strong>${nextTask.at}</strong> (in ~${nextTask.mins_until_start}m)
+                  NEXT UP: <strong class="text-stone-accent">${escapeHtml(nextTask.title)}</strong> at <strong class="text-primary">${nextTask.at}</strong> (in ~${nextTask.mins_until_start}m)
                 </span>
               `
                   : `
@@ -519,9 +515,9 @@ export function renderTimelineView(container) {
               <button
                 data-action="focus"
                 data-task-id="${nextTask.id}"
-                class="timeline-action-btn px-3 py-1 bg-surface-container-high border border-outline hover:border-primary text-primary transition-colors"
+                class="timeline-action-btn px-3 py-1 rounded-xl bg-primary-soft border border-blue-200 hover:bg-blue-100 text-primary font-bold transition-colors"
               >
-                [▶ START FOCUS]
+                ▶ START FOCUS
               </button>
             `
                 : ""
@@ -531,13 +527,13 @@ export function renderTimelineView(container) {
         }
 
         <!-- 3. Vertical Chronological Timeline Grid (06:00 to 23:00 / 24h) -->
-        <div class="bg-surface-container-low border border-outline-variant p-4 md:p-6 shadow-md flex flex-col font-mono text-xs relative">
-          <div class="flex items-center justify-between pb-3 mb-2 border-b border-outline-variant/60">
-            <span class="text-stone-accent font-bold">// 24-HOUR CHRONOLOGICAL TIMELINE</span>
+        <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 md:p-6 flex flex-col font-mono text-xs relative">
+          <div class="flex items-center justify-between pb-3 mb-2 border-b border-outline-variant/70">
+            <span class="text-primary font-bold">24-HOUR CHRONOLOGICAL TIMELINE</span>
             <span class="text-outline text-[11px]">CLICK ANY EMPTY SLOT TO SCHEDULE</span>
           </div>
 
-          <div id="timeline-hours-grid" class="flex flex-col relative divide-y divide-outline-variant/20">
+          <div id="timeline-hours-grid" class="flex flex-col relative divide-y divide-outline-variant/40">
             ${(() => {
               const currentH = currentNow.getHours();
               const currentM = currentNow.getMinutes();
@@ -568,13 +564,13 @@ export function renderTimelineView(container) {
                       shouldInsertNowMarker
                         ? `
                       <!-- Dynamic Real-Time NOW Marker Line -->
-                      <div id="timeline-now-marker" class="my-1 py-1 px-3 bg-stone-accent text-surface font-bold flex items-center justify-between shadow-lg border border-primary">
+                      <div id="timeline-now-marker" class="my-1 py-1 px-3 rounded-xl bg-primary-soft border border-blue-300 text-primary font-bold flex items-center justify-between shadow-sm transition-all duration-300">
                         <div class="flex items-center gap-2">
-                          <span class="w-2 h-2 bg-surface animate-ping"></span>
-                          <span class="tracking-wider">► NOW [${nowTimeFormatted}]</span>
-                          <span class="hidden sm:inline text-[11px] opacity-80">// SYS_BUS ACTIVE</span>
+                          <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+                          <span class="tracking-wider live-marker-time">► NOW [${nowTimeFormatted}]</span>
+                          <span class="hidden sm:inline text-[11px] opacity-70">// LIVE SYNC</span>
                         </div>
-                        <span class="text-[11px] font-mono">CYCLE RUNNING</span>
+                        <span class="text-[11px] font-mono opacity-70">CYCLE RUNNING</span>
                       </div>
                     `
                         : ""
@@ -582,7 +578,7 @@ export function renderTimelineView(container) {
 
                     <div class="flex items-start gap-4">
                       <!-- Hour label -->
-                      <div class="w-14 shrink-0 font-bold ${isCurrentHour ? "text-stone-accent" : "text-outline"} pt-1 select-none">
+                      <div class="w-14 shrink-0 font-bold ${isCurrentHour ? "text-primary" : "text-outline"} pt-1 select-none">
                         ${hourStr}
                       </div>
 
@@ -596,12 +592,12 @@ export function renderTimelineView(container) {
                                   const isExecuting = activeTask && activeTask.id === task.id;
                                   return `
                               <div
-                                class="p-3 border ${
+                                class="p-3 rounded-xl border ${
                                   isExecuting
-                                    ? "bg-surface-container-high border-stone-accent shadow-md"
+                                    ? "bg-primary-soft border-blue-300 shadow-sm"
                                     : isDone
-                                    ? "bg-surface-container-lowest border-outline-variant/40 opacity-70"
-                                    : "bg-surface-container border-outline-variant hover:border-outline"
+                                    ? "bg-surface-subtle/50 border-outline-variant/50 opacity-70"
+                                    : "bg-surface-container-lowest border-outline-variant hover:border-primary"
                                 } transition-colors flex flex-col gap-2"
                                 data-task-id="${task.id}"
                               >
@@ -610,23 +606,28 @@ export function renderTimelineView(container) {
                                     <button
                                       data-action="toggle-done"
                                       data-task-id="${task.id}"
-                                      class="timeline-action-btn w-4 h-4 border border-outline flex items-center justify-center text-stone-accent font-bold hover:border-primary transition-colors text-[10px]"
+                                      class="timeline-action-btn w-5 h-5 rounded-md border flex items-center justify-center font-bold transition-colors text-[10px] ${
+                                        isDone
+                                          ? "bg-emerald-500 border-emerald-600 text-white"
+                                          : "border-slate-300 hover:border-primary bg-white text-transparent"
+                                      }"
+                                      title="${isDone ? "Mark Open" : "Mark Done"}"
                                     >
                                       ${isDone ? "✓" : ""}
                                     </button>
 
-                                    <span class="px-1.5 py-0.5 bg-surface-container-lowest border border-outline-variant text-[10px] uppercase font-bold text-stone-accent">
-                                      [${task.category || "code"}]
+                                    <span class="px-1.5 py-0.5 rounded-md bg-surface-subtle border border-outline-variant text-[10px] uppercase font-bold text-stone-soft">
+                                      ${task.category || "code"}
                                     </span>
 
-                                    <span class="font-bold text-sm ${isDone ? "line-through text-outline" : "text-primary"} truncate">
+                                    <span class="font-bold text-sm ${isDone ? "line-through text-outline" : "text-stone-accent"} truncate">
                                       ${escapeHtml(task.title)}
                                     </span>
 
                                     ${
                                       isExecuting
                                         ? `
-                                      <span class="px-1.5 py-0.5 bg-primary text-surface text-[10px] font-bold animate-pulse">
+                                      <span class="px-1.5 py-0.5 rounded-md bg-primary text-white text-[10px] font-bold animate-pulse">
                                         ● RUNNING
                                       </span>
                                     `
@@ -635,16 +636,16 @@ export function renderTimelineView(container) {
                                   </div>
 
                                   <div class="flex items-center gap-2 text-[11px] text-secondary shrink-0">
-                                    <span class="text-stone-accent font-bold">+${task.xp || 10} XP</span>
-                                    <span class="text-secondary-fixed">⟐ ${task.coins || 10} GP</span>
-                                    <span class="px-1.5 py-0.5 bg-surface-container-lowest border border-outline-variant">
+                                    <span class="text-primary font-bold">+${task.xp || 10} XP</span>
+                                    <span class="text-coin-amber font-bold">🪙 ${task.coins || 10}</span>
+                                    <span class="px-1.5 py-0.5 rounded-md bg-surface-subtle border border-outline-variant">
                                       @ ${task.at} (${task.mins || 30}m)
                                     </span>
                                   </div>
                                 </div>
 
                                 <!-- Action Buttons Row -->
-                                <div class="flex items-center justify-between pt-1 border-t border-outline-variant/30 text-[11px]">
+                                <div class="flex items-center justify-between pt-1 border-t border-outline-variant/60 text-[11px]">
                                   <div class="flex items-center gap-2">
                                     ${
                                       !isDone
@@ -652,7 +653,7 @@ export function renderTimelineView(container) {
                                       <button
                                         data-action="focus"
                                         data-task-id="${task.id}"
-                                        class="timeline-action-btn px-2 py-0.5 bg-surface-container-high border border-outline-variant hover:border-primary text-primary transition-colors flex items-center gap-1"
+                                        class="timeline-action-btn px-2 py-0.5 rounded-lg bg-primary-soft border border-blue-200 hover:bg-blue-100 text-primary font-bold transition-colors flex items-center gap-1"
                                       >
                                         <span class="material-symbols-outlined text-[13px]">play_arrow</span>
                                         <span>Start Focus</span>
@@ -664,7 +665,7 @@ export function renderTimelineView(container) {
                                     <button
                                       data-action="reschedule"
                                       data-task-id="${task.id}"
-                                      class="timeline-action-btn px-2 py-0.5 bg-surface-container hover:bg-surface-container-high border border-outline-variant text-secondary hover:text-primary transition-colors"
+                                      class="timeline-action-btn px-2 py-0.5 rounded-lg bg-white hover:bg-surface-subtle border border-outline-variant text-secondary hover:text-stone-accent transition-colors"
                                     >
                                       Edit Time
                                     </button>
@@ -672,9 +673,9 @@ export function renderTimelineView(container) {
                                     <button
                                       data-action="delete"
                                       data-task-id="${task.id}"
-                                      class="timeline-action-btn px-2 py-0.5 hover:bg-surface-container-high border border-transparent hover:border-outline-variant text-red-400 hover:text-red-300 transition-colors"
+                                      class="timeline-action-btn px-2 py-0.5 rounded-lg bg-white hover:bg-danger-soft border border-transparent hover:border-red-200 text-outline hover:text-danger transition-colors"
                                     >
-                                      [del]
+                                      Remove
                                     </button>
                                   </div>
 
@@ -689,7 +690,7 @@ export function renderTimelineView(container) {
                             : `
                           <!-- Empty Slot Row (Clickable) -->
                           <div
-                            class="empty-slot-btn py-2 px-3 border border-dashed border-outline-variant/50 hover:border-outline hover:bg-surface-container transition-colors cursor-pointer text-outline hover:text-primary flex items-center justify-between"
+                            class="empty-slot-btn py-2 px-3 rounded-xl border border-dashed border-outline-variant hover:border-primary hover:bg-primary-soft/40 transition-colors cursor-pointer text-outline hover:text-primary flex items-center justify-between"
                             data-hour-slot="${hourStr}"
                           >
                             <span>+ [EMPTY // Click to schedule task at ${hourStr}]</span>
@@ -707,12 +708,12 @@ export function renderTimelineView(container) {
           </div>
         </div>
 
-        <!-- 4. Unpinned Daemon Pool [Flex Queue] -->
-        <div class="bg-surface-container-low border border-outline-variant p-4 shadow-md flex flex-col gap-3 font-mono text-xs">
-          <div class="flex items-center justify-between pb-2 border-b border-outline-variant/60">
+        <!-- 4. Unpinned Flex Queue -->
+        <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 flex flex-col gap-3 font-mono text-xs">
+          <div class="flex items-center justify-between pb-2 border-b border-outline-variant/70">
             <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm text-stone-accent">data_array</span>
-              <span class="text-stone-accent font-bold">// UNPINNED DAEMON POOL [FLEX_QUEUE]</span>
+              <span class="material-symbols-outlined text-sm text-primary">data_array</span>
+              <span class="text-primary font-bold">UNPINNED FLEX QUEUE</span>
             </div>
             <span class="text-outline text-[11px]">${unscheduledTasks.length} READY // CLICK TO SCHEDULE</span>
           </div>
@@ -725,26 +726,26 @@ export function renderTimelineView(container) {
                 .slice(0, 9)
                 .map((task) => {
                   return `
-                <div class="p-3 bg-surface-container border border-outline-variant hover:border-primary transition-all flex flex-col justify-between gap-2">
+                <div class="p-3 rounded-xl bg-surface-container-lowest border border-outline-variant hover:border-primary transition-all flex flex-col justify-between gap-2">
                   <div class="flex items-center justify-between">
-                    <span class="px-1.5 py-0.5 bg-surface-container-lowest border border-outline-variant text-[10px] uppercase font-bold text-stone-accent">
-                      [${task.category || "code"}]
+                    <span class="px-1.5 py-0.5 rounded-md bg-surface-subtle border border-outline-variant text-[10px] uppercase font-bold text-stone-soft">
+                      ${task.category || "code"}
                     </span>
                     <span class="text-[11px] text-outline">#T${task.id}</span>
                   </div>
 
-                  <div class="font-bold text-primary truncate" title="${escapeHtml(task.title)}">
+                  <div class="font-bold text-stone-accent truncate" title="${escapeHtml(task.title)}">
                     ${escapeHtml(task.title)}
                   </div>
 
-                  <div class="flex items-center justify-between pt-2 border-t border-outline-variant/30 text-[11px]">
+                  <div class="flex items-center justify-between pt-2 border-t border-outline-variant/60 text-[11px]">
                     <span class="text-secondary">${task.mins || 25}m • +${task.xp || 10} XP</span>
                     <button
                       data-action="schedule-unscheduled"
                       data-task-id="${task.id}"
-                      class="timeline-action-btn px-2 py-0.5 bg-primary text-surface font-bold hover:bg-stone-accent transition-colors"
+                      class="timeline-action-btn px-2 py-0.5 rounded-lg bg-primary text-white font-bold hover:bg-primary-strong transition-colors"
                     >
-                      [@ Schedule]
+                      @ Schedule
                     </button>
                   </div>
                 </div>
@@ -754,7 +755,7 @@ export function renderTimelineView(container) {
             </div>
           `
               : `
-            <div class="p-4 bg-surface-container-lowest border border-outline-variant/40 text-center text-outline">
+            <div class="p-4 rounded-xl bg-surface-subtle border border-outline-variant/60 text-center text-outline">
               No unscheduled open tasks. All items are mapped to timeline slots!
             </div>
           `
@@ -765,24 +766,24 @@ export function renderTimelineView(container) {
     </div>
 
     <!-- Quick Schedule Modal Dialog -->
-    <dialog id="quick-schedule-dialog" class="bg-surface border border-outline text-primary p-6 max-w-md w-full shadow-2xl backdrop:bg-black/80 font-mono text-xs">
+    <dialog id="quick-schedule-dialog" class="bg-surface border border-outline-variant text-stone-accent p-6 max-w-md w-full rounded-2xl shadow-2xl backdrop:bg-slate-900/50 font-mono text-xs">
       <form method="dialog" id="quick-schedule-form">
-        <h2 class="font-space text-base font-bold mb-1 text-primary">Schedule Timeline Slot</h2>
+        <h2 class="font-sans text-base font-extrabold mb-1 text-stone-accent">Schedule Timeline Slot</h2>
         <p id="schedule-modal-subtitle" class="text-secondary mb-3 text-[11px]">Assign an existing task or create a new slot at this hour.</p>
 
         <!-- Prominent Rescheduling Banner (shown when editing an existing slot) -->
-        <div id="schedule-reschedule-banner" class="hidden mb-4 p-2.5 bg-surface-container-high border border-stone-accent text-primary flex items-center justify-between">
+        <div id="schedule-reschedule-banner" class="hidden mb-4 p-2.5 rounded-xl bg-primary-soft border border-blue-300 text-primary flex items-center justify-between">
           <div class="flex flex-col gap-0.5 min-w-0">
-            <span class="text-[10px] text-stone-accent font-bold">// RESCHEDULING TASK:</span>
-            <span id="schedule-reschedule-title" class="font-bold truncate text-primary text-xs"></span>
+            <span class="text-[10px] text-primary font-bold">// RESCHEDULING TASK:</span>
+            <span id="schedule-reschedule-title" class="font-bold truncate text-stone-accent text-xs"></span>
           </div>
-          <span id="schedule-reschedule-cat" class="px-1.5 py-0.5 bg-surface-container border border-outline-variant text-[10px] uppercase font-bold text-stone-accent ml-2 shrink-0"></span>
+          <span id="schedule-reschedule-cat" class="px-1.5 py-0.5 rounded-md bg-white border border-blue-200 text-[10px] uppercase font-bold text-primary ml-2 shrink-0"></span>
         </div>
 
         <div class="space-y-4 mb-6">
           <!-- Time Slot Field -->
           <div>
-            <label class="block text-outline mb-1">// TIME SLOT (HH:MM):</label>
+            <label class="block text-secondary mb-1">TIME SLOT (HH:MM):</label>
             <input
               id="schedule-slot-time"
               type="text"
@@ -790,23 +791,23 @@ export function renderTimelineView(container) {
               pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]"
               maxlength="5"
               placeholder="14:00"
-              class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-sm text-primary focus:outline-none focus:border-primary font-bold"
+              class="w-full bg-surface-subtle border border-outline-variant px-3 py-2 text-sm text-stone-accent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary font-bold"
             />
           </div>
 
           <!-- Mode Picker: Pick Existing or Create New -->
-          <div id="schedule-tabs-row" class="flex items-center gap-2 pt-1 border-t border-outline-variant/40">
+          <div id="schedule-tabs-row" class="flex items-center gap-2 pt-1 border-t border-outline-variant/60">
             <button
               type="button"
               id="tab-pick-existing"
-              class="flex-1 py-1.5 bg-primary text-surface font-bold border border-primary text-center"
+              class="flex-1 py-1.5 rounded-xl bg-primary text-white font-bold border border-primary text-center"
             >
               Pick Existing Task
             </button>
             <button
               type="button"
               id="tab-create-new"
-              class="flex-1 py-1.5 bg-surface-container text-secondary border border-outline-variant hover:border-outline text-center"
+              class="flex-1 py-1.5 rounded-xl bg-white text-secondary border border-outline-variant hover:border-outline text-center"
             >
               + Create New Task
             </button>
@@ -814,10 +815,10 @@ export function renderTimelineView(container) {
 
           <!-- Pick Existing Task Section -->
           <div id="section-pick-existing" class="space-y-3">
-            <label class="block text-outline mb-1">// SELECT TASK:</label>
+            <label class="block text-secondary mb-1">SELECT TASK:</label>
             <select
               id="schedule-task-select"
-              class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary"
+              class="w-full bg-surface-subtle border border-outline-variant px-3 py-2 text-xs text-stone-accent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
               <option value="">-- Choose task to assign --</option>
               ${unscheduledTasks
@@ -829,20 +830,20 @@ export function renderTimelineView(container) {
           <!-- Create New Task Section (hidden by default) -->
           <div id="section-create-new" class="space-y-3 hidden">
             <div>
-              <label class="block text-outline mb-1">// TASK TITLE:</label>
+              <label class="block text-secondary mb-1">TASK TITLE:</label>
               <input
                 id="schedule-new-title"
                 type="text"
                 placeholder="Deep work slot..."
-                class="w-full bg-surface-container-lowest border border-outline px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary"
+                class="w-full bg-surface-subtle border border-outline-variant px-3 py-2 text-xs text-stone-accent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-outline mb-1">// CATEGORY:</label>
+                <label class="block text-secondary mb-1">CATEGORY:</label>
                 <select
                   id="schedule-new-category"
-                  class="w-full bg-surface-container-lowest border border-outline px-2 py-1.5 text-xs text-primary focus:outline-none"
+                  class="w-full bg-surface-subtle border border-outline-variant px-2 py-1.5 text-xs text-stone-accent rounded-xl focus:outline-none"
                 >
                   <option value="code">code</option>
                   <option value="learn">learn</option>
@@ -852,14 +853,14 @@ export function renderTimelineView(container) {
                 </select>
               </div>
               <div>
-                <label class="block text-outline mb-1">// DURATION (MINS):</label>
+                <label class="block text-secondary mb-1">DURATION (MINS):</label>
                 <input
                   id="schedule-new-mins"
                   type="number"
                   min="5"
                   max="600"
                   value="45"
-                  class="w-full bg-surface-container-lowest border border-outline px-2 py-1.5 text-xs text-primary focus:outline-none"
+                  class="w-full bg-surface-subtle border border-outline-variant px-2 py-1.5 text-xs text-stone-accent rounded-xl focus:outline-none"
                 />
               </div>
             </div>
@@ -870,14 +871,14 @@ export function renderTimelineView(container) {
           <button
             type="button"
             id="schedule-cancel-btn"
-            class="px-4 py-2 border border-outline-variant hover:border-outline text-secondary hover:text-primary transition-colors"
+            class="px-4 py-2 rounded-xl border border-outline-variant hover:border-outline text-secondary hover:text-stone-accent transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
             id="schedule-submit-btn"
-            class="px-4 py-2 bg-primary text-surface font-bold hover:bg-stone-accent transition-colors"
+            class="px-4 py-2 rounded-xl bg-primary text-white font-bold hover:bg-primary-strong transition-colors shadow-md shadow-blue-500/20"
           >
             Confirm Slot
           </button>
@@ -913,14 +914,14 @@ export function updateTimelineLiveClocks(container) {
       if (!marker) {
         marker = document.createElement("div");
         marker.id = "timeline-now-marker";
-        marker.className = "my-1 py-1 px-3 bg-stone-accent text-surface font-bold flex items-center justify-between shadow-lg border border-primary transition-all duration-300";
+        marker.className = "my-1 py-1 px-3 rounded-xl bg-primary-soft border border-blue-300 text-primary font-bold flex items-center justify-between shadow-sm transition-all duration-300";
         marker.innerHTML = `
           <div class="flex items-center gap-2">
-            <span class="w-2 h-2 bg-surface animate-ping"></span>
+            <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
             <span class="tracking-wider live-marker-time">► NOW [${timeFormatted}]</span>
-            <span class="hidden sm:inline text-[11px] opacity-80">// SYS_BUS ACTIVE</span>
+            <span class="hidden sm:inline text-[11px] opacity-70">// LIVE SYNC</span>
           </div>
-          <span class="text-[11px] font-mono">CYCLE RUNNING</span>
+          <span class="text-[11px] font-mono opacity-70">CYCLE RUNNING</span>
         `;
         currentHourSlot.prepend(marker);
       } else {
@@ -1134,13 +1135,13 @@ export function openQuickScheduleModal(initialTimeStr = "12:00", preselectedTask
 
   function updateTabs() {
     if (activeTab === "pick") {
-      tabPick.className = "flex-1 py-1.5 bg-primary text-surface font-bold border border-primary text-center";
-      tabCreate.className = "flex-1 py-1.5 bg-surface-container text-secondary border border-outline-variant hover:border-outline text-center";
+      tabPick.className = "flex-1 py-1.5 rounded-xl bg-primary text-white font-bold border border-primary text-center";
+      tabCreate.className = "flex-1 py-1.5 rounded-xl bg-white text-secondary border border-outline-variant hover:border-outline text-center";
       sectionPick.classList.remove("hidden");
       sectionCreate.classList.add("hidden");
     } else {
-      tabCreate.className = "flex-1 py-1.5 bg-primary text-surface font-bold border border-primary text-center";
-      tabPick.className = "flex-1 py-1.5 bg-surface-container text-secondary border border-outline-variant hover:border-outline text-center";
+      tabCreate.className = "flex-1 py-1.5 rounded-xl bg-primary text-white font-bold border border-primary text-center";
+      tabPick.className = "flex-1 py-1.5 rounded-xl bg-white text-secondary border border-outline-variant hover:border-outline text-center";
       sectionCreate.classList.remove("hidden");
       sectionPick.classList.add("hidden");
     }

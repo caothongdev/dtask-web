@@ -26,12 +26,15 @@ test("public/index.html serves and includes required fonts and tailwind config",
   const res = await fetch(`http://localhost:${server.port}/index.html`);
   expect(res.status).toBe(200);
   const html = await res.text();
-  expect(html).toContain("Space Mono");
-  expect(html).toContain("Geist");
+  expect(html).toContain("Plus Jakarta Sans");
+  expect(html).toContain("Inter");
   expect(html).toContain("JetBrains Mono");
   expect(html).toContain("Material Symbols Outlined");
-  expect(html).toContain("+-.[ dtask ].-+");
+  expect(html).toContain("Gamified Daily Task");
   expect(html).toContain("view-root");
+  // Blueprint Silicon light theme tokens
+  expect(html).toContain("#f8fafc");
+  expect(html).toContain("#2563eb");
 });
 
 test("public/js static files serve via HTTP with 200 and javascript content-type", async () => {

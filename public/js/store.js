@@ -82,12 +82,17 @@ export class Store {
     if (!container) return;
 
     const item = document.createElement("div");
-    item.className = "px-4 py-2 border border-outline bg-surface text-primary shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto mb-2";
+    item.className = "px-4 py-2.5 rounded-xl border shadow-card-md bg-surface flex items-center gap-3 transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto mb-2 " +
+      (type === "success"
+        ? "border-emerald-200 bg-success-soft text-success"
+        : type === "error"
+        ? "border-red-200 bg-danger-soft text-danger"
+        : "border-outline-variant bg-surface text-stone-accent");
     
     const icon = type === "success" ? "check_circle" : type === "error" ? "error" : "info";
     item.innerHTML = `
-      <span class="material-symbols-outlined text-sm text-stone-accent">${icon}</span>
-      <span class="text-xs font-mono tracking-wide">${message}</span>
+      <span class="material-symbols-outlined text-sm">${icon}</span>
+      <span class="text-xs font-sans font-semibold">${message}</span>
     `;
 
     container.appendChild(item);
