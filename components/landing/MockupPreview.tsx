@@ -10,12 +10,12 @@ export function MockupPreview() {
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-full bg-red-400/90" />
             <span className="h-3 w-3 rounded-full bg-amber-400/90" />
-            <span className="h-3 w-3 rounded-full bg-emerald-400/90" />
+            <span className="h-3 w-3 rounded-full bg-blue-500/90" />
             <span className="ml-2 font-mono text-xs text-zinc-400">dtask studio — focus daemon v2.0</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 font-mono text-[11px] font-medium text-emerald-700 border border-emerald-200">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 font-mono text-[11px] font-medium text-blue-700 border border-blue-200">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
               LIVE SSE SYNC
             </span>
           </div>
@@ -35,7 +35,7 @@ export function MockupPreview() {
             <div className="rounded-lg border border-blue-200/70 bg-blue-50/40 p-3 mb-3">
               <div className="flex items-center justify-between text-[11px] font-mono text-blue-800 mb-1">
                 <span className="font-bold">SLOT #3 ACTIVE</span>
-                <span className="bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold">► NOW</span>
+                <span className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold">► NOW</span>
               </div>
               <h4 className="text-sm font-bold text-zinc-900 leading-snug">
                 Refactor timeline vector parser & add btop meters
@@ -43,7 +43,7 @@ export function MockupPreview() {
               <div className="mt-2 flex items-center gap-2 text-xs text-zinc-500">
                 <span className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] text-zinc-700 font-semibold">category: code</span>
                 <span>•</span>
-                <span className="text-emerald-700 font-semibold">+45 XP</span>
+                <span className="text-blue-700 font-semibold">+45 XP</span>
               </div>
             </div>
             <div className="space-y-2 text-xs font-mono text-zinc-400">
@@ -63,10 +63,10 @@ export function MockupPreview() {
             <div>
               <div className="flex items-center justify-between text-xs font-mono text-zinc-500 mb-4">
                 <span className="flex items-center gap-1.5 font-semibold text-zinc-700">
-                  <Flame className="w-3.5 h-3.5 text-emerald-600" />
+                  <Flame className="w-3.5 h-3.5 text-blue-600" />
                   FOCUS DAEMON
                 </span>
-                <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">SPRINT IN PROGRESS</span>
+                <span className="text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded">SPRINT IN PROGRESS</span>
               </div>
               
               <div className="text-center my-4">
@@ -85,7 +85,7 @@ export function MockupPreview() {
                 </div>
                 <div className="flex justify-between">
                   <span>Synthesizer Cues:</span>
-                  <span className="text-emerald-700 font-semibold">Web Audio Synth (Enabled)</span>
+                  <span className="text-blue-700 font-semibold">Web Audio Synth (Enabled)</span>
                 </div>
               </div>
             </div>
@@ -120,7 +120,7 @@ export function MockupPreview() {
                   <span className="font-bold">140 / 220 XP</span>
                 </div>
                 <div className="h-2 w-full rounded-full bg-zinc-100 overflow-hidden">
-                  <div className="h-full bg-emerald-600 rounded-full w-[64%]" />
+                  <div className="h-full bg-blue-600 rounded-full w-[64%]" />
                 </div>
               </div>
             </div>

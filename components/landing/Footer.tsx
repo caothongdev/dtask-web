@@ -11,7 +11,7 @@ export function Footer() {
         </div>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+            <span className="h-2 w-2 rounded-full bg-blue-500"></span>
             <span className="font-medium text-zinc-700">All Systems Operational</span>
           </div>
           <a href="/app" className="hover:text-zinc-900 transition-colors font-medium">Launch App</a>

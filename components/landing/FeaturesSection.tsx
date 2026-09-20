@@ -36,7 +36,7 @@ const FEATURES = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="bg-zinc-50/60 border-y border-zinc-200/80 py-24">
+    <section id="features" className="bg-white border-y border-zinc-200/80 py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight">
@@ -53,9 +53,9 @@ export function FeaturesSection() {
             return (
               <div
                 key={i}
-                className="group rounded-2xl border border-zinc-200/90 bg-white p-7 shadow-sm hover:border-zinc-300 hover:shadow-md transition-all"
+                className="group rounded-2xl border border-zinc-200/90 bg-white p-7 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/70 mb-5 group-hover:scale-105 transition-transform">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-200/70 mb-5 group-hover:scale-105 transition-transform">
                   <Icon className="w-5 h-5" />
                 </div>
                 <h3 className="text-lg font-bold text-zinc-900 tracking-tight">{f.title}</h3>

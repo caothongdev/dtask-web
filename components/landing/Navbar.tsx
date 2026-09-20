@@ -25,7 +25,7 @@ export function Navbar() {
         <a href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight text-zinc-900">
           <span className="text-xl">🪙</span>
           <span className="font-extrabold text-zinc-900 tracking-tight">dtask</span>
-          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-mono font-semibold text-emerald-700 border border-emerald-200/70">v2.0</span>
+          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-mono font-semibold text-blue-700 border border-blue-200/70">v2.0</span>
         </a>
 
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600">
