@@ -23,6 +23,15 @@ test("Task 3: LandingPage renders all core sections with rich copy and icons", (
   // Unsplash Photography
   expect(html).toContain("images.unsplash.com");
 
+  // Pricing Section
+  expect(html).toContain("Simple pricing for serious focus");
+  expect(html).toContain("$0");
+  expect(html).toContain("Self-Hosted");
+
+  // FAQ Section
+  expect(html).toContain("Questions, answered.");
+  expect(html).toContain("Where is my data stored?");
+
   // Footer
   expect(html).toContain("All Systems Operational");
 });

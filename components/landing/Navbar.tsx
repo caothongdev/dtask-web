@@ -31,6 +31,7 @@ export function Navbar() {
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600">
           <a href="#features" className="hover:text-zinc-950 transition-colors">Features</a>
           <a href="#preview" className="hover:text-zinc-950 transition-colors">Engine</a>
+          <a href="#pricing" className="hover:text-zinc-950 transition-colors">Pricing</a>
           <a href="#testimonials" className="hover:text-zinc-950 transition-colors">Craft</a>
         </nav>
 
