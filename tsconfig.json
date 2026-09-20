@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "strict": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "types": ["bun-types"]
+  },
+  "include": [
+    "server.ts",
+    "components/**/*",
+    "src/**/*",
+    "lib/**/*",
+    "scripts/**/*",
+    "tests/**/*"
+  ]
+}
