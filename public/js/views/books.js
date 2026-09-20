@@ -5,6 +5,7 @@
 import { api } from "../api.js";
 import { sound } from "../audio.js";
 import { store } from "../store.js";
+import { icons } from "../icons.js";
 import { openReaderModal } from "./reader.js";
 
 function escapeHtml(str) {
@@ -85,11 +86,13 @@ export function renderBooksView(container) {
               <p class="text-xs text-outline font-mono mt-0.5 truncate" id="reader-meta">${activeTask ? `Linked to: ${activeTask.title}` : "Ready to read"}</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              <button id="reader-open-modal-btn" class="px-3 py-1.5 rounded-xl bg-primary-soft text-primary hover:bg-blue-100 border border-blue-200 text-xs font-bold transition ${activeTask ? "" : "hidden"}">
-                📖 Open Full Reader
+              <button id="reader-open-modal-btn" class="px-3 py-1.5 rounded-xl bg-primary-soft text-primary hover:bg-blue-100 border border-blue-200 text-xs font-bold transition flex items-center gap-1.5 ${activeTask ? "" : "hidden"}">
+                ${icons.book("w-3.5 h-3.5 text-primary")}
+                <span>Open Full Reader</span>
               </button>
-              <button id="reader-start-timer-btn" class="px-3 py-1.5 rounded-xl bg-surface-subtle text-stone-accent hover:bg-surface-container border border-outline-variant text-xs font-bold transition ${activeTask ? "" : "hidden"}">
-                ⏱️ Start Reading Timer
+              <button id="reader-start-timer-btn" class="px-3 py-1.5 rounded-xl bg-surface-subtle text-stone-accent hover:bg-surface-container border border-outline-variant text-xs font-bold transition flex items-center gap-1.5 ${activeTask ? "" : "hidden"}">
+                ${icons.timer("w-3.5 h-3.5 text-stone-accent")}
+                <span>Start Reading Timer</span>
               </button>
             </div>
           </div>
@@ -128,7 +131,7 @@ export function renderBooksView(container) {
               <span class="text-outline">page</span>
               <button id="books-page-next" data-task-id="${activeTask.id}" class="px-2.5 py-1 rounded-lg bg-white hover:bg-surface-subtle border border-outline-variant text-stone-accent font-bold transition">+1</button>
             </div>
-            <span class="text-outline">${activeTask.status === "done" ? "STATUS: RESOLVED ✓" : "IN PROGRESS"}</span>
+            <span class="text-outline">${activeTask.status === "done" ? `<span class="text-success font-bold inline-flex items-center gap-1">${icons.check("w-3.5 h-3.5 text-success")} STATUS: RESOLVED</span>` : "IN PROGRESS"}</span>
           </div>
           `
               : ""
@@ -193,7 +196,7 @@ function bindBooksEvents(container, activeTask) {
       if (task.pages > 0 && newPage >= task.pages && task.status !== "done") {
         await api.markDone(taskId);
         sound.playComplete();
-        store.showToast(`Completed book: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} 🪙)`, "success");
+        store.showToast(`Completed book: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} coins)`, "success");
         await store.refreshUserAndStats();
       }
       await store.refreshTasks();

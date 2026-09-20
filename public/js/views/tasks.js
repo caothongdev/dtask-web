@@ -6,6 +6,7 @@ import { api } from "../api.js";
 import { sound } from "../audio.js";
 import { store } from "../store.js";
 import { openReaderModal } from "./reader.js";
+import { icons } from "../icons.js";
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -290,7 +291,9 @@ export function renderTasksView(container) {
               value="${escapeHtml(searchQuery)}"
               class="w-full bg-transparent text-stone-accent text-xs focus:outline-none placeholder-outline"
             />
-            <button id="tasks-search-clear" class="${searchQuery ? "" : "hidden"} text-outline hover:text-stone-accent text-xs">✕</button>
+            <button id="tasks-search-clear" class="${searchQuery ? "" : "hidden"} text-outline hover:text-stone-accent p-1 rounded hover:bg-surface transition flex items-center justify-center" title="Clear search">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
         </div>
 
@@ -331,7 +334,7 @@ export function renderTasksView(container) {
 
             <div class="bg-coin-soft p-3 rounded-xl border border-amber-200/80 flex flex-col">
               <span class="text-coin-amber text-[11px] uppercase tracking-wider">Coins</span>
-              <span id="stat-coins" class="text-base font-bold text-coin-amber mt-1 font-sans">🪙 ${user.coins ?? 0}</span>
+              <span id="stat-coins" class="text-base font-bold text-coin-amber mt-1 font-sans flex items-center gap-1.5">${icons.coin("w-4 h-4 text-amber-500")} ${user.coins ?? 0}</span>
               <span class="text-[10px] text-outline mt-0.5">wallet balance</span>
             </div>
           </div>
@@ -352,7 +355,7 @@ export function renderTasksView(container) {
         <div class="bg-surface rounded-2xl border border-outline-variant shadow-card p-4 md:p-5 flex flex-col gap-3 font-mono text-xs">
           <div class="flex items-center justify-between pb-2 border-b border-outline-variant/70">
             <span class="text-stone-accent font-bold tracking-wider">QUICK FOCUS LOG</span>
-            <span class="text-outline text-[11px]">+0.5 🪙/min</span>
+            <span class="text-outline text-[11px]">+0.5 coins/min</span>
           </div>
           <p class="text-secondary text-[11px] leading-relaxed">
             Record completed offline work block without running live timer:
@@ -420,7 +423,7 @@ function updateTasksListOnly(container) {
   if (filteredTasks.length === 0) {
     listContainer.innerHTML = `
       <div class="p-10 bg-surface border-2 border-dashed border-outline-variant rounded-3xl text-center max-w-lg mx-auto font-sans">
-        <div class="w-14 h-14 mx-auto mb-3 bg-primary-soft text-primary rounded-2xl flex items-center justify-center text-2xl">✨</div>
+        <div class="w-14 h-14 mx-auto mb-3 bg-primary-soft text-primary rounded-2xl flex items-center justify-center">${icons.sparkles("w-7 h-7")}</div>
         <p class="text-base font-bold text-stone-accent mb-1">No tasks found</p>
         <p class="text-xs text-outline">Nothing matches the current filters. Press <kbd class="px-1.5 py-0.5 bg-surface-subtle border border-outline-variant rounded font-mono text-stone-accent font-bold">A</kbd> or add one above.</p>
       </div>
@@ -445,7 +448,7 @@ function updateTasksListOnly(container) {
   if (streakEl) streakEl.textContent = `${streakDays} DAYS`;
   if (xpEl) xpEl.textContent = String(totalXp);
   if (rankEl) rankEl.textContent = levelInfo.rank || "Apprentice";
-  if (coinsEl) coinsEl.textContent = `🪙 ${user.coins ?? 0}`;
+  if (coinsEl) coinsEl.innerHTML = `<span class="flex items-center gap-1.5">${icons.coin("w-4 h-4 text-amber-500")} ${user.coins ?? 0}</span>`;
   if (lvlRankEl) lvlRankEl.textContent = `[LVL ${levelInfo.level}] ${levelInfo.rank}`;
   if (lvlProgEl) lvlProgEl.textContent = `${levelInfo.prog_xp || 0} / ${levelInfo.needed_xp || 100} XP (${levelInfo.pct || 0}%)`;
   if (lvlBarEl) lvlBarEl.style.width = `${levelInfo.pct || 0}%`;
@@ -499,11 +502,11 @@ function renderTaskCard(task) {
   const isBook = Number(task.pages) > 0 || !!task.book_title;
 
   // Mode badge
-  let modeBadge = `<span class="px-1.5 py-0.5 text-[10px] font-mono rounded-md border border-outline-variant bg-surface-subtle text-outline">✓ CHECK</span>`;
+  let modeBadge = `<span class="px-2 py-0.5 text-[10px] font-mono rounded-md border border-outline-variant bg-surface-subtle text-outline inline-flex items-center gap-1">${icons.check("w-3 h-3")} CHECK</span>`;
   if (isTime) {
-    modeBadge = `<span class="px-1.5 py-0.5 text-[10px] font-mono rounded-md border border-blue-200 bg-primary-soft text-primary font-bold">⏱ TIME ${task.mins}m</span>`;
+    modeBadge = `<span class="px-2 py-0.5 text-[10px] font-mono rounded-md border border-blue-200 bg-primary-soft text-primary font-bold inline-flex items-center gap-1">${icons.timer("w-3 h-3")} ${task.mins}m</span>`;
   } else if (isBook) {
-    modeBadge = `<span class="px-1.5 py-0.5 text-[10px] font-mono rounded-md border border-violet-200 bg-badge-violet text-badge-violet-text font-bold">📖 BOOK</span>`;
+    modeBadge = `<span class="px-2 py-0.5 text-[10px] font-mono rounded-md border border-violet-200 bg-badge-violet text-badge-violet-text font-bold inline-flex items-center gap-1">${icons.book("w-3 h-3")} BOOK</span>`;
   }
 
   // Scheduled slot badge
@@ -514,7 +517,7 @@ function renderTaskCard(task) {
   // XP & Coin award badges
   const awardBadges = `
     <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-primary-soft text-primary border border-blue-100">+${task.xp || 10} XP</span>
-    <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-coin-soft text-coin-amber border border-amber-100">+${task.coins || 10} 🪙</span>
+    <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-coin-soft text-coin-amber border border-amber-100 inline-flex items-center gap-1">${icons.coin("w-3 h-3 text-amber-500")} +${task.coins || 10}</span>
   `;
 
   // Progress metrics & visual bar
@@ -523,34 +526,40 @@ function renderTaskCard(task) {
     const spentMins = Math.floor((task.time_spent || 0) / 60);
     const targetMins = task.mins || 25;
     const pct = isDone ? 100 : Math.min(100, Math.round((spentMins / targetMins) * 100));
+
     progressSection = `
-      <div class="flex items-center gap-2 text-[11px] font-mono text-outline shrink-0 mt-1 sm:mt-0">
-        ${renderProgressPill(pct)}
-        <span class="text-secondary">${spentMins}m / ${targetMins}m</span>
+      <div class="flex items-center gap-2">
+        <div class="w-16 sm:w-24 bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+          <div class="bg-primary h-1.5 rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+        </div>
+        <span class="text-[10px] font-mono text-outline whitespace-nowrap">${spentMins}/${targetMins}m</span>
       </div>
     `;
   } else if (isBook) {
-    const curPage = task.page || 0;
-    const totPages = task.pages || 0;
-    const pct = isDone ? 100 : totPages > 0 ? Math.min(100, Math.round((curPage / totPages) * 100)) : 0;
+    const page = task.page || 0;
+    const pages = task.pages || 0;
+    const pct = pages > 0 ? (isDone ? 100 : Math.min(100, Math.round((page / pages) * 100))) : 0;
+
     progressSection = `
-      <div class="flex items-center gap-2 text-[11px] font-mono text-outline shrink-0 mt-1 sm:mt-0">
-        ${renderProgressPill(pct)}
-        <span class="text-secondary">p${curPage}/${totPages}</span>
+      <div class="flex items-center gap-2">
+        <div class="w-16 sm:w-24 bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+          <div class="bg-badge-violet-text h-1.5 rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+        </div>
+        <span class="text-[10px] font-mono text-outline whitespace-nowrap">p.${page}${pages ? "/" + pages : ""}</span>
       </div>
     `;
   }
 
-  // Interactive buttons depending on mode
+  // Mode action button (Start Focus or Step/Read)
   let modeActionBtn = "";
-  if (isTime && !isDone) {
+  if (isTime) {
     modeActionBtn = `
       <button
         data-action="focus"
         data-task-id="${task.id}"
-        class="task-focus-btn px-2.5 py-1 bg-primary hover:bg-primary-strong text-white font-mono text-xs font-bold transition-colors rounded-xl whitespace-nowrap shadow-sm shadow-blue-500/20"
+        class="task-focus-btn px-2.5 py-1 bg-primary hover:bg-primary-strong text-white font-mono text-xs font-bold transition-colors rounded-xl whitespace-nowrap shadow-sm shadow-blue-500/20 inline-flex items-center gap-1.5"
       >
-        ▶ START FOCUS
+        ${icons.play("w-3 h-3 fill-current")} START FOCUS
       </button>
     `;
   } else if (isBook) {
@@ -575,9 +584,9 @@ function renderTaskCard(task) {
         <button
           data-action="read"
           data-task-id="${task.id}"
-          class="task-read-btn px-2.5 py-1 bg-primary-soft hover:bg-blue-100 text-primary border border-blue-200 font-mono text-xs font-bold rounded-xl transition-colors whitespace-nowrap"
+          class="task-read-btn px-2.5 py-1 bg-primary-soft hover:bg-blue-100 text-primary border border-blue-200 font-mono text-xs font-bold rounded-xl transition-colors whitespace-nowrap inline-flex items-center gap-1"
         >
-          📖 READ
+          ${icons.book("w-3.5 h-3.5")} READ
         </button>
       </div>
     `;
@@ -666,7 +675,9 @@ export function openEditTaskModal(task, onUpdate) {
   modal.innerHTML = `
     <div class="flex items-center justify-between pb-3 border-b border-outline-variant">
       <span class="text-stone-accent font-bold text-sm font-sans">Edit Task #${task.id}</span>
-      <button id="edit-modal-close" class="text-outline hover:text-stone-accent font-bold text-lg leading-none">✕</button>
+      <button id="edit-modal-close" class="text-outline hover:text-stone-accent p-1.5 rounded-lg hover:bg-surface-subtle transition flex items-center justify-center" title="Close">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <form id="edit-task-form" class="flex flex-col gap-3">
       <div>
@@ -958,7 +969,7 @@ function bindViewEvents(container) {
           if (task.pages > 0 && newPage >= task.pages && task.status !== "done") {
             await api.markDone(task.id);
             sound.playComplete();
-            store.showToast(`Completed book: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} 🪙)`, "success");
+            store.showToast(`Completed book: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} coins)`, "success");
             await store.refreshUserAndStats();
           }
           await store.refreshTasks();
@@ -979,7 +990,7 @@ function bindViewEvents(container) {
         await api.logFocus(mins);
         sound.playComplete();
         const coinsEarned = Math.floor(mins / 2);
-        store.showToast(`Logged ${mins}m focus session (+${mins} XP, +${coinsEarned} 🪙)`, "success");
+        store.showToast(`Logged ${mins}m focus session (+${mins} XP, +${coinsEarned} coins)`, "success");
         await store.refreshUserAndStats();
         updateTasksListOnly(container);
       } catch (err) {

@@ -4,6 +4,7 @@
 
 import { api } from "../api.js";
 import { store } from "../store.js";
+import { icons } from "../icons.js";
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -59,7 +60,11 @@ export function renderProfileView(container) {
           </div>
           <div class="p-4 bg-coin-soft rounded-2xl border border-amber-200">
             <span class="text-[10px] font-mono uppercase text-coin-amber font-bold">Coin Balance</span>
-            <div class="text-base font-mono font-bold text-coin-amber mt-0.5" id="whoami-coins">${user.coins ?? 0} 🪙</div>
+            <div class="text-base font-mono font-bold text-coin-amber mt-0.5 flex items-center gap-1.5" id="whoami-coins">
+              ${icons.coin("w-4 h-4 text-amber-500")}
+              <span>${user.coins ?? 0}</span>
+              <span class="text-xs font-normal opacity-85">COINS</span>
+            </div>
           </div>
         </div>
 
@@ -67,15 +72,24 @@ export function renderProfileView(container) {
         <div class="grid grid-cols-3 gap-4 mb-6">
           <div class="p-4 bg-surface-subtle rounded-2xl border border-outline-variant text-center">
             <span class="block text-[10px] font-mono uppercase text-outline font-bold">Streak</span>
-            <span class="text-lg font-bold text-orange-600 mt-1 block">🔥 ${stats.streak_days ?? 0}d</span>
+            <span class="text-lg font-bold text-orange-600 mt-1 flex items-center justify-center gap-1">
+              ${icons.fire("w-4 h-4 text-orange-500")}
+              <span>${stats.streak_days ?? 0}d</span>
+            </span>
           </div>
           <div class="p-4 bg-surface-subtle rounded-2xl border border-outline-variant text-center">
             <span class="block text-[10px] font-mono uppercase text-outline font-bold">Focus Time</span>
-            <span class="text-lg font-bold text-primary mt-1 block">⏱️ ${stats.focus_minutes ?? 0}m</span>
+            <span class="text-lg font-bold text-primary mt-1 flex items-center justify-center gap-1">
+              ${icons.timer("w-4 h-4 text-primary")}
+              <span>${stats.focus_minutes ?? 0}m</span>
+            </span>
           </div>
           <div class="p-4 bg-surface-subtle rounded-2xl border border-outline-variant text-center">
             <span class="block text-[10px] font-mono uppercase text-outline font-bold">Completed</span>
-            <span class="text-lg font-bold text-success mt-1 block">✓ ${stats.totals?.done ?? 0}</span>
+            <span class="text-lg font-bold text-success mt-1 flex items-center justify-center gap-1">
+              ${icons.checkCircle("w-4 h-4 text-success")}
+              <span>${stats.totals?.done ?? 0}</span>
+            </span>
           </div>
         </div>
 
@@ -97,12 +111,12 @@ export function renderProfileView(container) {
               <div class="font-semibold text-stone-accent">Public Profile Board</div>
               <div class="text-outline">Expose read-only stats at /u/:handle</div>
             </div>
-            <button id="profile-toggle-public-btn" class="px-3 py-1.5 rounded-xl border font-mono font-bold transition ${
+            <button id="profile-toggle-public-btn" class="px-3 py-1.5 rounded-xl border font-mono font-bold transition flex items-center gap-1.5 ${
               isPublic
                 ? "bg-success-soft border-emerald-200 text-success"
                 : "bg-white border-outline-variant text-secondary hover:border-primary hover:text-primary"
             }">
-              ${isPublic ? "PUBLIC ✓" : "MAKE PUBLIC"}
+              ${isPublic ? `${icons.check("w-3.5 h-3.5 text-success")} <span>PUBLIC</span>` : "MAKE PUBLIC"}
             </button>
           </div>
           <div class="flex items-center justify-between text-xs gap-3">

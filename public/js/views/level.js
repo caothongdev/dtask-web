@@ -3,6 +3,7 @@
 // Blueprint Silicon light theme.
 
 import { store } from "../store.js";
+import { icons } from "../icons.js";
 import { RPG_TIERS, getTierIndexForLevel, renderAsciiBar } from "./telemetry.js";
 
 function escapeHtml(str) {
@@ -69,8 +70,8 @@ export function renderLevelView(container) {
             </div>
           </div>
 
-          <!-- ASCII meter flavor -->
-          <div class="hidden sm:block font-mono text-[11px] text-primary tracking-widest bg-surface-subtle rounded-xl border border-outline-variant px-2 py-1 select-none text-left">
+          <!-- Optional hidden meter for compatibility -->
+          <div class="hidden">
             ${renderAsciiBar(pct, 32)}
           </div>
         </div>
@@ -94,7 +95,12 @@ export function renderLevelView(container) {
                 const isCurrent = idx === currentTierIndex;
                 return `
                   <tr class="${isCurrent ? "bg-primary-soft font-semibold" : "hover:bg-surface-subtle/60"} transition-colors">
-                    <td class="py-2.5 px-4 font-mono font-bold text-primary">Level ${tier.minLvl}+ ${isCurrent ? "⭐" : ""}</td>
+                    <td class="py-2.5 px-4 font-mono font-bold text-primary">
+                      <span class="inline-flex items-center gap-1.5">
+                        <span>Level ${tier.minLvl}+</span>
+                        ${isCurrent ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary text-white text-[9px] font-bold">${icons.star("w-3 h-3 text-amber-300")} ACTIVE</span>` : ""}
+                      </span>
+                    </td>
                     <td class="py-2.5 px-4 text-stone-accent">${escapeHtml(tier.name)}</td>
                     <td class="py-2.5 px-4 font-mono text-secondary">${tier.minLvl} – ${tier.maxLvl >= 999 ? "∞" : tier.maxLvl}</td>
                     <td class="py-2.5 px-4 text-outline">${escapeHtml(tier.description)}</td>

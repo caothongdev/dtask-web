@@ -5,6 +5,7 @@
 import { api } from "../api.js";
 import { sound } from "../audio.js";
 import { store } from "../store.js";
+import { icons } from "../icons.js";
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -265,11 +266,15 @@ export function renderTimelineView(container) {
             </div>
 
             <div class="flex items-center gap-1 font-mono text-xs text-secondary">
-              <button id="cal-prev-btn" class="px-2 py-0.5 rounded-lg bg-white hover:bg-surface-subtle hover:text-stone-accent transition-colors border border-outline-variant" title="Previous Day">◀</button>
-              <button id="cal-today-btn" class="px-2 py-0.5 rounded-lg bg-primary text-white font-bold border border-primary hover:bg-primary-strong transition-colors">
-                ${currentDateOffset === 0 ? "TODAY" : "◀ TODAY ▶"}
+              <button id="cal-prev-btn" class="p-1 rounded-lg bg-white hover:bg-surface-subtle hover:text-stone-accent transition-colors border border-outline-variant flex items-center justify-center" title="Previous Day">
+                ${icons.chevronLeft("w-3.5 h-3.5")}
               </button>
-              <button id="cal-next-btn" class="px-2 py-0.5 rounded-lg bg-white hover:bg-surface-subtle hover:text-stone-accent transition-colors border border-outline-variant" title="Next Day">▶</button>
+              <button id="cal-today-btn" class="px-2.5 py-1 rounded-lg bg-primary text-white font-bold border border-primary hover:bg-primary-strong transition-colors text-xs">
+                TODAY
+              </button>
+              <button id="cal-next-btn" class="p-1 rounded-lg bg-white hover:bg-surface-subtle hover:text-stone-accent transition-colors border border-outline-variant flex items-center justify-center" title="Next Day">
+                ${icons.chevronRight("w-3.5 h-3.5")}
+              </button>
             </div>
           </div>
 
@@ -358,8 +363,8 @@ export function renderTimelineView(container) {
               <span class="text-stone-accent font-bold">CORE DEEP FOCUS</span>
               <span class="text-primary font-bold">${allocations.totalHours.toFixed(1)}h [${allocations.pct}%]</span>
             </div>
-            <div class="w-full bg-surface-subtle rounded-xl border border-outline-variant px-2 py-1.5 font-mono text-xs text-primary overflow-x-hidden select-none">
-              ${renderAsciiBar(allocations.pct, 18)}
+            <div class="w-full bg-surface-container-high rounded-full h-2.5 overflow-hidden">
+              <div class="bg-primary h-full rounded-full transition-all duration-300" style="width: ${Math.min(100, allocations.pct)}%"></div>
             </div>
             <div class="flex justify-between text-[11px] text-outline">
               <span>TARGET: 8h 00m</span>
@@ -422,8 +427,9 @@ export function renderTimelineView(container) {
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-2">
-                  <span class="px-2 py-0.5 rounded-md bg-primary text-white font-bold text-xs animate-pulse font-mono">
-                    ● NOW
+                  <span class="px-2 py-0.5 rounded-md bg-primary text-white font-bold text-xs flex items-center gap-1.5 font-mono" data-marker="● NOW">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                    <span>NOW</span>
                   </span>
                   <span class="text-outline text-xs font-mono">#${activeTask.id}</span>
                   <span class="px-2 py-0.5 rounded-md bg-surface-subtle border border-outline-variant text-stone-soft text-xs uppercase font-bold font-mono">
@@ -438,7 +444,7 @@ export function renderTimelineView(container) {
                   <span>•</span>
                   <span class="text-primary font-bold">+${activeTask.xp || 10} XP</span>
                   <span>•</span>
-                  <span class="text-coin-amber font-bold">🪙 ${activeTask.coins || 10}</span>
+                  <span class="text-coin-amber font-bold flex items-center gap-1">${icons.coin("w-3.5 h-3.5 text-amber-500")} ${activeTask.coins || 10}</span>
                 </div>
               </div>
 
@@ -453,9 +459,9 @@ export function renderTimelineView(container) {
 
             <!-- Segmented Progress Bar -->
             <div class="flex flex-col gap-1.5 bg-surface-subtle p-3 rounded-xl border border-outline-variant">
-              <div class="flex items-center justify-between text-xs text-secondary font-bold font-mono">
-                <span>PROG [ ${activeTask.elapsed_mins}m / ${activeTask.duration}m ]</span>
-                <span class="text-primary">${activeTask.pct}%</span>
+              <div class="flex justify-between text-xs font-mono">
+                <span class="text-secondary">PROGRESS</span>
+                <span class="text-primary font-bold">${activeTask.pct}%</span>
               </div>
               <div class="w-full bg-surface-container-high rounded-full h-2 overflow-hidden">
                 <div class="bg-primary h-full rounded-full transition-all duration-300" style="width: ${activeTask.pct}%"></div>
@@ -471,7 +477,7 @@ export function renderTimelineView(container) {
                   class="timeline-action-btn px-4 py-1.5 rounded-xl bg-primary text-white font-bold hover:bg-primary-strong transition-colors text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20"
                 >
                   <span class="material-symbols-outlined text-sm">play_arrow</span>
-                  <span>▶ START FOCUS</span>
+                  <span>START FOCUS</span>
                 </button>
                 <button
                   data-action="toggle-done"
@@ -515,9 +521,9 @@ export function renderTimelineView(container) {
               <button
                 data-action="focus"
                 data-task-id="${nextTask.id}"
-                class="timeline-action-btn px-3 py-1 rounded-xl bg-primary-soft border border-blue-200 hover:bg-blue-100 text-primary font-bold transition-colors"
+                class="timeline-action-btn px-3 py-1 rounded-xl bg-primary-soft border border-blue-200 hover:bg-blue-100 text-primary font-bold transition-colors inline-flex items-center gap-1"
               >
-                ▶ START FOCUS
+                ${icons.play("w-3 h-3 fill-current")} START FOCUS
               </button>
             `
                 : ""
@@ -564,13 +570,13 @@ export function renderTimelineView(container) {
                       shouldInsertNowMarker
                         ? `
                       <!-- Dynamic Real-Time NOW Marker Line -->
-                      <div id="timeline-now-marker" class="my-1 py-1 px-3 rounded-xl bg-primary-soft border border-blue-300 text-primary font-bold flex items-center justify-between shadow-sm transition-all duration-300">
+                      <div id="timeline-now-marker" data-marker="► NOW" class="my-1 py-1.5 px-3 rounded-xl bg-primary-soft border border-blue-300 text-primary font-bold flex items-center justify-between shadow-sm transition-all duration-300">
                         <div class="flex items-center gap-2">
                           <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
-                          <span class="tracking-wider live-marker-time">► NOW [${nowTimeFormatted}]</span>
-                          <span class="hidden sm:inline text-[11px] opacity-70">// LIVE SYNC</span>
+                          <span class="tracking-wider live-marker-time font-mono">NOW [${nowTimeFormatted}]</span>
+                          <span class="hidden sm:inline text-[11px] text-primary/70 font-sans">Live Tracker</span>
                         </div>
-                        <span class="text-[11px] font-mono opacity-70">CYCLE RUNNING</span>
+                        <span class="text-[11px] font-mono text-primary/70">ACTIVE</span>
                       </div>
                     `
                         : ""
@@ -613,7 +619,7 @@ export function renderTimelineView(container) {
                                       }"
                                       title="${isDone ? "Mark Open" : "Mark Done"}"
                                     >
-                                      ${isDone ? "✓" : ""}
+                                      ${isDone ? icons.check("w-3 h-3") : ""}
                                     </button>
 
                                     <span class="px-1.5 py-0.5 rounded-md bg-surface-subtle border border-outline-variant text-[10px] uppercase font-bold text-stone-soft">
@@ -627,8 +633,8 @@ export function renderTimelineView(container) {
                                     ${
                                       isExecuting
                                         ? `
-                                      <span class="px-1.5 py-0.5 rounded-md bg-primary text-white text-[10px] font-bold animate-pulse">
-                                        ● RUNNING
+                                      <span class="px-2 py-0.5 rounded-md bg-primary text-white text-[10px] font-bold inline-flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> RUNNING
                                       </span>
                                     `
                                         : ""
@@ -637,7 +643,7 @@ export function renderTimelineView(container) {
 
                                   <div class="flex items-center gap-2 text-[11px] text-secondary shrink-0">
                                     <span class="text-primary font-bold">+${task.xp || 10} XP</span>
-                                    <span class="text-coin-amber font-bold">🪙 ${task.coins || 10}</span>
+                                    <span class="text-coin-amber font-bold flex items-center gap-1">${icons.coin("w-3.5 h-3.5 text-amber-500")} ${task.coins || 10}</span>
                                     <span class="px-1.5 py-0.5 rounded-md bg-surface-subtle border border-outline-variant">
                                       @ ${task.at} (${task.mins || 30}m)
                                     </span>
@@ -914,14 +920,15 @@ export function updateTimelineLiveClocks(container) {
       if (!marker) {
         marker = document.createElement("div");
         marker.id = "timeline-now-marker";
-        marker.className = "my-1 py-1 px-3 rounded-xl bg-primary-soft border border-blue-300 text-primary font-bold flex items-center justify-between shadow-sm transition-all duration-300";
+        marker.dataset.marker = "► NOW";
+        marker.className = "my-1 py-1.5 px-3 rounded-xl bg-primary-soft border border-blue-300 text-primary font-bold flex items-center justify-between shadow-sm transition-all duration-300";
         marker.innerHTML = `
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
-            <span class="tracking-wider live-marker-time">► NOW [${timeFormatted}]</span>
-            <span class="hidden sm:inline text-[11px] opacity-70">// LIVE SYNC</span>
+            <span class="tracking-wider live-marker-time font-mono text-xs">NOW [${timeFormatted}]</span>
+            <span class="hidden sm:inline text-[11px] text-primary/70 font-sans">Live Tracker</span>
           </div>
-          <span class="text-[11px] font-mono opacity-70">CYCLE RUNNING</span>
+          <span class="text-[11px] font-mono text-primary/70">ACTIVE</span>
         `;
         currentHourSlot.prepend(marker);
       } else {
@@ -939,7 +946,7 @@ export function updateTimelineLiveClocks(container) {
 
       const textEl = marker.querySelector(".live-marker-time") || marker.querySelector(".tracking-wider");
       if (textEl) {
-        textEl.textContent = `► NOW [${timeFormatted}]`;
+        textEl.textContent = `NOW [${timeFormatted}]`;
       }
     } else if (marker) {
       marker.remove();

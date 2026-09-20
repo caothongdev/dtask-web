@@ -63,9 +63,9 @@ test("index.html routes to shop and stats views", async () => {
 });
 
 test("Shop helper functions format coins, dates, and ASCII bars correctly", () => {
-  expect(formatCoins(100)).toBe("🪙 100 COINS");
-  expect(formatCoins(0)).toBe("🪙 0 COINS");
-  expect(formatCoins(2500)).toBe("🪙 2,500 COINS");
+  expect(formatCoins(100)).toBe("100 COINS");
+  expect(formatCoins(0)).toBe("0 COINS");
+  expect(formatCoins(2500)).toBe("2,500 COINS");
 
   expect(formatLedgerTime(null)).toBe("--:--");
   expect(formatLedgerTime("")).toBe("--:--");
@@ -171,9 +171,9 @@ test("renderShopView displays wallet balance, item cards, locked/unlocked state,
 
   // Economy HUD verification
   expect(container.innerHTML).toContain("data-shop-view");
-  expect(container.innerHTML).toContain("🪙 25");
-  expect(container.innerHTML).toContain("EARNED: +150 🪙");
-  expect(container.innerHTML).toContain("SPENT: -125 🪙");
+  expect(container.innerHTML).toContain("25");
+  expect(container.innerHTML).toContain("EARNED: +150");
+  expect(container.innerHTML).toContain("SPENT: -125");
 
   // Rewards catalog verification
   expect(container.innerHTML).toContain("Espresso Break");
@@ -182,13 +182,13 @@ test("renderShopView displays wallet balance, item cards, locked/unlocked state,
   // Item 1 (cost 15 <= 25) should have BUY REWARD button
   expect(container.innerHTML).toContain("Redeem Reward");
   // Item 2 (cost 50 > 25) should have LOCKED state with Need 25 more
-  expect(container.innerHTML).toContain("Need 25 more 🪙");
+  expect(container.innerHTML).toContain("Need 25 more coins");
 
   // Ledger verification
   expect(container.innerHTML).toContain("Completed Rust task");
   expect(container.innerHTML).toContain("Bought Coffee Break");
-  expect(container.innerHTML).toContain("+20 🪙");
-  expect(container.innerHTML).toContain("-15 🪙");
+  expect(container.innerHTML).toContain("+20");
+  expect(container.innerHTML).toContain("-15");
 
   cleanupShopView();
 });
@@ -250,7 +250,7 @@ test("renderTelemetryView displays RPG tier progression, experience buffer, hist
   expect(container.innerHTML).toContain("7-DAY XP VELOCITY HISTOGRAM");
   expect(container.innerHTML).toContain("CATEGORY COMPLETION METERS");
   expect(container.innerHTML).toContain("WALLET & DISCIPLINE AUDIT");
-  expect(container.innerHTML).toContain("🪙 45");
+  expect(container.innerHTML).toContain("45");
 
   cleanupTelemetryView();
 });

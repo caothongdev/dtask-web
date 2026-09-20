@@ -5,6 +5,7 @@
 import { api } from "../api.js";
 import { sound } from "../audio.js";
 import { store } from "../store.js";
+import { icons } from "../icons.js";
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -48,20 +49,22 @@ export function openReaderModal(task, onUpdate) {
     modal.innerHTML = `
       <!-- Header -->
       <div class="h-14 px-6 border-b border-outline-variant bg-surface-subtle/70 flex items-center justify-between shrink-0">
-        <div class="flex items-center gap-3 min-w-0">
-          <span class="text-primary font-sans text-sm font-bold tracking-tight truncate">
-            📖 ${escapeHtml(task.book_title || task.title)}
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="text-primary flex items-center gap-2 font-sans text-sm font-bold tracking-tight truncate">
+            ${icons.book("w-4 h-4 text-primary shrink-0")}
+            <span class="truncate">${escapeHtml(task.book_title || task.title)}</span>
           </span>
           <span id="reader-page-chip" class="text-xs font-mono px-2 py-0.5 rounded-md bg-white border border-outline-variant text-stone-soft shrink-0">
             p${currentPage}/${totalPages} (${pct}%)
           </span>
         </div>
-        <div class="flex items-center gap-4 shrink-0">
-          <span id="reader-timer" class="text-xs font-mono text-primary bg-primary-soft px-2 py-1 rounded-md border border-blue-200">
-            [SESSION: ${fmtTime(sessionSeconds)}]
+        <div class="flex items-center gap-3 shrink-0">
+          <span id="reader-timer" class="text-xs font-mono text-primary bg-primary-soft px-2.5 py-1 rounded-lg border border-blue-200 flex items-center gap-1.5">
+            ${icons.timer("w-3.5 h-3.5 text-primary")}
+            <span>SESSION: ${fmtTime(sessionSeconds)}</span>
           </span>
-          <button id="reader-close-btn" class="text-secondary hover:text-stone-accent font-mono text-sm px-2 py-1 rounded-lg hover:bg-white transition-colors" title="Close (Esc)">
-            ✕
+          <button id="reader-close-btn" class="text-secondary hover:text-stone-accent font-mono text-sm p-1.5 rounded-lg hover:bg-white transition-colors" title="Close (Esc)">
+            ${icons.close("w-4 h-4")}
           </button>
         </div>
       </div>
@@ -115,7 +118,7 @@ export function openReaderModal(task, onUpdate) {
         <div class="flex items-center gap-3 text-outline">
           <span>XP: <strong class="text-primary">+${task.xp || 10}</strong></span>
           <span>|</span>
-          <span>COINS: <strong class="text-coin-amber">🪙 +${task.coins || 10}</strong></span>
+          <span class="flex items-center gap-1">COINS: <strong class="text-coin-amber flex items-center gap-0.5">${icons.coin("w-3.5 h-3.5 text-amber-500")} +${task.coins || 10}</strong></span>
         </div>
         <div class="flex items-center gap-3">
           <button id="reader-chapter-read-btn" class="px-3 py-2 rounded-xl border border-outline-variant hover:border-primary text-secondary hover:text-primary transition-colors font-semibold">
@@ -149,7 +152,7 @@ export function openReaderModal(task, onUpdate) {
           sound.playComplete();
           task.status = "done";
           task.progress = 100;
-          store.showToast(`Book finished: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} 🪙)`, "success");
+          store.showToast(`Book finished: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} coins)`, "success");
           await store.refreshUserAndStats();
         } catch (err) {
           console.error("Auto markDone error:", err);

@@ -7,6 +7,7 @@
 import { api } from "../api.js";
 import { sound } from "../audio.js";
 import { store } from "../store.js";
+import { icons } from "../icons.js";
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -200,7 +201,7 @@ function updateLiveTelemetry() {
     if (targetEl) targetEl.textContent = formatTime(timer.targetSeconds);
 
     const remEl = mountedContainer.querySelector("#focus-remaining");
-    if (remEl) remEl.textContent = `⏳ ${formatTime(rem)} REMAINING`;
+    if (remEl) remEl.textContent = `${formatTime(rem)} REMAINING`;
 
     const tickCountEl = mountedContainer.querySelector("#focus-tick-count");
     if (tickCountEl) tickCountEl.textContent = `[TICK: ${timer.elapsedSeconds}s]`;
@@ -213,6 +214,8 @@ function updateLiveTelemetry() {
 
     const asciiMeterEl = mountedContainer.querySelector("#focus-ascii-meter");
     if (asciiMeterEl) asciiMeterEl.textContent = renderBtopAsciiBar(accrual.pct, 30);
+    const progressFillEl = mountedContainer.querySelector("#focus-progress-fill");
+    if (progressFillEl) progressFillEl.style.width = `${Math.min(100, accrual.pct)}%`;
 
     const currentSubEl = mountedContainer.querySelector("#focus-current-sub");
     if (currentSubEl) currentSubEl.textContent = `CURRENT: ${formatTime(timer.elapsedSeconds)}`;
@@ -259,6 +262,8 @@ function updateLiveTelemetry() {
 
     const asciiMeterEl = mountedContainer.querySelector("#relax-ascii-meter");
     if (asciiMeterEl) asciiMeterEl.textContent = renderBtopAsciiBar(pct, 30);
+    const progressFillEl = mountedContainer.querySelector("#relax-progress-fill");
+    if (progressFillEl) progressFillEl.style.width = `${Math.min(100, pct)}%`;
 
     const elapsedSubEl = mountedContainer.querySelector("#relax-elapsed-sub");
     if (elapsedSubEl) elapsedSubEl.textContent = `${formatTime(timer.elapsedSeconds)} / ${formatTime(timer.totalSeconds)}`;
@@ -344,7 +349,7 @@ function renderFocusDaemonMode(container) {
         <div class="flex items-center gap-4 text-xs text-outline">
           <div class="flex items-center gap-1.5">
             <span>STREAK:</span>
-            <span class="text-orange-600 font-bold">🔥 ${streak} DAYS</span>
+            <span class="text-orange-600 font-bold flex items-center gap-1">${icons.fire("w-3.5 h-3.5 text-orange-500")} ${streak} DAYS</span>
           </div>
           <div class="hidden sm:inline-block text-outline-variant">
             MODE: FOCUS ENGINE
@@ -459,7 +464,7 @@ function renderFocusDaemonMode(container) {
 
               <!-- Pace and Remaining Sub-HUD -->
               <div class="mt-1 flex items-center gap-3 text-xs text-secondary flex-wrap justify-center">
-                <span id="focus-remaining" class="text-primary font-bold">⏳ ${formatTime(Math.max(0, timer.targetSeconds - timer.elapsedSeconds))} REMAINING</span>
+                <span id="focus-remaining" class="text-primary font-bold">${formatTime(Math.max(0, timer.targetSeconds - timer.elapsedSeconds))} REMAINING</span>
                 <span class="text-outline-variant">|</span>
                 <span>PACE: <span class="text-stone-accent font-semibold">1.0x NOMINAL</span></span>
                 <span class="text-outline-variant">|</span>
@@ -479,8 +484,11 @@ function renderFocusDaemonMode(container) {
                   <span id="focus-time-sub" class="text-outline">[${(timer.elapsedSeconds / 60).toFixed(1)} / ${(timer.targetSeconds / 60).toFixed(1)} MIN]</span>
                 </div>
               </div>
-              <!-- ASCII Bar -->
-              <div id="focus-ascii-meter" class="font-mono text-primary tracking-widest text-base sm:text-lg leading-none py-1 select-none overflow-x-auto whitespace-pre">${renderBtopAsciiBar(accrual.pct, 30)}</div>
+              <!-- Modern Progress Bar -->
+              <div class="w-full bg-surface-container-high rounded-full h-3 overflow-hidden mt-1">
+                <div id="focus-progress-fill" class="bg-gradient-to-r from-blue-600 to-indigo-600 h-full rounded-full transition-all duration-300" style="width: ${Math.min(100, accrual.pct)}%"></div>
+              </div>
+              <div id="focus-ascii-meter" class="hidden">${renderBtopAsciiBar(accrual.pct, 30)}</div>
               <div class="flex justify-between items-center text-[11px] text-outline pt-1">
                 <span>00:00:00 (BOOT)</span>
                 <span id="focus-current-sub" class="text-primary font-bold">CURRENT: ${formatTime(timer.elapsedSeconds)}</span>
@@ -515,7 +523,7 @@ function renderFocusDaemonMode(container) {
               <div class="bg-coin-soft p-3 rounded-2xl border border-amber-200 flex flex-col justify-between gap-2">
                 <div class="flex items-center justify-between text-xs">
                   <span class="text-coin-amber uppercase tracking-wider font-bold">COIN_LEDGER_ACTIVE</span>
-                  <span class="text-coin-amber font-bold">🪙 ACCRUAL</span>
+                  <span class="text-coin-amber font-bold flex items-center gap-1">${icons.coin("w-3.5 h-3.5 text-amber-500")} COINS</span>
                 </div>
                 <div>
                   <div class="flex items-baseline gap-2">
@@ -660,7 +668,7 @@ function renderFocusDaemonMode(container) {
           <!-- Footer Telemetry Status -->
           <div class="flex items-center justify-between text-outline text-[11px] px-1 select-none">
             <span>STATUS: FOCUS_LOCKED</span>
-            <span>STREAK: ☕ ${streak}</span>
+            <span>STREAK: ${streak} DAYS</span>
           </div>
         </div>
 
@@ -795,7 +803,11 @@ function renderRelaxDaemonMode(container) {
               <span id="relax-elapsed-sub" class="text-outline font-normal ml-2">${formatTime(timer.elapsedSeconds)} / ${formatTime(timer.totalSeconds)}</span>
             </span>
           </div>
-          <div id="relax-ascii-meter" class="font-mono text-primary tracking-widest text-base sm:text-xl leading-none py-1 select-none overflow-x-auto whitespace-pre">${renderBtopAsciiBar(pct, 30)}</div>
+          <!-- Modern Progress Bar -->
+          <div class="w-full bg-surface-container-high rounded-full h-3 overflow-hidden mt-1">
+            <div id="relax-progress-fill" class="bg-gradient-to-r from-emerald-500 to-teal-600 h-full rounded-full transition-all duration-300" style="width: ${Math.min(100, pct)}%"></div>
+          </div>
+          <div id="relax-ascii-meter" class="hidden">${renderBtopAsciiBar(pct, 30)}</div>
         </div>
 
         <!-- Telemetry Cards -->
@@ -887,7 +899,7 @@ function renderStandbyLauncherMode(container) {
               <span class="text-xs text-outline">CLASSIC</span>
             </div>
             <div class="text-xs text-stone-accent font-bold">Short Sprint (Pomodoro)</div>
-            <div class="text-[11px] text-outline">Target: 25 mins · +25 XP · +12 🪙</div>
+            <div class="text-[11px] text-outline">Target: 25 mins · +25 XP · +12 coins</div>
           </button>
 
           <button data-mins="45" class="quick-preset-btn p-4 bg-surface rounded-2xl border border-outline-variant hover:border-primary hover:bg-primary-soft transition-all text-left flex flex-col gap-1 shadow-card group">
@@ -896,7 +908,7 @@ function renderStandbyLauncherMode(container) {
               <span class="text-xs text-primary font-bold">STANDARD</span>
             </div>
             <div class="text-xs text-stone-accent font-bold">Deep Work Block</div>
-            <div class="text-[11px] text-outline">Target: 45 mins · +45 XP · +22 🪙</div>
+            <div class="text-[11px] text-outline">Target: 45 mins · +45 XP · +22 coins</div>
           </button>
 
           <button data-mins="60" class="quick-preset-btn p-4 bg-surface rounded-2xl border border-outline-variant hover:border-primary hover:bg-primary-soft transition-all text-left flex flex-col gap-1 shadow-card group">
@@ -905,7 +917,7 @@ function renderStandbyLauncherMode(container) {
               <span class="text-xs text-outline">HEAVY</span>
             </div>
             <div class="text-xs text-stone-accent font-bold">Architecture &amp; Flow</div>
-            <div class="text-[11px] text-outline">Target: 60 mins · +60 XP · +30 🪙</div>
+            <div class="text-[11px] text-outline">Target: 60 mins · +60 XP · +30 coins</div>
           </button>
         </div>
       </div>
@@ -939,7 +951,7 @@ function renderStandbyLauncherMode(container) {
                       <span>·</span>
                       <span class="text-primary">+${t.xp || 10} XP</span>
                       <span>·</span>
-                      <span class="text-coin-amber">+${t.coins || 10} 🪙</span>
+                      <span class="text-coin-amber">+${t.coins || 10} coins</span>
                     </div>
                   </div>
                   <button data-task-id="${t.id}" class="launch-task-btn px-3 py-1.5 bg-primary text-white font-bold hover:bg-primary-strong transition-all text-xs whitespace-nowrap rounded-xl shadow-md shadow-blue-500/20">
@@ -985,7 +997,7 @@ function renderStandbyLauncherMode(container) {
               </div>
             </div>
             <button type="submit" class="mt-1 w-full py-2.5 bg-primary text-white font-bold hover:bg-primary-strong transition-all text-xs flex items-center justify-center gap-1.5 rounded-xl shadow-md shadow-blue-500/20">
-              <span>Launch Focus Session ⚡</span>
+              <span class="flex items-center gap-1.5">${icons.zap("w-4 h-4 text-amber-300")} Launch Focus Session</span>
             </button>
           </form>
 
@@ -998,11 +1010,11 @@ function renderStandbyLauncherMode(container) {
               Need a reset before your next sprint? Launch a guilt-free Relax Daemon break.
             </p>
             <div class="flex gap-2 mt-1">
-              <button id="quick-relax-5m-btn" class="flex-1 py-2 bg-white hover:bg-surface-subtle border border-outline-variant text-stone-accent font-bold text-xs transition-all rounded-xl">
-                ☕ 5m Coffee Break
+              <button id="quick-relax-5m-btn" class="flex-1 py-2 bg-white hover:bg-surface-subtle border border-outline-variant text-stone-accent font-bold text-xs transition-all rounded-xl flex items-center justify-center gap-1.5">
+                ${icons.coffee("w-4 h-4")} 5m Coffee Break
               </button>
-              <button id="quick-relax-15m-btn" class="flex-1 py-2 bg-white hover:bg-surface-subtle border border-outline-variant text-stone-accent font-bold text-xs transition-all rounded-xl">
-                🌿 15m Reset
+              <button id="quick-relax-15m-btn" class="flex-1 py-2 bg-white hover:bg-surface-subtle border border-outline-variant text-stone-accent font-bold text-xs transition-all rounded-xl flex items-center justify-center gap-1.5">
+                ${icons.timer("w-4 h-4")} 15m Reset
               </button>
             </div>
           </div>

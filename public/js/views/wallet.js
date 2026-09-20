@@ -3,6 +3,7 @@
 // Blueprint Silicon light theme.
 
 import { store } from "../store.js";
+import { icons } from "../icons.js";
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -46,21 +47,30 @@ export function renderWalletView(container) {
         <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-5 text-white shadow-md shadow-amber-500/20">
           <div class="flex items-center justify-between opacity-85 text-xs font-mono font-bold">
             <span>CURRENT COIN BALANCE</span>
-            <span>🪙</span>
+            <span>${icons.coin("w-5 h-5 text-amber-100")}</span>
           </div>
-          <div class="text-3xl font-extrabold font-mono mt-2" id="wallet-balance-big">${balance.toLocaleString()}</div>
+          <div class="text-3xl font-extrabold font-mono mt-2 flex items-center gap-2" id="wallet-balance-big">
+            <span>${balance.toLocaleString()}</span>
+            <span class="text-xs font-mono font-normal opacity-90">COINS</span>
+          </div>
           <p class="text-xs text-amber-100 mt-1">100% reversible via task toggling</p>
         </div>
 
         <div class="bg-surface rounded-2xl p-5 border border-outline-variant shadow-card">
           <div class="text-outline text-xs font-mono font-bold uppercase">Total Earned All-Time</div>
-          <div class="text-2xl font-extrabold font-mono text-success mt-2" id="wallet-total-earned">+${lifetimeEarned.toLocaleString()} 🪙</div>
+          <div class="text-2xl font-extrabold font-mono text-success mt-2 flex items-center gap-1.5" id="wallet-total-earned">
+            <span>+${lifetimeEarned.toLocaleString()}</span>
+            ${icons.coin("w-5 h-5 text-success")}
+          </div>
           <p class="text-xs text-success mt-1 font-semibold">From completed work items</p>
         </div>
 
         <div class="bg-surface rounded-2xl p-5 border border-outline-variant shadow-card">
           <div class="text-outline text-xs font-mono font-bold uppercase">Total Spent on Rewards</div>
-          <div class="text-2xl font-extrabold font-mono text-primary mt-2" id="wallet-total-spent">-${lifetimeSpent.toLocaleString()} 🪙</div>
+          <div class="text-2xl font-extrabold font-mono text-primary mt-2 flex items-center gap-1.5" id="wallet-total-spent">
+            <span>-${lifetimeSpent.toLocaleString()}</span>
+            ${icons.coin("w-5 h-5 text-primary")}
+          </div>
           <p class="text-xs text-primary mt-1 font-semibold">Redeemed in shop</p>
         </div>
       </div>
@@ -101,7 +111,12 @@ export function renderWalletView(container) {
                     <td class="py-2.5 px-4">
                       <span class="px-2 py-0.5 rounded-md border font-mono font-bold text-[10px] uppercase ${badgeClass}">${escapeHtml(tx.type || "unknown")}</span>
                     </td>
-                    <td class="py-2.5 px-4 font-mono font-bold ${tx.amount > 0 ? "text-success" : "text-stone-accent"}">${sign} 🪙</td>
+                    <td class="py-2.5 px-4 font-mono font-bold ${tx.amount > 0 ? "text-success" : "text-stone-accent"}">
+                      <span class="inline-flex items-center gap-1">
+                        <span>${sign}</span>
+                        ${icons.coin("w-3.5 h-3.5 text-amber-500")}
+                      </span>
+                    </td>
                     <td class="py-2.5 px-4 text-stone-soft font-medium">${escapeHtml(tx.reason || "System transaction")}</td>
                     <td class="py-2.5 px-4 text-right text-outline font-mono">${formatTs(tx.created_at)}</td>
                   </tr>

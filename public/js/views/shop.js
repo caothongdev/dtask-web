@@ -6,6 +6,7 @@
 import { api } from "../api.js";
 import { sound } from "../audio.js";
 import { store } from "../store.js";
+import { icons } from "../icons.js";
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -19,7 +20,7 @@ function escapeHtml(str) {
 
 export function formatCoins(amount) {
   const num = parseInt(amount, 10) || 0;
-  return `🪙 ${num.toLocaleString()} COINS`;
+  return `${num.toLocaleString()} COINS`;
 }
 
 export function renderAsciiBar(pct = 0, blocks = 16) {
@@ -60,7 +61,7 @@ export async function buyReward(rewardId) {
     }
 
     const rewardName = res.reward?.name || reward?.name || "Reward";
-    store.showToast(`Purchased "${rewardName}" (-${reward?.cost || res.reward?.cost || 0} 🪙)`, "success");
+    store.showToast(`Purchased "${rewardName}" (-${reward?.cost || res.reward?.cost || 0} coins)`, "success");
 
     // Refresh user, stats, rewards, and transaction audit records
     await Promise.allSettled([
@@ -135,15 +136,19 @@ export function renderShopView(container) {
               <span class="font-mono text-xs text-outline">COIN LEDGER ONLINE</span>
             </div>
             <div class="flex items-baseline gap-4 flex-wrap">
-              <h1 class="font-sans text-3xl font-extrabold tracking-tight text-stone-accent font-mono">
-                🪙 ${currentCoins.toLocaleString()} <span class="text-sm font-mono font-normal text-secondary">COINS</span>
+              <h1 class="font-sans text-3xl font-extrabold tracking-tight text-stone-accent font-mono flex items-center gap-2">
+                ${icons.coin("w-7 h-7 text-amber-500")}
+                <span>${currentCoins.toLocaleString()}</span>
+                <span class="text-sm font-mono font-normal text-secondary">COINS</span>
               </h1>
               <div class="flex items-center gap-3 text-xs font-mono">
-                <span class="px-2 py-0.5 rounded-md bg-success-soft border border-emerald-200 text-success font-bold">
-                  EARNED: +${lifetimeEarned.toLocaleString()} 🪙
+                <span class="px-2.5 py-1 rounded-lg bg-success-soft border border-emerald-200 text-success font-bold flex items-center gap-1.5">
+                  ${icons.coin("w-3.5 h-3.5 text-success")}
+                  <span>EARNED: +${lifetimeEarned.toLocaleString()}</span>
                 </span>
-                <span class="px-2 py-0.5 rounded-md bg-primary-soft border border-blue-200 text-primary font-bold">
-                  SPENT: -${lifetimeSpent.toLocaleString()} 🪙
+                <span class="px-2.5 py-1 rounded-lg bg-primary-soft border border-blue-200 text-primary font-bold flex items-center gap-1.5">
+                  ${icons.coin("w-3.5 h-3.5 text-primary")}
+                  <span>SPENT: -${lifetimeSpent.toLocaleString()}</span>
                 </span>
               </div>
             </div>
@@ -158,8 +163,8 @@ export function renderShopView(container) {
               id="shop-add-reward-btn"
               class="px-4 py-2 bg-stone-accent text-white hover:bg-black font-mono text-xs font-bold tracking-wide transition-colors rounded-xl flex items-center gap-2 shadow-card-md"
             >
-              <span class="material-symbols-outlined text-sm font-bold">add</span>
-              <span>+ Custom Reward</span>
+              ${icons.plus("w-4 h-4 text-white")}
+              <span>Add Custom Reward</span>
             </button>
           </div>
         </div>
@@ -177,9 +182,11 @@ export function renderShopView(container) {
 
         ${rewards.length === 0 ? `
           <div class="p-12 text-center bg-surface rounded-3xl border-2 border-dashed border-outline-variant">
-            <div class="w-14 h-14 mx-auto mb-3 bg-coin-soft text-coin-amber rounded-2xl flex items-center justify-center text-2xl">🎁</div>
+            <div class="w-14 h-14 mx-auto mb-3 bg-coin-soft text-coin-amber rounded-2xl flex items-center justify-center">
+              ${icons.gift("w-7 h-7 text-amber-500")}
+            </div>
             <p class="text-base font-bold text-stone-accent mb-1">No rewards configured</p>
-            <p class="text-xs text-outline">Click "+ Custom Reward" to create custom rewards or refresh the catalogue.</p>
+            <p class="text-xs text-outline">Click "Add Custom Reward" to create custom rewards or refresh the catalogue.</p>
           </div>
         ` : `
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -192,13 +199,13 @@ export function renderShopView(container) {
                 <div class="bg-surface rounded-2xl border ${isLocked ? 'border-outline-variant opacity-85' : 'border-outline-variant hover:border-primary hover:shadow-card-md'} p-5 flex flex-col justify-between transition-all group shadow-card" data-reward-card="${reward.id}">
                   <div class="space-y-3">
                     <div class="flex items-center justify-between">
-                      <div class="w-12 h-12 flex items-center justify-center text-2xl bg-surface-subtle rounded-xl border border-outline-variant select-none">
-                        ${escapeHtml(reward.icon || "🎁")}
+                      <div class="w-12 h-12 flex items-center justify-center bg-surface-subtle rounded-xl border border-outline-variant select-none text-stone-accent">
+                        ${reward.icon === "☕" ? icons.coffee("w-6 h-6 text-amber-600") : reward.icon === "⚡" ? icons.zap("w-6 h-6 text-amber-500") : (!reward.icon || reward.icon === "🎁" || reward.icon === "GIFT") ? icons.gift("w-6 h-6 text-amber-500") : `<span class="text-xs font-mono font-bold">${escapeHtml(reward.icon)}</span>`}
                       </div>
                       <div class="text-right font-mono space-y-1">
                         <span class="text-[10px] text-outline block">#${String(reward.id).padStart(2, "0")}</span>
-                        <span class="text-[11px] px-2 py-0.5 rounded-md font-medium border ${isTimed ? 'border-amber-200 text-coin-amber bg-coin-soft' : 'border-emerald-200 text-success bg-success-soft'}">
-                          ${isTimed ? `⏱ ${reward.mins || 15}m TIMER` : "⚡ INSTANT"}
+                        <span class="text-[11px] px-2 py-0.5 rounded-md font-medium border inline-flex items-center gap-1 ${isTimed ? 'border-amber-200 text-coin-amber bg-coin-soft' : 'border-emerald-200 text-success bg-success-soft'}">
+                          ${isTimed ? `${icons.timer("w-3 h-3")} ${reward.mins || 15}m TIMER` : `${icons.zap("w-3 h-3")} INSTANT`}
                         </span>
                       </div>
                     </div>
@@ -208,8 +215,9 @@ export function renderShopView(container) {
                         ${escapeHtml(reward.name)}
                       </h3>
                       <div class="flex items-center gap-2 mt-2">
-                        <span class="font-mono text-sm font-bold ${isLocked ? 'text-outline' : 'text-coin-amber'}">
-                          🪙 ${reward.cost} COINS
+                        <span class="font-mono text-sm font-bold flex items-center gap-1 ${isLocked ? 'text-outline' : 'text-coin-amber'}">
+                          ${icons.coin("w-4 h-4")}
+                          <span>${reward.cost} COINS</span>
                         </span>
                         ${isTimed ? `
                           <span class="text-[11px] font-mono text-secondary">· ${reward.mins}m break</span>
@@ -224,10 +232,10 @@ export function renderShopView(container) {
                     ${isLocked ? `
                       <button
                         disabled
-                        class="w-full px-3 py-2 bg-surface-subtle border border-outline-variant text-outline font-mono text-xs rounded-xl flex items-center justify-center gap-2 cursor-not-allowed select-none"
+                        class="w-full px-3 py-2 bg-surface-subtle border border-outline-variant text-outline font-mono text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed select-none"
                       >
-                        <span class="material-symbols-outlined text-xs text-outline">lock</span>
-                        <span>Need ${neededCoins} more 🪙</span>
+                        ${icons.lock("w-3.5 h-3.5 text-outline")}
+                        <span>Need ${neededCoins} more coins</span>
                       </button>
                     ` : `
                       <button
@@ -236,7 +244,7 @@ export function renderShopView(container) {
                         data-reward-id="${reward.id}"
                         class="w-full px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-mono text-xs font-bold tracking-wide transition-colors rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-amber-500/25"
                       >
-                        <span class="material-symbols-outlined text-sm font-bold">shopping_cart</span>
+                        ${icons.cart("w-3.5 h-3.5 text-white")}
                         <span>Redeem Reward</span>
                       </button>
                     `}
@@ -259,7 +267,7 @@ export function renderShopView(container) {
             id="shop-refresh-ledger-btn"
             class="text-xs font-mono text-secondary hover:text-primary transition-colors flex items-center gap-1"
           >
-            <span class="material-symbols-outlined text-xs">refresh</span>
+            ${icons.refresh("w-3.5 h-3.5")}
             <span>Refresh</span>
           </button>
         </div>
@@ -302,7 +310,10 @@ export function renderShopView(container) {
                         </span>
                       </td>
                       <td class="py-2.5 px-4 text-right whitespace-nowrap ${deltaColor}">
-                        ${deltaSign}${tx.amount} 🪙
+                        <span class="inline-flex items-center justify-end gap-1">
+                          <span>${deltaSign}${tx.amount}</span>
+                          ${icons.coin("w-3.5 h-3.5 text-amber-500")}
+                        </span>
                       </td>
                       <td class="py-2.5 px-4 text-stone-accent max-w-md truncate">
                         ${escapeHtml(tx.reason || "System transaction")}
@@ -321,7 +332,9 @@ export function renderShopView(container) {
         <form method="dialog" id="custom-reward-form" class="space-y-4">
           <div class="border-b border-outline-variant pb-3 flex items-center justify-between">
             <h2 class="font-sans text-base font-extrabold text-stone-accent">Add Custom Reward</h2>
-            <button type="button" id="custom-reward-close-x" class="text-outline hover:text-stone-accent font-mono text-sm">✕</button>
+            <button type="button" id="custom-reward-close-x" class="text-outline hover:text-stone-accent font-mono text-sm p-1 rounded-lg hover:bg-surface-subtle">
+              ${icons.close("w-4 h-4")}
+            </button>
           </div>
 
           <div>
@@ -338,7 +351,7 @@ export function renderShopView(container) {
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-semibold text-secondary mb-1">Cost (🪙 Coins) *</label>
+              <label class="block text-xs font-semibold text-secondary mb-1">Cost (Coins) *</label>
               <input
                 id="custom-reward-cost"
                 type="number"
@@ -349,12 +362,12 @@ export function renderShopView(container) {
               />
             </div>
             <div>
-              <label class="block text-xs font-semibold text-secondary mb-1">Icon Emoji</label>
+              <label class="block text-xs font-semibold text-secondary mb-1">Icon Tag</label>
               <input
                 id="custom-reward-icon"
                 type="text"
                 maxlength="8"
-                value="🎁"
+                value="GIFT"
                 class="w-full bg-surface-subtle border border-outline-variant px-3 py-2 text-xs font-mono text-stone-accent text-center rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
             </div>
@@ -472,7 +485,7 @@ export function renderShopView(container) {
       const cost = parseInt(costInput?.value, 10);
       const mins = typeSelect?.value === "instant" ? 0 : parseInt(minsInput?.value || "0", 10);
       const type = typeSelect?.value || (mins > 0 ? "timed" : "instant");
-      const icon = (iconInput?.value || "").trim() || "🎁";
+      const icon = (iconInput?.value || "").trim() || "GIFT";
 
       if (!name) {
         alert("Please enter a reward name.");

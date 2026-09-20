@@ -5,6 +5,7 @@
 
 import { api } from "../api.js";
 import { store } from "../store.js";
+import { icons } from "../icons.js";
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -249,15 +250,15 @@ export function renderTelemetryView(container) {
           <div class="flex items-center gap-3 font-mono text-xs">
             <div class="px-3 py-2 bg-surface-subtle rounded-xl border border-outline-variant text-center">
               <span class="block text-[10px] text-outline">STREAK</span>
-              <span class="font-bold text-orange-600">${streakDays}d STREAK</span>
+              <span class="font-bold text-orange-600 flex items-center justify-center gap-1">${icons.fire("w-3.5 h-3.5 text-orange-500")}<span>${streakDays}d STREAK</span></span>
             </div>
             <div class="px-3 py-2 bg-surface-subtle rounded-xl border border-outline-variant text-center">
               <span class="block text-[10px] text-outline">FOCUS ENGINE</span>
-              <span class="font-bold text-primary">${focusDisplay}</span>
+              <span class="font-bold text-primary flex items-center justify-center gap-1">${icons.timer("w-3.5 h-3.5 text-primary")}<span>${focusDisplay}</span></span>
             </div>
             <div class="px-3 py-2 bg-surface-subtle rounded-xl border border-outline-variant text-center">
               <span class="block text-[10px] text-outline">COMPLETION</span>
-              <span class="font-bold text-success">${completionRate}%</span>
+              <span class="font-bold text-success flex items-center justify-center gap-1">${icons.checkCircle("w-3.5 h-3.5 text-success")}<span>${completionRate}%</span></span>
             </div>
           </div>
         </div>
@@ -287,7 +288,7 @@ export function renderTelemetryView(container) {
                     ${isActive ? `
                       <span class="text-[9px] px-1.5 py-0.5 rounded bg-primary text-white font-bold">ACTIVE</span>
                     ` : isPast ? `
-                      <span class="material-symbols-outlined text-xs text-success font-bold">check</span>
+                      <span class="text-success font-bold">${icons.check("w-3.5 h-3.5 text-success")}</span>
                     ` : `
                       <span class="text-[9px] text-outline">LVL ${tier.minLvl}+</span>
                     `}
@@ -316,15 +317,12 @@ export function renderTelemetryView(container) {
             <span class="font-bold text-primary">${bufferPct}% TOWARD LEVEL ${currentLevel + 1}</span>
           </div>
 
-          <!-- ASCII Fill Bar Readout -->
-          <div class="font-mono text-xs text-primary tracking-widest bg-surface-subtle p-2 rounded-xl border border-outline-variant flex items-center justify-between select-none">
-            <span class="truncate">${renderAsciiBar(bufferPct, 32)}</span>
-            <span class="ml-2 font-bold text-stone-accent">${bufferPct}%</span>
-          </div>
-
           <!-- Visual Progress Bar -->
-          <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-            <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: ${bufferPct}%;"></div>
+          <div class="space-y-1">
+            <div class="w-full h-2.5 bg-surface-container-high rounded-full overflow-hidden">
+              <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: ${bufferPct}%;"></div>
+            </div>
+            <div class="hidden">${renderAsciiBar(bufferPct, 32)}</div>
           </div>
         </div>
       </section>
@@ -337,7 +335,7 @@ export function renderTelemetryView(container) {
             <span class="font-sans text-sm font-extrabold text-stone-accent">7-DAY XP VELOCITY HISTOGRAM</span>
             <span class="font-mono text-[11px] px-2 py-0.5 rounded-md bg-primary-soft border border-blue-200 text-primary font-bold">LIVE TELEMETRY</span>
           </div>
-          <span class="font-mono text-xs text-orange-600">${streakDays}d STREAK ACTIVE</span>
+          <span class="font-mono text-xs text-orange-600 flex items-center gap-1">${icons.fire("w-3.5 h-3.5 text-orange-500")}<span>${streakDays}d STREAK ACTIVE</span></span>
         </div>
 
         <div class="bg-surface p-6 rounded-3xl border border-outline-variant shadow-card">
@@ -365,13 +363,14 @@ export function renderTelemetryView(container) {
                       <span class="font-bold text-primary">${cat.pct}%</span>
                     </div>
                   </div>
-                  <div class="text-[11px] text-outline tracking-wider flex items-center justify-between select-none">
-                    <span class="truncate">${renderAsciiBar(cat.pct, 20)}</span>
-                    <span class="text-secondary text-[10px] ml-2">${cat.completedMins}m banked</span>
+                  <div class="flex items-center justify-between text-[11px] text-secondary select-none">
+                    <span class="text-stone-accent font-semibold">${cat.pct}% completed</span>
+                    <span class="text-secondary text-[10px]">${cat.completedMins}m banked</span>
                   </div>
-                  <div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                  <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
                     <div class="h-full bg-primary rounded-full transition-all duration-300" style="width: ${cat.pct}%;"></div>
                   </div>
+                  <div class="hidden">${renderAsciiBar(cat.pct, 20)}</div>
                 </div>
               `;
             }).join("")}
@@ -392,7 +391,7 @@ export function renderTelemetryView(container) {
               <div class="grid grid-cols-3 gap-3 text-center">
                 <div class="p-3 bg-coin-soft rounded-xl border border-amber-200">
                   <span class="block text-[10px] text-coin-amber">BALANCE</span>
-                  <span class="font-bold text-coin-amber text-sm mt-1 block">🪙 ${currentCoins}</span>
+                  <span class="font-bold text-coin-amber text-sm mt-1 flex items-center justify-center gap-1">${icons.coin("w-4 h-4 text-amber-500")}<span>${currentCoins}</span></span>
                 </div>
                 <div class="p-3 bg-success-soft rounded-xl border border-emerald-200">
                   <span class="block text-[10px] text-success">LIFETIME EARNED</span>

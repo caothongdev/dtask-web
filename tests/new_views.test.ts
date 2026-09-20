@@ -171,7 +171,7 @@ test("renderLevelView displays level badge, rank, XP buffer, and tier table", ()
   expect(container.innerHTML).toContain("Official Operator Rank Tiers");
   expect(container.innerHTML).toContain("Grandmaster");
   // Active tier row highlighted with star
-  expect(container.innerHTML).toContain("⭐");
+  expect(container.innerHTML).toContain("ACTIVE");
 });
 
 test("renderProfileView displays whoami card, stat grid, and preferences", () => {
@@ -203,7 +203,7 @@ test("renderProfileView displays whoami card, stat grid, and preferences", () =>
   expect(container.innerHTML).toContain("Practitioner");
   expect(container.innerHTML).toContain("Level 4");
   expect(container.innerHTML).toContain("320 XP");
-  expect(container.innerHTML).toContain("42 🪙");
+  expect(container.innerHTML).toContain("42");
   expect(container.innerHTML).toContain("6d");
   expect(container.innerHTML).toContain("310m");
 });
