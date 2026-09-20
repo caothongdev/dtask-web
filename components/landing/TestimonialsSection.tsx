@@ -38,7 +38,7 @@ export function TestimonialsSection() {
         {TESTIMONIALS.map((t, i) => (
           <div
             key={i}
-            className="flex flex-col justify-between rounded-2xl border border-zinc-200/90 bg-white p-7 shadow-sm hover:shadow-md hover:border-zinc-300 transition-all"
+            className="flex flex-col justify-between rounded-2xl border border-zinc-200/90 bg-white p-7 shadow-xs hover:shadow-md hover:border-zinc-300 transition-all"
           >
             <div>
               <div className="flex items-center gap-1 text-amber-500 mb-4">

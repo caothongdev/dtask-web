@@ -97,7 +97,7 @@ export function PricingSection() {
           </div>
 
           {/* Self-Hosted — Free */}
-          <div className="flex flex-col rounded-2xl border border-zinc-200/90 bg-white p-8 shadow-sm hover:border-zinc-300 transition-all">
+          <div className="flex flex-col rounded-2xl border border-zinc-200/90 bg-white p-8 shadow-xs hover:border-zinc-300 transition-all">
             <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
               <h3 className="flex items-center gap-2 text-lg font-bold text-zinc-950">
                 <Terminal className="h-4 w-4 text-zinc-700" />
@@ -196,7 +196,7 @@ export function PricingSection() {
           </div>
         </div>
 
-        <p className="mt-8 text-center text-xs font-mono text-zinc-400">
+        <p className="mt-8 text-center text-xs font-mono text-zinc-500">
           Free forever · No credit card · Your data stays yours
         </p>
       </div>

@@ -24,7 +24,7 @@ export function MockupPreview() {
         {/* Studio Window Content: Real 3-Pane Dashboard Preview */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 sm:p-6 bg-zinc-50/40 rounded-b-xl border border-zinc-100">
           {/* Left Pane: 24h Timeline Slot */}
-          <div className="lg:col-span-4 rounded-xl border border-zinc-200/80 bg-white p-5 shadow-sm">
+          <div className="lg:col-span-4 rounded-xl border border-zinc-200/80 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between text-xs font-mono text-zinc-400 mb-3">
               <span className="flex items-center gap-1.5 font-semibold text-zinc-700">
                 <Clock className="w-3.5 h-3.5 text-blue-600" />
@@ -59,7 +59,7 @@ export function MockupPreview() {
           </div>
 
           {/* Middle Pane: Focus Daemon Terminal HUD */}
-          <div className="lg:col-span-5 rounded-xl border border-zinc-200/80 bg-white p-5 shadow-sm flex flex-col justify-between">
+          <div className="lg:col-span-5 rounded-xl border border-zinc-200/80 bg-white p-5 shadow-xs flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between text-xs font-mono text-zinc-500 mb-4">
                 <span className="flex items-center gap-1.5 font-semibold text-zinc-700">
@@ -97,7 +97,7 @@ export function MockupPreview() {
           </div>
 
           {/* Right Pane: RPG Economy & Workstation context */}
-          <div className="lg:col-span-3 rounded-xl border border-zinc-200/80 bg-white p-5 shadow-sm flex flex-col justify-between">
+          <div className="lg:col-span-3 rounded-xl border border-zinc-200/80 bg-white p-5 shadow-xs flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between text-xs font-mono text-zinc-500 mb-3">
                 <span className="font-semibold text-zinc-700">RPG ECONOMY</span>

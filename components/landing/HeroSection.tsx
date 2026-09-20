@@ -9,7 +9,7 @@ export function HeroSection() {
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_20%,#000_70%,transparent_100%)] opacity-70" />
 
       <div className="mx-auto max-w-5xl px-6 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-blue-50/90 px-3.5 py-1 text-xs font-semibold text-blue-800 mb-8 shadow-sm">
+        <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-blue-50/90 px-3.5 py-1 text-xs font-semibold text-blue-800 mb-8 shadow-xs">
           <Sparkles className="w-3.5 h-3.5 text-blue-600" />
           <span>The Minimalist RPG Productivity Engine</span>
         </div>
@@ -40,7 +40,7 @@ export function HeroSection() {
           </a>
           <a
             href="#pricing"
-            className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-zinc-200/90 bg-white px-7 py-3.5 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 hover:border-zinc-300 transition-all shadow-sm"
+            className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-zinc-200/90 bg-white px-7 py-3.5 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 hover:border-zinc-300 transition-all shadow-xs"
           >
             <Play className="w-4 h-4 fill-zinc-800 text-zinc-800" />
             <span>Try The Animation</span>

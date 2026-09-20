@@ -1,16 +1,30 @@
 {
-  "name": "dtask",
+  "name": "dtask — Gamified Task Engine",
   "short_name": "dtask",
-  "description": "Gamified daily task & productivity engine. CLI + web.",
-  "start_url": "/",
+  "description": "Gamified daily task & productivity engine. 24h timeline, focus daemon, RPG coin rewards.",
+  "start_url": "/app",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#f8fafc",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

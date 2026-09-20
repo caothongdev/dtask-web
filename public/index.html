@@ -414,6 +414,13 @@
 
   <!-- Core Modules Bootstrap -->
   <script type="module">
+    // PWA: register service worker for offline static caching
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      });
+    }
+
     import { api } from "/js/api.js";
     import { store } from "/js/store.js";
     import { sound } from "/js/audio.js";

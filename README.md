@@ -1,8 +1,12 @@
 # dtask-web
 
+[![CI](https://github.com/caothongdev/dtask-web/actions/workflows/ci.yml/badge.svg)](https://github.com/caothongdev/dtask-web/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Discussions](https://img.shields.io/badge/Discussions-join%20us-blue)](https://github.com/caothongdev/dtask-web/discussions)
+
 Gamified minimalist task dashboard + JSON API, hosted at **<https://dtask.hoangkaothong.com>**.
 
-A high-performance Bun server (`server.ts`) serving an obsidian-styled zero-build SPA (`public/`) and a full-featured gamification REST & SSE API. Storage is SQLite at `DTASK_DB` (default `./db.sqlite`). Designed for multi-user use: anyone can claim a handle, get an API key, track tasks across 5 distinct views, earn XP/coins, level up through RPG ranks, and buy rewards.
+A high-performance modular Bun server (entry: `server.ts`, implementation in [`backend/`](#project-structure)) serving an obsidian-styled zero-build SPA (`public/`) and a full-featured gamification REST & SSE API. Storage is SQLite at `DTASK_DB` (default `./db.sqlite`) with hashed API keys at rest and per-key rate limiting. Designed for multi-user use: anyone can claim a handle, get an API key, track tasks across 5 distinct views, earn XP/coins, level up through RPG ranks, and buy rewards.
+
+Questions, feedback, and roadmap talk: [GitHub Discussions](https://github.com/caothongdev/dtask-web/discussions).
 
 ## Stack
 
@@ -17,8 +21,20 @@ A high-performance Bun server (`server.ts`) serving an obsidian-styled zero-buil
 bun server.ts                         # listens on 0.0.0.0:8787
 DTASK_PORT=9000 bun server.ts
 DTASK_DB=/tmp/custom.sqlite bun server.ts
-bun test                              # runs all 10 test suites
+bun test                              # runs the full suite (22 files, 129 tests)
 ```
+
+### Environment variables
+
+See [.env.example](.env.example) for a copy-paste starting point.
+
+| Variable | Default | Description |
+|---|---|---|
+| `DTASK_PORT` | `8787` | HTTP listen port (legacy `BTASK_PORT` accepted) |
+| `DTASK_DB` | `./db.sqlite` | SQLite database file (WAL mode enabled) |
+| `DTASK_CORS_ORIGIN` | `*` | Allowed origin for browser clients; set your site origin to lock `/api` to same-origin |
+| `DTASK_RATE_LIMIT_PER_MIN` | `600` | API requests per minute per bearer key (IP fallback) |
+| `DTASK_AUTH_LIMIT_PER_MIN` | `30` | Per-IP limit for `POST /api/users` self-registration |
 
 ## 5 Application Views
 
@@ -111,7 +127,17 @@ The companion command-line client is **[dtask](https://github.com/caothongdev/dt
 
 ```
 dtask-web/
-  server.ts                  Bun server: routing, SQLite gamification engine, SSE
+  server.ts                  Entry point: composes backend/, re-exports the public API
+  backend/
+    config.ts                Env-driven knobs (port, paths, CORS, rate limits)
+    db.ts                    SQLite connection, schema, migrations, prepared statements
+    keys.ts                  API key generation + SHA-256 hashing
+    auth.ts                  Bearer-key auth + username auto-registration
+    sse.ts                   In-process pub/sub for the event stream
+    gamification.ts          XP / levels / coins / streaks
+    timeline.ts              Pure schedule helpers
+    routes/                  Handlers grouped by domain (users, tasks, rewards, misc)
+    app.ts                   Bun.serve composition (rate limiting, static, ETag)
   run.sh                     Startup wrapper
   scripts/
     dtask-supervisor.sh      Auto-healing supervisor cron
@@ -130,9 +156,9 @@ dtask-web/
         shop.js              [4] Rewards catalog & transaction ledger view
         telemetry.js         [5] RPG telemetry & XP velocity histogram view
         reader.js            Hybrid book reader modal
-  tests/                     10 comprehensive test suites (80 tests)
+  tests/                     22 comprehensive test suites (129 tests)
 ```
 
 ## License
 
-Personal project, no license declared.
+[MIT](LICENSE) — use it, fork it, build on it.

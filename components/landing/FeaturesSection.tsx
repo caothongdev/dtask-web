@@ -53,7 +53,7 @@ export function FeaturesSection() {
             return (
               <div
                 key={i}
-                className="group rounded-2xl border border-zinc-200/90 bg-white p-7 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
+                className="group rounded-2xl border border-zinc-200/90 bg-white p-7 shadow-xs hover:border-blue-300 hover:shadow-md transition-all"
               >
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-200/70 mb-5 group-hover:scale-105 transition-transform">
                   <Icon className="w-5 h-5" />

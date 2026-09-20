@@ -55,17 +55,18 @@ export function FaqSection() {
               key={i}
               className={`rounded-2xl border bg-white transition-all ${
                 isOpen
-                  ? "border-blue-300 shadow-sm"
+                  ? "border-blue-300 shadow-xs"
                   : "border-zinc-200/90 hover:border-zinc-300"
               }`}
             >
               <button
                 type="button"
                 aria-expanded={isOpen}
+                aria-controls={`faq-panel-${i}`}
                 onClick={() => setOpenIndex(isOpen ? null : i)}
                 className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left"
               >
-                <span className="text-sm font-bold text-zinc-950">{faq.question}</span>
+                <span id={`faq-question-${i}`} className="text-sm font-bold text-zinc-950">{faq.question}</span>
                 <ChevronDown
                   className={`h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200 ${
                     isOpen ? "rotate-180 text-blue-600" : ""
@@ -73,7 +74,12 @@ export function FaqSection() {
                 />
               </button>
               {isOpen && (
-                <p className="px-6 pb-5 text-sm text-zinc-600 leading-relaxed">
+                <p
+                  id={`faq-panel-${i}`}
+                  role="region"
+                  aria-labelledby={`faq-question-${i}`}
+                  className="px-6 pb-5 text-sm text-zinc-600 leading-relaxed"
+                >
                   {faq.answer}
                 </p>
               )}

@@ -40,14 +40,14 @@ export function Navbar() {
             href="https://github.com/caothongdev/dtask-web"
             target="_blank"
             rel="noreferrer"
-            className="hidden sm:flex items-center gap-2 rounded-lg border border-zinc-200/90 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300 transition-colors shadow-sm"
+            className="hidden sm:flex items-center gap-2 rounded-lg border border-zinc-200/90 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300 transition-colors shadow-xs"
           >
             <Github className="w-3.5 h-3.5 text-zinc-700" />
             <span>GitHub</span>
           </a>
           <a
             href="/app"
-            className="flex items-center gap-1.5 rounded-lg bg-zinc-950 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-zinc-800 transition-all ring-1 ring-zinc-900/10"
+            className="flex items-center gap-1.5 rounded-lg bg-zinc-950 px-4 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-zinc-800 transition-all ring-1 ring-zinc-900/10"
           >
             <span>Launch App</span>
             <ArrowRight className="w-3.5 h-3.5" />

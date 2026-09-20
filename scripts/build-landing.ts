@@ -25,11 +25,11 @@ if (!buildResult.success) {
   process.exit(1);
 }
 
-// 2. Compile Tailwind CSS using bunx tailwindcss
+// 2. Compile Tailwind CSS (v4 CLI)
 console.log("🎨 [build-landing] Compiling Tailwind CSS...");
 const cssProc = Bun.spawnSync([
   "bunx",
-  "tailwindcss",
+  "@tailwindcss/cli",
   "-i",
   join(import.meta.dir, "../src/landing/landing.css"),
   "-o",
