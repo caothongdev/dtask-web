@@ -1094,6 +1094,16 @@ function createServer() {
       }
 
       if (req.method === "GET") {
+        // Explicit landing route
+        if (url.pathname === "/landing" || url.pathname === "/landing/") {
+          const landingPath = join(STATIC_DIR, "landing.html");
+          if (existsSync(landingPath)) {
+            return new Response(Bun.file(landingPath), {
+              headers: { "content-type": "text/html", "cache-control": "no-cache" },
+            });
+          }
+        }
+
         let p = url.pathname === "/" ? "/index.html" : url.pathname;
         // public board at /u/<username>
         const uMatch = url.pathname.match(/^\/u\/([a-z0-9_-]+)\/?$/);
