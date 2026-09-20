@@ -99,13 +99,13 @@ test("Telemetry helper functions calculate progression and velocity accurately",
     { id: 4, category: "health", status: "open", mins: 15 },
   ];
   const breakdown = calculateCategoryBreakdown(sampleTasks, ["code", "learn", "health", "read", "build"]);
-  const codeCat = breakdown.find((b) => b.category === "code");
+  const codeCat = breakdown.find((b: any) => b.category === "code");
   expect(codeCat?.total).toBe(2);
   expect(codeCat?.done).toBe(1);
   expect(codeCat?.pct).toBe(50);
   expect(codeCat?.completedMins).toBe(30);
 
-  const readCat = breakdown.find((b) => b.category === "read");
+  const readCat = breakdown.find((b: any) => b.category === "read");
   expect(readCat?.total).toBe(0);
   expect(readCat?.done).toBe(0);
   expect(readCat?.pct).toBe(0);

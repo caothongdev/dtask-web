@@ -393,8 +393,7 @@ export function getUserStreak(userId: number): number {
 
 // ── Routes ──────────────────────────────────────────────────────────
 const routes: { method: string; path: RegExp; handler: (req: Request, params: any) => Promise<Response> | Response }[] = [
-  // health
-  { method: "GET", path: /^\/api\/health$/, handler: () => json({ ok: true, service: "dtask-web", version: "1.1.0", uptime_s: Math.floor(process.uptime()) }) },
+  { method: "GET", path: /^\/api\/health$/, handler: () => json({ ok: true, status: "ok", service: "dtask-web", version: "1.1.0", uptime_s: Math.floor(process.uptime()) }) },
 
   // user self-register / login
   { method: "POST", path: /^\/api\/users$/, handler: async (req) => {
@@ -461,7 +460,7 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
     `).get(u.id) as any;
     const tasks = db.query("SELECT id, category, title, progress, status, completed_at, time_estimate, created_at FROM tasks WHERE user_id = ? AND archived = 0 ORDER BY created_at DESC LIMIT 50").all(u.id);
     const focus = db.query("SELECT COALESCE(SUM(minutes),0) AS m FROM focus_sessions WHERE user_id = ?").get(u.id) as any;
-    const recent = db.query("SELECT day, count FROM activity WHERE user_id = ? AND day >= date('now', '-6 days')").all(u.id);
+    const recent = db.query("SELECT day, count FROM activity WHERE user_id = ? AND day >= date('now', '-6 days')").all(u.id) as { day: string; count: number }[];
     const streak = getUserStreak(u.id);
     const totalXp = (db.query(`
       SELECT
@@ -991,7 +990,7 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
       SELECT day, count FROM activity
       WHERE user_id = ? AND day >= date('now', '-6 days')
       ORDER BY day
-    `).all(u.id);
+    `).all(u.id) as { day: string; count: number }[];
     const streak = getUserStreak(u.id);
     const xp = (totals.done || 0) * 10 + (focus.total_min || 0);
     return json({
@@ -1025,7 +1024,7 @@ const routes: { method: string; path: RegExp; handler: (req: Request, params: an
       SELECT day, count FROM activity
       WHERE user_id = ? AND day >= date('now', '-6 days')
       ORDER BY day
-    `).all(u.id);
+    `).all(u.id) as { day: string; count: number }[];
     return json({ activity: last7Days(rows) });
   }},
 

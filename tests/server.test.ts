@@ -30,7 +30,7 @@ process.env.DTASK_DB = TEST_DB;
 process.env.NODE_ENV = "test";
 
 // Now spin up the server in this process
-const serverMod = await import("../server.ts");
+const serverMod = await import("../server");
 const baseUrl = `http://127.0.0.1:${serverMod.server.port}`;
 
 // Build a fresh client; use X-Dtask-User auto-register (no need to hit /api/users)
