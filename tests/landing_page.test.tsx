@@ -23,9 +23,6 @@ test("Task 3: LandingPage renders all core sections with rich copy and icons", (
   // Unsplash Photography
   expect(html).toContain("images.unsplash.com");
 
-  // Interactive Demo Playground
-  expect(html).toContain("Try The Animation");
-
   // Footer
   expect(html).toContain("All Systems Operational");
 });

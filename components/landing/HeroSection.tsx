@@ -39,7 +39,7 @@ export function HeroSection() {
             <ArrowRight className="w-4 h-4" />
           </a>
           <a
-            href="#playground"
+            href="#features"
             className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-zinc-200/90 bg-white px-7 py-3.5 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 hover:border-zinc-300 transition-all shadow-sm"
           >
             <Play className="w-4 h-4 fill-zinc-800 text-zinc-800" />
