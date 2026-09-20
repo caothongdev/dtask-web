@@ -1,5 +1,11 @@
 import React from "react";
-import { Check, Coins, Terminal, Globe, Rocket } from "lucide-react";
+import { Check, Coins, Terminal, Globe, Rocket, Image as ImageIcon } from "lucide-react";
+
+const REPO_URL = "https://github.com/caothongdev/dtask-web";
+// TODO: once GitHub Discussions or Releases are enabled on the repo, point
+// this at `${REPO_URL}/discussions` or `${REPO_URL}/releases` — every
+// "watch for updates" link and roadmap media tile reads from it.
+const ROADMAP_UPDATES_URL = REPO_URL;
 
 const HOSTED_FEATURES = [
   "Claim a handle and start in seconds",
@@ -21,9 +27,22 @@ const SELF_HOSTED_FEATURES = [
 
 const ROADMAP_ITEMS = [
   "Team workspaces",
-  "Cloud sync & encrypted backups",
+  "Encrypted cloud sync",
   "Mobile companion app",
-  "Premium themes & reward packs",
+  "Premium themes & packs",
+];
+
+/**
+ * Roadmap media slots. When features ship, drop real captures into
+ * `public/assets/roadmap/` and set `src` to the served path (e.g.
+ * "/assets/roadmap/teams.gif") — the placeholder tile is replaced by the
+ * image automatically. GIFs welcome; keep each under ~2 MB and 16:10 so
+ * the grid stays tidy.
+ */
+const ROADMAP_MEDIA: { src: string | null; alt: string }[] = [
+  { src: null, alt: "Team workspaces preview" },
+  { src: null, alt: "Cloud sync preview" },
+  { src: null, alt: "Mobile companion app preview" },
 ];
 
 export function PricingSection() {
@@ -49,7 +68,7 @@ export function PricingSection() {
             <span className="absolute -top-3 left-8 rounded-full bg-blue-600 px-3 py-1 text-[10px] font-mono font-bold tracking-wider text-white">
               MOST POPULAR
             </span>
-            <div className="flex items-baseline justify-between">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
               <h3 className="flex items-center gap-2 text-lg font-bold text-zinc-950">
                 <Globe className="h-4 w-4 text-blue-600" />
                 Hosted
@@ -80,7 +99,7 @@ export function PricingSection() {
 
           {/* Self-Hosted — Free */}
           <div className="flex flex-col rounded-2xl border border-zinc-200/90 bg-white p-8 shadow-sm hover:border-zinc-300 transition-all">
-            <div className="flex items-baseline justify-between">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
               <h3 className="flex items-center gap-2 text-lg font-bold text-zinc-950">
                 <Terminal className="h-4 w-4 text-zinc-700" />
                 Self-Hosted
@@ -102,7 +121,7 @@ export function PricingSection() {
               ))}
             </ul>
             <a
-              href="https://github.com/caothongdev/dtask-web"
+              href={REPO_URL}
               target="_blank"
               rel="noreferrer"
               className="mt-8 flex items-center justify-center rounded-xl border border-zinc-300 bg-white px-6 py-3.5 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 hover:border-zinc-400 transition-all"
@@ -112,36 +131,68 @@ export function PricingSection() {
           </div>
 
           {/* Roadmap — Coming Soon */}
-          <div className="relative md:col-span-2 flex flex-col sm:flex-row sm:items-center gap-6 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/60 p-8">
-            <div className="flex-1">
-              <div className="inline-flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-3 py-1 text-[10px] font-mono font-bold tracking-wider text-zinc-500 mb-3">
-                <Rocket className="w-3 h-3" />
-                <span>COMING SOON</span>
+          <div className="relative md:col-span-2 flex flex-col gap-6 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/60 p-8">
+            <div className="flex flex-col md:flex-row md:items-center gap-6">
+              <div className="flex-1">
+                <div className="inline-flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-3 py-1 text-[10px] font-mono font-bold tracking-wider text-zinc-500 mb-3">
+                  <Rocket className="w-3 h-3" />
+                  <span>COMING SOON</span>
+                </div>
+                <h3 className="text-lg font-bold text-zinc-950">Pro add-ons for teams</h3>
+                <p className="mt-2 text-sm text-zinc-600 leading-relaxed max-w-xl">
+                  The core stays free, forever. Optional paid add-ons for teams are on the
+                  roadmap —{" "}
+                  <a
+                    href={ROADMAP_UPDATES_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-blue-700 hover:text-blue-600 underline decoration-blue-200 underline-offset-2"
+                  >
+                    watch the repo
+                  </a>{" "}
+                  for updates.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-zinc-950">Pro add-ons for teams</h3>
-              <p className="mt-2 text-sm text-zinc-600 leading-relaxed max-w-xl">
-                The core stays free, forever. Optional paid add-ons for teams are on the
-                roadmap —{" "}
-                <a
-                  href="https://github.com/caothongdev/dtask-web"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-medium text-blue-700 hover:text-blue-600 underline decoration-blue-200 underline-offset-2"
-                >
-                  watch the repo
-                </a>{" "}
-                for updates.
-              </p>
+              <div className="flex flex-wrap gap-2 md:max-w-[300px] md:justify-end">
+                {ROADMAP_ITEMS.map((item) => (
+                  <span
+                    key={item}
+                    className="whitespace-nowrap rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-mono text-zinc-600"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2 sm:max-w-[300px] sm:justify-end">
-              {ROADMAP_ITEMS.map((item) => (
-                <span
-                  key={item}
-                  className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-mono text-zinc-600"
-                >
-                  {item}
-                </span>
-              ))}
+
+            {/* Media slots — placeholders until real screenshots/GIFs ship */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {ROADMAP_MEDIA.map((media, i) =>
+                media.src ? (
+                  <a
+                    key={i}
+                    href={ROADMAP_UPDATES_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group relative overflow-hidden rounded-xl border border-zinc-200 bg-white"
+                  >
+                    <img
+                      src={media.src}
+                      alt={media.alt}
+                      loading="lazy"
+                      className="aspect-[16/10] w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                    />
+                  </a>
+                ) : (
+                  <div
+                    key={i}
+                    className="flex aspect-[16/10] flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-300 bg-white/60 text-zinc-400"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                    <span className="text-[10px] font-mono">Screenshot soon</span>
+                  </div>
+                ),
+              )}
             </div>
           </div>
         </div>
