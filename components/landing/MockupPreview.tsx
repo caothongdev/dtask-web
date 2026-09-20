@@ -1,5 +1,5 @@
 import React from "react";
-import { Flame, Clock, Coins } from "lucide-react";
+import { Coins } from "lucide-react";
 
 export function MockupPreview() {
   return (
