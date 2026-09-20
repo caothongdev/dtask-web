@@ -231,7 +231,7 @@ export function renderTasksView(container) {
         <div class="filter-row flex flex-wrap items-center justify-between gap-3 bg-surface rounded-2xl border border-outline-variant shadow-card p-3 font-mono text-xs">
           <!-- Status Chips -->
           <div class="flex items-center gap-1">
-            <span class="text-outline text-[11px] uppercase mr-1">// Status:</span>
+            <span class="text-outline text-[11px] uppercase mr-1">Status:</span>
             ${["all", "open", "done"]
               .map(
                 (st) => `
@@ -252,7 +252,7 @@ export function renderTasksView(container) {
 
           <!-- Category Chips -->
           <div class="flex flex-wrap items-center gap-1">
-            <span class="text-outline text-[11px] uppercase mr-1">// Cat:</span>
+            <span class="text-outline text-[11px] uppercase mr-1">Category:</span>
             <button
               data-filter-category="all"
               class="filter-cat-chip px-2 py-0.5 uppercase rounded-lg border ${
