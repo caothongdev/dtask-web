@@ -1093,11 +1093,21 @@ function createServer() {
       }
 
       if (req.method === "GET") {
-        // Explicit landing route
-        if (url.pathname === "/landing" || url.pathname === "/landing/") {
+        // Root / and /landing serve landing.html
+        if (url.pathname === "/" || url.pathname === "/landing" || url.pathname === "/landing/") {
           const landingPath = join(STATIC_DIR, "landing.html");
           if (existsSync(landingPath)) {
             return new Response(Bun.file(landingPath), {
+              headers: { "content-type": "text/html", "cache-control": "no-cache" },
+            });
+          }
+        }
+
+        // /app serves the main gamified task dashboard SPA (index.html)
+        if (url.pathname === "/app" || url.pathname === "/app/") {
+          const idxPath = join(STATIC_DIR, "index.html");
+          if (existsSync(idxPath)) {
+            return new Response(Bun.file(idxPath), {
               headers: { "content-type": "text/html", "cache-control": "no-cache" },
             });
           }

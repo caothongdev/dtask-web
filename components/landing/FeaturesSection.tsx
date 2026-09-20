@@ -36,32 +36,34 @@ const FEATURES = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="mx-auto max-w-7xl px-6 py-20">
-      <div className="text-center max-w-3xl mx-auto mb-16">
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-zinc-100">
-          Engineered for engineers who value ruthless focus
-        </h2>
-        <p className="mt-4 text-zinc-400 text-sm sm:text-base">
-          No bloated social feeds, no complex Gantt charts. Just pure execution, timeline clarity, and game loop incentives.
-        </p>
-      </div>
+    <section id="features" className="bg-zinc-50/60 border-y border-zinc-200/80 py-24">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 tracking-tight">
+            Engineered for engineers who value ruthless focus
+          </h2>
+          <p className="mt-4 text-zinc-600 text-sm sm:text-base leading-relaxed">
+            No bloated social feeds, no complex Gantt charts. Just pure execution, timeline clarity, and game loop incentives.
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {FEATURES.map((f, i) => {
-          const Icon = f.icon;
-          return (
-            <div
-              key={i}
-              className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 hover:border-zinc-700 hover:bg-zinc-900/80 transition-all"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-5">
-                <Icon className="w-5 h-5" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {FEATURES.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <div
+                key={i}
+                className="group rounded-2xl border border-zinc-200/90 bg-white p-7 shadow-sm hover:border-zinc-300 hover:shadow-md transition-all"
+              >
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/70 mb-5 group-hover:scale-105 transition-transform">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-zinc-900 tracking-tight">{f.title}</h3>
+                <p className="mt-2 text-sm text-zinc-600 leading-relaxed">{f.description}</p>
               </div>
-              <h3 className="text-lg font-semibold text-zinc-100">{f.title}</h3>
-              <p className="mt-2 text-sm text-zinc-400 leading-relaxed">{f.description}</p>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </section>
   );
