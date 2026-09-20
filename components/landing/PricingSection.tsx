@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Coins, Terminal, Globe } from "lucide-react";
+import { Check, Coins, Terminal, Globe, Rocket } from "lucide-react";
 
 const HOSTED_FEATURES = [
   "Claim a handle and start in seconds",
@@ -17,6 +17,13 @@ const SELF_HOSTED_FEATURES = [
   "Full REST & SSE API",
   "CLI companion included",
   "Free forever, open source core",
+];
+
+const ROADMAP_ITEMS = [
+  "Team workspaces",
+  "Cloud sync & encrypted backups",
+  "Mobile companion app",
+  "Premium themes & reward packs",
 ];
 
 export function PricingSection() {
@@ -102,6 +109,40 @@ export function PricingSection() {
             >
               Clone &amp; Run It
             </a>
+          </div>
+
+          {/* Roadmap — Coming Soon */}
+          <div className="relative md:col-span-2 flex flex-col sm:flex-row sm:items-center gap-6 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/60 p-8">
+            <div className="flex-1">
+              <div className="inline-flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-3 py-1 text-[10px] font-mono font-bold tracking-wider text-zinc-500 mb-3">
+                <Rocket className="w-3 h-3" />
+                <span>COMING SOON</span>
+              </div>
+              <h3 className="text-lg font-bold text-zinc-950">Pro add-ons for teams</h3>
+              <p className="mt-2 text-sm text-zinc-600 leading-relaxed max-w-xl">
+                The core stays free, forever. Optional paid add-ons for teams are on the
+                roadmap —{" "}
+                <a
+                  href="https://github.com/caothongdev/dtask-web"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium text-blue-700 hover:text-blue-600 underline decoration-blue-200 underline-offset-2"
+                >
+                  watch the repo
+                </a>{" "}
+                for updates.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 sm:max-w-[300px] sm:justify-end">
+              {ROADMAP_ITEMS.map((item) => (
+                <span
+                  key={item}
+                  className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-mono text-zinc-600"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 

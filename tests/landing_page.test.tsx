@@ -27,6 +27,7 @@ test("Task 3: LandingPage renders all core sections with rich copy and icons", (
   expect(html).toContain("Simple pricing for serious focus");
   expect(html).toContain("$0");
   expect(html).toContain("Self-Hosted");
+  expect(html).toContain("COMING SOON");
 
   // FAQ Section
   expect(html).toContain("Questions, answered.");

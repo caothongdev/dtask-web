@@ -30,7 +30,7 @@ const FAQS = [
 ];
 
 export function FaqSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
     <section id="faq" className="bg-white mx-auto max-w-3xl px-6 py-24">
