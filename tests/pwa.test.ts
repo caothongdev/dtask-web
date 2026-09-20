@@ -19,7 +19,7 @@ test("service worker is served with JavaScript content type", async () => {
   expect(res.status).toBe(200);
   expect(res.headers.get("content-type")).toContain("javascript");
   const src = await res.text();
-  expect(src).toContain("dtask-static-v1");
+  expect(src).toContain("dtask-static-v2");
   // API traffic must never be intercepted
   expect(src).toContain("/api/");
 });

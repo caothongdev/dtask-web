@@ -11,7 +11,7 @@ Questions, feedback, and roadmap talk: [GitHub Discussions](https://github.com/c
 ## Stack
 
 - **Backend:** Bun + `bun:sqlite`
-- **Frontend:** Zero-build SPA (ES modules, Tailwind CDN with obsidian theme tokens, Web Audio API synthesizer, Server-Sent Events sync)
+- **Frontend:** Zero-build SPA (ES modules, compiled Tailwind v4 stylesheets for the app, public profile, and landing, Web Audio API synthesizer, Server-Sent Events sync)
 - **Deploy:** Runs as a local process on port `DTASK_PORT` (default 8787), fronted by a Cloudflare tunnel (DNS `dtask.hoangkaothong.com`)
 - **Auth:** API-key bearer tokens, auto-issued on first request via `X-Dtask-User: <username>` header (with backward-compatible fallback to `X-Btask-User`)
 

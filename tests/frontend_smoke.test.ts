@@ -22,7 +22,7 @@ test("Frontend core files exist and are valid JavaScript", () => {
   }
 });
 
-test("public/index.html serves and includes required fonts and tailwind config", async () => {
+test("public/index.html serves with fonts and the compiled v4 stylesheet", async () => {
   const res = await fetch(`http://localhost:${server.port}/index.html`);
   expect(res.status).toBe(200);
   const html = await res.text();
@@ -32,9 +32,13 @@ test("public/index.html serves and includes required fonts and tailwind config",
   expect(html).toContain("Material Symbols Outlined");
   expect(html).toContain("Gamified Daily Task");
   expect(html).toContain("view-root");
-  // Blueprint Silicon light theme tokens
-  expect(html).toContain("#f8fafc");
-  expect(html).toContain("#2563eb");
+  // Compiled Tailwind v4 replaces the Play CDN — no runtime JIT script
+  expect(html).not.toContain("cdn.tailwindcss.com");
+  expect(html).toContain("/dist/app.css");
+  // Blueprint Silicon light theme tokens now live in the compiled stylesheet
+  const css = await fetch(`http://localhost:${server.port}/dist/app.css`).then((r) => r.text());
+  expect(css).toContain("#f8fafc");
+  expect(css).toContain("#2563eb");
 });
 
 test("public/js static files serve via HTTP with 200 and javascript content-type", async () => {

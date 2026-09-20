@@ -1,0 +1,134 @@
+/* dtask SPA — compiled Tailwind v4 (replaces the Play CDN + runtime config).
+   Theme = "Blueprint Silicon" tokens from the former tailwind.config block
+   in public/index.html. Sources are scoped so only app code is scanned. */
+@import "tailwindcss" source(none);
+@source "../js";
+@source "../app.js";
+@source "../index.html";
+
+@theme {
+  /* ── Colors ──────────────────────────────────────────────────────── */
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-base: #fbfaf5;
+  --color-surface-card: #ffffff;
+  --color-surface-subtle: #f1f5f9;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f8fafc;
+  --color-surface-container: #f1f5f9;
+  --color-surface-container-high: #e2e8f0;
+  --color-surface-container-highest: #cbd5e1;
+  --color-primary: #2563eb;
+  --color-primary-strong: #1d4ed8;
+  --color-on-primary: #ffffff;
+  --color-primary-soft: #eff6ff;
+  --color-secondary: #475569;
+  --color-secondary-fixed: #0369a1;
+  --color-stone-accent: #0f172a;
+  --color-stone-soft: #334155;
+  --color-outline: #94a3b8;
+  --color-outline-strong: #64748b;
+  --color-outline-variant: #e2e8f0;
+  --color-success: #047857;
+  --color-success-soft: #ecfdf5;
+  --color-warning: #b45309;
+  --color-warning-soft: #fef3c7;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-coin-amber: #d97706;
+  --color-coin-soft: #fffbeb;
+  --color-badge-cyan: #e0f2fe;
+  --color-badge-cyan-text: #0369a1;
+  --color-badge-emerald: #ecfdf5;
+  --color-badge-emerald-text: #047857;
+  --color-badge-amber: #fef3c7;
+  --color-badge-amber-text: #b45309;
+  --color-badge-violet: #eef2ff;
+  --color-badge-violet-text: #4338ca;
+
+  /* ── Radius (v3 config overrode the defaults — preserve them) ────── */
+  --radius-sm: 0.25rem;
+  --radius-DEFAULT: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  /* ── Fonts ───────────────────────────────────────────────────────── */
+  --font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
+  --font-display-hero: "Plus Jakarta Sans", sans-serif;
+  --font-headline-lg: "Plus Jakarta Sans", sans-serif;
+  --font-headline-md: "Plus Jakarta Sans", sans-serif;
+  --font-headline-sm: "Plus Jakarta Sans", sans-serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-body-md: "Inter", sans-serif;
+  --font-body-sm: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-code-body: "JetBrains Mono", monospace;
+  --font-code-stat: "JetBrains Mono", monospace;
+  --font-label-caps: "JetBrains Mono", monospace;
+  --font-label-md: "JetBrains Mono", monospace;
+  --font-label-sm: "JetBrains Mono", monospace;
+
+  /* ── Shadows (Blueprint hard shadows + card elevations) ──────────── */
+  --shadow-hard: 3px 3px 0px #0f172a;
+  --shadow-hard-sm: 2px 2px 0px #0f172a;
+  --shadow-hard-lg: 4px 4px 0px #0f172a;
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-card-md: 0 2px 4px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+@layer base {
+  body {
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-family: "Plus Jakarta Sans", "Inter", sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Keyboard focus ring (WCAG 2.4.7) — replaces outline-none reliance */
+  :focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+}
+
+/* Legacy custom classes kept verbatim from index.html <style> */
+.font-space { font-family: "Plus Jakarta Sans", sans-serif; }
+.font-geist { font-family: "Inter", sans-serif; }
+
+/* ── v3 → v4 compatibility shims ───────────────────────────────────────
+   The v3 CDN config overrode bare `rounded` to 0.5rem (v4 default is
+   0.25rem). 29 call sites rely on it. A custom `@utility rounded` is
+   silently ignored when the name collides with a built-in, so this is a
+   plain unlayered rule — unlayered author CSS wins over @layer utilities. */
+.rounded {
+  border-radius: 0.5rem;
+}
+
+/* Blueprint dot-matrix drafting paper backdrop */
+.blueprint-grid {
+  background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.glass-panel { background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(12px); }
+.pulse-dot { animation: pulseDot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+@keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(1.15); } }
+
+/* Tactile hard-shadow button interactions */
+.btn-hard { transition: transform .12s ease, box-shadow .12s ease; }
+.btn-hard:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0px #0f172a; }
+.btn-hard:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #0f172a; }
+
+dialog::backdrop {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+}

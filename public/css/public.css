@@ -1,0 +1,80 @@
+/* dtask public profile (/u/:username) — compiled Tailwind v4, replaces the
+   Play CDN + runtime config. Theme = "Neutrals for Balance" tokens from the
+   former tailwind.config block in public.html. The page is inherently dark;
+   it uses no dark: variants. */
+@import "tailwindcss" source(none);
+@source "../public.html";
+
+@theme {
+  /* ── Colors ──────────────────────────────────────────────────────── */
+  --color-background: #090a0c;
+  --color-surface: #121315;
+  --color-surface-container-lowest: #0d0e10;
+  --color-surface-container-low: #1b1c1e;
+  --color-surface-container: #1f2022;
+  --color-surface-container-high: #292a2c;
+  --color-surface-container-highest: #343537;
+  --color-primary: #f4f4f0;
+  --color-secondary: #ccc6ba;
+  --color-secondary-fixed: #e8e2d6;
+  --color-stone-accent: #d8d2c6;
+  --color-outline: #8f918d;
+  --color-outline-variant: #444844;
+
+  /* ── Radius: the v3 config flattened every radius to 0 ("strict 0px")
+       design rule). rounded-full is unaffected (v4 hardcodes infinity). ── */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+
+  /* ── Fonts ───────────────────────────────────────────────────────── */
+  --font-sans: "Geist", sans-serif;
+  --font-display-hero: "Space Mono", monospace;
+  --font-headline-lg: "Space Mono", monospace;
+  --font-headline-md: "Space Mono", monospace;
+  --font-headline-sm: "Space Mono", monospace;
+  --font-body-lg: "Geist", sans-serif;
+  --font-body-md: "Geist", sans-serif;
+  --font-body-sm: "Geist", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-code-body: "JetBrains Mono", monospace;
+  --font-code-stat: "JetBrains Mono", monospace;
+  --font-label-caps: "JetBrains Mono", monospace;
+  --font-label-md: "JetBrains Mono", monospace;
+  --font-label-sm: "JetBrains Mono", monospace;
+
+  /* NOTE: the CDN config defined no boxShadow tokens, so `shadow-card` in
+     public.html was always a dead class — deliberately not defined here. */
+}
+
+@layer base {
+  /* Strict 0px Border Radius & Base Obsidian Canvas (kept verbatim) */
+  *,
+  *::before,
+  *::after {
+    border-radius: 0px !important;
+  }
+
+  body {
+    background-color: #090a0c;
+    color: #f4f4f0;
+    font-family: "Geist", sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+}
+
+/* Legacy custom classes kept verbatim from public.html <style>.
+   (.font-mono is covered by the --font-mono token above.) */
+.font-space { font-family: "Space Mono", monospace; }
+.font-geist { font-family: "Geist", sans-serif; }
+
+/* Custom terminal scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0d0e10; }
+::-webkit-scrollbar-thumb { background: #292a2c; border: 1px solid #444844; }
+::-webkit-scrollbar-thumb:hover { background: #444844; }

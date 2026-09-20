@@ -13,91 +13,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
-  <!-- Tailwind CSS CDN & Neutrals for Balance Design Tokens -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            background: '#090a0c',
-            surface: '#121315',
-            'surface-container-lowest': '#0d0e10',
-            'surface-container-low': '#1b1c1e',
-            'surface-container': '#1f2022',
-            'surface-container-high': '#292a2c',
-            'surface-container-highest': '#343537',
-            primary: '#f4f4f0',
-            secondary: '#ccc6ba',
-            'secondary-fixed': '#e8e2d6',
-            'stone-accent': '#d8d2c6',
-            outline: '#8f918d',
-            'outline-variant': '#444844',
-          },
-          borderRadius: {
-            none: '0px',
-            sm: '0px',
-            DEFAULT: '0px',
-            md: '0px',
-            lg: '0px',
-            xl: '0px',
-            '2xl': '0px',
-            '3xl': '0px',
-            full: '0px',
-          },
-          fontFamily: {
-            'display-hero': ['Space Mono', 'monospace'],
-            'headline-lg': ['Space Mono', 'monospace'],
-            'headline-md': ['Space Mono', 'monospace'],
-            'headline-sm': ['Space Mono', 'monospace'],
-            'body-lg': ['Geist', 'sans-serif'],
-            'body-md': ['Geist', 'sans-serif'],
-            'body-sm': ['Geist', 'sans-serif'],
-            'code-body': ['JetBrains Mono', 'monospace'],
-            'code-stat': ['JetBrains Mono', 'monospace'],
-            'label-caps': ['JetBrains Mono', 'monospace'],
-            'label-md': ['JetBrains Mono', 'monospace'],
-            'label-sm': ['JetBrains Mono', 'monospace'],
-          },
-        },
-      },
-    };
-  </script>
+  <!-- Compiled Tailwind v4 stylesheet (build: bun run build:app) -->
+  <link rel="stylesheet" href="/dist/public.css" />
 
-  <style>
-    /* Strict 0px Border Radius & Base Obsidian Canvas */
-    *, *::before, *::after {
-      border-radius: 0px !important;
-    }
-    body {
-      background-color: #090a0c;
-      color: #f4f4f0;
-      font-family: 'Geist', sans-serif;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-    }
-    .font-space { font-family: 'Space Mono', monospace; }
-    .font-geist { font-family: 'Geist', sans-serif; }
-    .font-mono { font-family: 'JetBrains Mono', monospace; }
-
-    /* Custom terminal scrollbars */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0d0e10;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #292a2c;
-      border: 1px solid #444844;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #444844;
-    }
-  </style>
 </head>
 <body class="bg-background text-primary selection:bg-stone-accent selection:text-surface min-h-screen flex flex-col">
 
@@ -122,7 +40,7 @@
           <span>JSON API</span>
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
         </a>
-        <a href="/" class="text-xs px-3.5 py-1.5 bg-stone-accent text-white font-semibold rounded-xl hover:bg-black transition-colors shadow-sm">
+        <a href="/" class="text-xs px-3.5 py-1.5 bg-stone-accent text-white font-semibold rounded-xl hover:bg-black transition-colors shadow-xs">
           Claim your own
         </a>
       </div>

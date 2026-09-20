@@ -3,12 +3,14 @@
 //   /api/*          -> network only (never cached, never stale)
 //   HTML navigations -> network-first, fall back to cache when offline
 //   static assets    -> cache-first (they carry ETags; dist is content-stable)
-const CACHE = "dtask-static-v1";
+const CACHE = "dtask-static-v2";
 const PRECACHE = [
   "/app",
   "/manifest.json",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
+  "/dist/app.css",
+  "/dist/public.css",
 ];
 
 self.addEventListener("install", (event) => {

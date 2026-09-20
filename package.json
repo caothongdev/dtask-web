@@ -9,7 +9,8 @@
   "scripts": {
     "start": "bun server.ts",
     "test": "bun test",
-    "build:landing": "bun scripts/build-landing.ts"
+    "build:landing": "bun scripts/build-landing.ts",
+    "build:app": "bun scripts/build-app-css.ts"
   },
   "dependencies": {
     "clsx": "^2.1.1",
