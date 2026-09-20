@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>dtask — Gamified Daily Task &amp; Productivity Engine</title>
+  <title>dtask</title>
   <meta name="description" content="dtask — gamified daily task engine with timeline slots, focus timers, book reader, coin wallet, and RPG progression." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.json" />
@@ -155,9 +155,8 @@
           <div>
             <div class="flex items-center gap-1.5">
               <span class="font-extrabold text-stone-accent tracking-tight text-lg">dtask</span>
-              <span class="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-surface-subtle border border-outline-variant text-stone-soft tracking-wide">v3</span>
+              <span class="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-surface-subtle border border-outline-variant text-stone-soft tracking-wide">Productivity</span>
             </div>
-            <p class="text-xs text-outline font-medium leading-none">Productivity &amp; Focus Engine</p>
           </div>
         </div>
 
@@ -187,7 +186,7 @@
 
           <!-- Coin Balance (Wallet link) -->
           <button onclick="location.hash='wallet'" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-coin-soft hover:bg-amber-100/80 border border-amber-200/80 text-coin-amber font-mono font-bold text-xs transition active:scale-95 shadow-sm">
-            <svg class="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 9v6"/></svg>
+            <span class="text-base leading-none">🪙</span>
             <span id="hud-coins">0</span>
             <span class="text-[10px] uppercase font-medium opacity-75">coins</span>
           </button>
@@ -237,7 +236,7 @@
         </div>
         <div class="flex items-center gap-3 font-mono">
           <span class="text-coin-amber font-bold flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 9v6"/></svg>
+            <span class="text-sm leading-none">🪙</span>
             <span id="mob-coins">0</span>
           </span>
           <span class="text-orange-600 font-bold flex items-center gap-1.5">

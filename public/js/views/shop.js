@@ -20,7 +20,7 @@ function escapeHtml(str) {
 
 export function formatCoins(amount) {
   const num = parseInt(amount, 10) || 0;
-  return `${num.toLocaleString()} COINS`;
+  return `🪙 ${num.toLocaleString()} COINS`;
 }
 
 export function renderAsciiBar(pct = 0, blocks = 16) {
@@ -61,7 +61,7 @@ export async function buyReward(rewardId) {
     }
 
     const rewardName = res.reward?.name || reward?.name || "Reward";
-    store.showToast(`Purchased "${rewardName}" (-${reward?.cost || res.reward?.cost || 0} coins)`, "success");
+    store.showToast(`Purchased "${rewardName}" (-${reward?.cost || res.reward?.cost || 0} 🪙)`, "success");
 
     // Refresh user, stats, rewards, and transaction audit records
     await Promise.allSettled([
@@ -235,7 +235,7 @@ export function renderShopView(container) {
                         class="w-full px-3 py-2 bg-surface-subtle border border-outline-variant text-outline font-mono text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed select-none"
                       >
                         ${icons.lock("w-3.5 h-3.5 text-outline")}
-                        <span>Need ${neededCoins} more coins</span>
+                        <span>Need ${neededCoins} more 🪙</span>
                       </button>
                     ` : `
                       <button
@@ -351,7 +351,7 @@ export function renderShopView(container) {
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-semibold text-secondary mb-1">Cost (Coins) *</label>
+              <label class="block text-xs font-semibold text-secondary mb-1">Cost (🪙 Coins) *</label>
               <input
                 id="custom-reward-cost"
                 type="number"

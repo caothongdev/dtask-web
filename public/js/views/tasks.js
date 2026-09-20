@@ -975,7 +975,7 @@ function bindViewEvents(container) {
           if (task.pages > 0 && newPage >= task.pages && task.status !== "done") {
             await api.markDone(task.id);
             sound.playComplete();
-            store.showToast(`Completed book: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} coins)`, "success");
+            store.showToast(`Completed book: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} 🪙)`, "success");
             await store.refreshUserAndStats();
           }
           await store.refreshTasks();
@@ -996,7 +996,7 @@ function bindViewEvents(container) {
         await api.logFocus(mins);
         sound.playComplete();
         const coinsEarned = Math.floor(mins / 2);
-        store.showToast(`Logged ${mins}m focus session (+${mins} XP, +${coinsEarned} coins)`, "success");
+        store.showToast(`Logged ${mins}m focus session (+${mins} XP, +${coinsEarned} 🪙)`, "success");
         await store.refreshUserAndStats();
         updateTasksListOnly(container);
       } catch (err) {

@@ -63,9 +63,9 @@ test("index.html routes to shop and stats views", async () => {
 });
 
 test("Shop helper functions format coins, dates, and ASCII bars correctly", () => {
-  expect(formatCoins(100)).toBe("100 COINS");
-  expect(formatCoins(0)).toBe("0 COINS");
-  expect(formatCoins(2500)).toBe("2,500 COINS");
+  expect(formatCoins(100)).toBe("🪙 100 COINS");
+  expect(formatCoins(0)).toBe("🪙 0 COINS");
+  expect(formatCoins(2500)).toBe("🪙 2,500 COINS");
 
   expect(formatLedgerTime(null)).toBe("--:--");
   expect(formatLedgerTime("")).toBe("--:--");
@@ -182,7 +182,7 @@ test("renderShopView displays wallet balance, item cards, locked/unlocked state,
   // Item 1 (cost 15 <= 25) should have BUY REWARD button
   expect(container.innerHTML).toContain("Redeem Reward");
   // Item 2 (cost 50 > 25) should have LOCKED state with Need 25 more
-  expect(container.innerHTML).toContain("Need 25 more coins");
+  expect(container.innerHTML).toContain("Need 25 more 🪙");
 
   // Ledger verification
   expect(container.innerHTML).toContain("Completed Rust task");

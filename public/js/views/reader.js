@@ -152,7 +152,7 @@ export function openReaderModal(task, onUpdate) {
           sound.playComplete();
           task.status = "done";
           task.progress = 100;
-          store.showToast(`Book finished: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} coins)`, "success");
+          store.showToast(`Book finished: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} 🪙)`, "success");
           await store.refreshUserAndStats();
         } catch (err) {
           console.error("Auto markDone error:", err);

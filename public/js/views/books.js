@@ -196,7 +196,7 @@ function bindBooksEvents(container, activeTask) {
       if (task.pages > 0 && newPage >= task.pages && task.status !== "done") {
         await api.markDone(taskId);
         sound.playComplete();
-        store.showToast(`Completed book: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} coins)`, "success");
+        store.showToast(`Completed book: "${task.book_title || task.title}"! (+${task.xp || 10} XP, +${task.coins || 10} 🪙)`, "success");
         await store.refreshUserAndStats();
       }
       await store.refreshTasks();
