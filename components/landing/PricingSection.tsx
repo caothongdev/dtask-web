@@ -2,10 +2,9 @@ import React from "react";
 import { Check, Coins, Terminal, Globe, Rocket, Image as ImageIcon } from "lucide-react";
 
 const REPO_URL = "https://github.com/caothongdev/dtask-web";
-// TODO: once GitHub Discussions or Releases are enabled on the repo, point
-// this at `${REPO_URL}/discussions` or `${REPO_URL}/releases` — every
-// "watch for updates" link and roadmap media tile reads from it.
-const ROADMAP_UPDATES_URL = REPO_URL;
+// Discussions are enabled on the repo — roadmap updates, feedback, and the
+// media tiles below all link there. Releases would be `${REPO_URL}/releases`.
+const ROADMAP_UPDATES_URL = `${REPO_URL}/discussions`;
 
 const HOSTED_FEATURES = [
   "Claim a handle and start in seconds",
